@@ -203,11 +203,8 @@ papi_instructions::papi_instructions() {
 
 /* ------------------------------------ */
 long long inline papi_instructions::load_instructions() const { return values_[0]; }
-
 long long inline papi_instructions::store_instructions() const { return values_[1]; }
-
 long long inline papi_instructions::branch_instructions() const { return values_[2]; }
-
 long long inline papi_instructions::total_instructions() const { return values_[3]; }
 
 /* ------------------------------------ */
@@ -236,13 +233,9 @@ papi_cycles::papi_cycles() {
 
 /* ------------------------------------ */
 inline long long papi_cycles::idle_cycles() const { return values_[0]; }
-
 inline long long papi_cycles::utilised_cycles() const { return values_[1]; }
-
 inline long long papi_cycles::stalled_cycles() const { return values_[2]; }
-
 inline long long papi_cycles::cycles() const { return values_[3]; }
-
 inline long long papi_cycles::instructions() const { return values_[4]; }
 
 /* ------------------------------------ */
@@ -275,11 +268,8 @@ papi_cache::papi_cache() {
 
 /* ------------------------------------ */
 long long inline papi_cache::l2_cache_misses() const { return values_[0]; }
-
 long long inline papi_cache::l2_cache_accesses() const { return values_[1]; }
-
 long long inline papi_cache::l3_cache_misses() const { return values_[2]; }
-
 long long inline papi_cache::l3_cache_accesses() const { return values_[3]; }
 
 /* ------------------------------------ */
@@ -293,8 +283,6 @@ double papi_cache::l3_miss_ratio() const {
 }
 
 /* ------------------------------------ */
-
-
 papi_branch::papi_branch() {
   this->register_counter("PAPI_BR_PRC", "conditional_branches_correctly_predicted"); //NOT on AMD
   this->register_counter("PAPI_BR_MSP", "conditional_branches_mispredicted");
@@ -302,9 +290,7 @@ papi_branch::papi_branch() {
 
 /* ------------------------------------ */
 long long inline papi_branch::branch_instructions() const { return values_[0] + values_[1]; }
-
 long long inline papi_branch::branch_misses() const { return values_[1]; }
-
 long long inline papi_branch::branch_hits() const { return values_[0]; }
 
 /* ------------------------------------ */
@@ -325,7 +311,6 @@ papi_tlb::papi_tlb() {
 
 /* ------------------------------------ */
 long long inline papi_tlb::data_tlbs() const { return values_[0]; }
-
 long long inline papi_tlb::instruction_tlbs() const { return values_[1]; }
 
 /* ------------------------------------ */
