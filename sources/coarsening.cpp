@@ -27,9 +27,7 @@ coarse_t::coarse_t(mesh_t* input, partit_t* algo)
 }
 
 /* ------------------------------------ */
-coarse_t::~coarse_t() {
-  delete alg;
-}
+coarse_t::~coarse_t() { delete alg; }
 
 /* ------------------------------------ */
 void coarse_t::run(stats_t* tot) {
@@ -119,7 +117,7 @@ void coarse_t::identify(int i) {
     bound_dst = mesh->bound(j);
 
     // simulate collapse (i->j)
-    for (auto t = stenc_beg; !skip and t < stenc_end; ++t) {
+    for (auto t = stenc_beg; not(skip) and t < stenc_end; ++t) {
 
       const int* n = mesh->get_elem(*t);
 

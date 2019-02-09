@@ -70,8 +70,8 @@ void parse(int argc, char* argv[]) {
   round.set_default(2).type("int");
   verb_.set_default(1).type("int");
   input.set_default("GRID4");
-  solut.set_default("GRID4");
-  rsult.set_default("test");
+  solut.set_default("solut/gauss4");
+  rsult.set_default("tests/adap");
   mode_.set_default(mode[0]).choices(mode,mode+3);
   papi_.set_default(papi[0]).choices(papi,papi+4);
   arch_.set_default(arch[1]).choices(arch,arch+4);
