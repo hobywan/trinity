@@ -2,47 +2,60 @@
 #pragma once
 /* ------------------------------------*/
 #include "mesh.h"
-#include "hashtable.h"
+#include "sync.h"
 #include "numeric.h"
 #include "partition.h"
+#include "indep.h"
 /* ------------------------------------ */
 namespace trinity {
 
-  class smooth_t {
+  class coarse_t {
 
 public:
 
-     smooth_t(mesh_t* input, partit_t* algo, int level);
-    ~smooth_t();
+     coarse_t(mesh_t* input, partit_t* algo);
+    ~coarse_t();
 
     void run(stats_t* tot);
 
 private:
-
     // steps
     void preprocess();
-    void cache_qualit();
+    void filtering(std::vector<int>* heap);
+    void extract_primal();
     void kernel();
 
-    mesh_t*   mesh;
-    partit_t* heuris;
     //
+    mesh_t*   mesh;
+    graph_t   primal;
+    partit_t* heuris;
+
+    // tasklists
+    int*  target;
+    int*  filter;
+    int*  indep;
+    int*  off;
+    char* fixes;
     char* activ;
-    double* qualit;
 
     // counters
     int& cores;
     int& nb_nodes;
     int& nb_elems;
+    int& nb_indep;
     int& verbose;
     int& iter;
     int& rounds;
     int  depth;
+    int  nb_activ;
     int  nb_tasks;
-    int  nb_comms;
 
-    // kernel
-    int laplacian(int id);
+    // kernels
+    void identify(int id);
+    void collapse(int i, int j);
+
+    // for profiling only
+    indep_t* alg;
 
     // timers and stats
     time_t start;

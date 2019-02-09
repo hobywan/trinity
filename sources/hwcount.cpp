@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& os, const papi_t & b)
 
 void papi_branch::to_stream( std::ostream& os ) const
 {
-  os << branch_hits() << "\t" << branch_misses() << "\t" << branch_instructions() 
+  os << branch_hits() << "\t" << branch_misses() << "\t" << branch_instructions()
   	<< "\t" << misprediction_ratio();
 }
 /* ------------------------------------ */
@@ -47,11 +47,11 @@ void papi_cycles::to_stream( std::ostream& os ) const
 /* ------------------------------------ */
 void papi_instructions::to_stream( std::ostream& os ) const
 {
-  os << load_instructions_ratio() << "\t" << store_instructions_ratio() 
+  os << load_instructions_ratio() << "\t" << store_instructions_ratio()
   	<< "\t" << branch_instructions_ratio();
 }
 /* ------------------------------------ */
-void papi_tlb::to_stream( std::ostream& os ) const 
+void papi_tlb::to_stream( std::ostream& os ) const
 {
   os << data_tlbs() << "\t" << instruction_tlbs();
 }
@@ -60,7 +60,7 @@ void papi_cache::to_stream( std::ostream& os ) const
 {
 	//first output L2 statistics: misses, accesses, and miss ratio
 	//then output L3 statistics: misses, accesses, and miss ratio
-	os << l2_cache_misses() << "\t" << l2_cache_accesses() << "\t" << l2_miss_ratio() 
+	os << l2_cache_misses() << "\t" << l2_cache_accesses() << "\t" << l2_miss_ratio()
 	   << "\t"
 	   << l3_cache_misses() << "\t" << l3_cache_accesses() << "\t" << l3_miss_ratio();
 }
@@ -94,11 +94,11 @@ void papi_t::register_counter(const std::string &counter_name, const std::string
 	strcpy( c_style_string, counter_name.c_str() );
 	c_style_string[ counter_name.length() ] = '\0';
 	int retval = PAPI_event_name_to_code( c_style_string, &counter );
-	if ( retval != PAPI_OK ) {
+	if ( retval not_eq PAPI_OK ) {
 		std::cerr << "Could not decode PAPI counter: " << counter_name << std::endl;
 		return;
 	}
-	else { 
+	else {
 		values_.push_back( 0 );
 		counters_.push_back( counter );
 		headers_.push_back( header );
@@ -107,7 +107,7 @@ void papi_t::register_counter(const std::string &counter_name, const std::string
 /* ------------------------------------ */
 void papi_t::reset()
 {
-	for( auto it = values_.begin(); it != values_.end(); ++it ) {
+	for( auto it = values_.begin(); it not_eq values_.end(); ++it ) {
 		*it = 0;
 	}
 }
@@ -125,18 +125,18 @@ void papi_t::start()
 }
 /* ------------------------------------ */
 void papi_t::stop( ) {
-	
+
   if( values_.size() == 0 ) { return; }
 	if( papi_started_ ) {
 		long long v[ counters_.size() ];
 		int retval = PAPI_stop_counters( &v[0], counters_.size() );
-		if( retval != PAPI_OK ) handle_error( retval );
+		if( retval not_eq PAPI_OK ) handle_error( retval );
 		for( uint32_t i = 0; i < values_.size(); ++i ) {
 			values_[ i ] += v[ i ];
 		}
 	}
 	else {
-		for ( auto it = values_.begin(); it != values_.end(); ++it ) {
+		for ( auto it = values_.begin(); it not_eq values_.end(); ++it ) {
 			*it = -1;
 		}
 	}
@@ -175,14 +175,14 @@ papi_t & papi_t::operator-=(const papi_t & other) {
 }
 /* ------------------------------------ */
 papi_t & papi_t::operator/=(const uint32_t scalar) {
-	for( auto it = values_.begin(); it != values_.end(); ++it ) {
+	for( auto it = values_.begin(); it not_eq values_.end(); ++it ) {
 		*it /= scalar;
 	}
 	return *this;
 }
 /* ------------------------------------ */
 papi_t & papi_t::operator*=(const uint32_t scalar) {
-	for( auto it = values_.begin(); it != values_.end(); ++it ) {
+	for( auto it = values_.begin(); it not_eq values_.end(); ++it ) {
 		*it *= scalar;
 	}
 	return *this;
@@ -298,7 +298,7 @@ long long inline papi_tlb::instruction_tlbs() const { return values_[ 1 ]; }
 /* ------------------------------------ */
 papi_custom::papi_custom( const std::vector< std::pair<std::string,std::string> > &events)
 {
-	for( auto it = events.begin(); it != events.end(); ++it ) {
+	for( auto it = events.begin(); it not_eq events.end(); ++it ) {
 		this->register_counter( it->first, it->second );
 	}
 }
@@ -309,11 +309,11 @@ papi_custom::papi_custom( const std::vector< std::pair<std::string,std::string> 
  * @param papi_mode the type of papi counter to track
  * @param papi_counters array of polymorphic papi counter sets per thread and per kernel
  */
-void trigen::papi_init(const uint32_t num_cores,
+void trinity::papi_init(const uint32_t num_cores,
                        const uint32_t papi_mode,
                        std::vector<papi_t*> hw_counters[4]){
   assert(num_cores);
-  assert(hw_counters != nullptr);
+  assert(hw_counters not_eq nullptr);
   // init random seed
   srand( (unsigned) time(0) );
 
@@ -321,13 +321,13 @@ void trigen::papi_init(const uint32_t num_cores,
   if( PAPI_is_initialized() == PAPI_NOT_INITED ){
     PAPI_library_init( PAPI_VER_CURRENT );
 #pragma omp parallel num_threads(num_cores)
-    if( PAPI_thread_init( pthread_self ) != PAPI_OK ) {
+    if( PAPI_thread_init( pthread_self ) not_eq PAPI_OK ) {
       exit(0);
     }
   }
 
   // step 2: initialise and start the papi counter sets, one for each thread
-  if( papi_mode != papi_t::papi_mode_off ) {
+  if( papi_mode not_eq papi_t::papi_mode_off ) {
     for(int k=0; k < 4; ++k){
       for(uint32_t t=0; t < num_cores; ++t) {
 	      switch( papi_mode ){
@@ -338,31 +338,31 @@ void trigen::papi_init(const uint32_t num_cores,
           case papi_t::papi_mode_branch :
             hw_counters[k].push_back( new papi_branch() );
             break;
-            
+
           case papi_t::papi_mode_cycle :
             hw_counters[k].push_back( new papi_cycles() );
             break;
-            
+
           case papi_t::papi_mode_tlb :
             hw_counters[k].push_back( new papi_tlb() );
             break;
         }
       }
     }
-  } 
+  }
 }
 
 /**
  * Report the PAPI counters' values, reduce over all threads, and clean up.
  */
-void trigen::papi_finalize(std::vector< papi_t* > hw_counters[4]){
+void trinity::papi_finalize(std::vector< papi_t* > hw_counters[4]){
   for(int k=0; k < 4; ++k){
     // 1: reduce counters for each kernel
     papi_t::sum( hw_counters[k] );
     std::cout << *( hw_counters[k][0] ) << std::endl;
     // 2: clean up
     while(!hw_counters[k].empty())
-      hw_counters[k].pop_back();   // delete performed here	    
+      hw_counters[k].pop_back();   // delete performed here
   }
 }
 #endif

@@ -2,7 +2,7 @@
  * Library for updating/accessing standard PAPI counters
  *
  * @note The first time you use this library on a new architecture, it may be
- * worth running \c papi_avail and \c papi_native_avail to determine which 
+ * worth running \c papi_avail and \c papi_native_avail to determine which
  * hardware counters are available on the machine that you are using.
  */
 #pragma once
@@ -24,7 +24,7 @@
 class papi_t {
 
 public:
-	
+
 	virtual ~papi_t() {}
 
 	/** Starts tracking/reset all the hardware counters in this subset. */
@@ -48,28 +48,28 @@ public:
 	 * @return The string of tab-separated headers.
 	 */
 	std::string headers();
-	
+
 	// operator overloads
 	papi_t & operator= (const papi_t & other);
 	papi_t & operator+=(const papi_t & other);
 	papi_t & operator-=(const papi_t & other);
 	papi_t & operator/=(const uint32_t scalar);
 	papi_t & operator*=(const uint32_t scalar);
-	
+
 	// static functions
 
 	/**
 	 * Starts up one set of PAPI counters for each thread.
-	 * @param counter_array An array of sets of PAPI counters, one for 
+	 * @param counter_array An array of sets of PAPI counters, one for
 	 * each thread.
 	 * @post All threads will now start tracking PAPI statistics.
 	 */
 	static void start(std::vector<papi_t*> &counters);
 	static void stop (std::vector<papi_t*> &counters);
 	static void sum  (std::vector<papi_t*> &counters);
-	
+
 	// static public constants
-	
+
 	/** Indicates not to use PAPI counters. */
 	static const uint32_t papi_mode_off = 0;
 	/** Indicates that pre-built L2 and L3 cache performance counters should be used. */
@@ -82,13 +82,13 @@ public:
 	static const uint32_t papi_mode_tlb = 4;
 	/** Indicates that custom (i.e., user-selected) PAPI events will be specified. */
 	static const uint32_t papi_mode_custom = 5;
-	
+
 	friend std::ostream& operator<<(std::ostream& os, const papi_t & p);
-	
+
 protected:
 
 	/**
-	 * Registers a new counter with this object based on a PAPI event. Accepts both 
+	 * Registers a new counter with this object based on a PAPI event. Accepts both
 	 * preset and native event names.
 	 * @param counter_name The ASCII name of the PAPI event to be registered
 	 * (decoding to an int takes place within this method).
@@ -98,27 +98,27 @@ protected:
 	 */
 	void register_counter( const std::string &counter_name, const std::string &header );
 
-	/** 
-	 * An array containing the actual hardware counter values (recorded at stop() 
-	 * invocations). 
+	/**
+	 * An array containing the actual hardware counter values (recorded at stop()
+	 * invocations).
 	 */
 	std::vector< long long > values_; // accessed by friended stream overloading.
-	
-	
+
+
 private:
 
 	/** Writes the polymorphic object to an output stream */
 	virtual void to_stream( std::ostream& os ) const = 0;
 
 	/**
-	 * A flag indicating whether or not this set of papi counters is currently 
+	 * A flag indicating whether or not this set of papi counters is currently
 	 * being tracked.
 	 */
-	bool papi_started_ = false; 
+	bool papi_started_ = false;
 	/** An array mapping the indexes used in this object to PAPI hardware counter ids. */
-	std::vector<int> counters_; 
+	std::vector<int> counters_;
 	/** An array that maps PAPI hardware counters onto human-readable strings. */
-	std::vector<std::string> headers_; 
+	std::vector<std::string> headers_;
 };
 
 
@@ -129,7 +129,7 @@ class papi_instructions : public papi_t {
 public:
 
 	papi_instructions();
-	
+
 	/** Returns the number of load instructions issued. */
 	long long inline load_instructions() const;
 	/** Returns the number of store instructions issued. */
@@ -146,7 +146,7 @@ public:
 	/** Returns the number of branch instructions issued as a fraction of the total instructions. */
 	double branch_instructions_ratio() const;
 
-private:	
+private:
 	void to_stream( std::ostream& os ) const;
 };
 
@@ -179,7 +179,7 @@ public:
 	/** Returns the average number of cycles spent retiring an instruction (CPI). */
 	double cycles_per_instruction() const;
 
-private:	
+private:
 	void to_stream( std::ostream& os ) const;
 };
 
@@ -195,13 +195,13 @@ public:
 	long long inline l2_cache_misses() const;
 	/** Returns the number of Level 2 total cache accesses. */
 	long long inline l2_cache_accesses() const;
-	/** Returns the number of Level 3 total cache misses. */ 
+	/** Returns the number of Level 3 total cache misses. */
 	long long inline l3_cache_misses() const;
 	/** Returns the number of Level 3 total cache misses. */
 	long long inline l3_cache_accesses() const;
 
 	/**
-	 * Returns the fraction of L2/L3 cache accesses (both data and instruction) that were 
+	 * Returns the fraction of L2/L3 cache accesses (both data and instruction) that were
 	 * missed (because the resource was not available in L2/L3 cache).
 	 */
 	double l2_miss_ratio() const;
@@ -229,7 +229,7 @@ public:
 	double misprediction_ratio() const;
 	/** Returns the fraction of conditional branches that were predicted correctly. */
 	double prediction_ratio() const;
-	
+
 private:
 	void to_stream( std::ostream& os ) const;
 };
@@ -246,7 +246,7 @@ public:
 	long long inline data_tlbs() const;
 	/** Returns the total number of instruction tlb misses. */
 	long long inline instruction_tlbs() const;
-	
+
 private:
 	void to_stream( std::ostream& os ) const;
 };
@@ -259,18 +259,18 @@ class papi_custom : public papi_t {
 public:
 	/**
 	 * Constructs a new papi_custom set using a specified set of PAPI events.
-	 * @param event_names Pairs of event names corresponding to the PAPI event 
-	 * names and the human-readable headers for the custom events that should 
+	 * @param event_names Pairs of event names corresponding to the PAPI event
+	 * names and the human-readable headers for the custom events that should
 	 * be tracked
 	 * @post Constructs a new instance of a papi_custom set.
-	 */ 
+	 */
 	papi_custom( const std::vector< std::pair< std::string, std::string > > &event_names );
-	
+
 private:
 	void to_stream( std::ostream& os ) const;
 };
 
-namespace trigen {
+namespace trinity {
   //
   void papi_init(const uint32_t num_cores,
                  const uint32_t papi_mode,

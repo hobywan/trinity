@@ -1,16 +1,16 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #include "metric.h"
-/* ------------------------------------ */ 
-using namespace trigen;
-/* ------------------------------------ */ 
+/* ------------------------------------ */
+using namespace trinity;
+/* ------------------------------------ */
 metric_t::metric_t(mesh_t* input, float targ_f, int norm, double min_h, double max_h) :
- 
+
   mesh    (input),
   solut   (input->solut.data()),
   tens    (input->tensor.data()),
-  nb_nodes(input->nb_nodes),   
-  nb_elems(input->nb_elems),   
-  nb_cores(input->nb_cores),  
+  nb_nodes(input->nb_nodes),
+  nb_elems(input->nb_elems),
+  nb_cores(input->nb_cores),
   verbose (input->_verb),
   iter    (input->_iter),
   rounds  (input->_rounds),
@@ -26,12 +26,12 @@ metric_t::metric_t(mesh_t* input, float targ_f, int norm, double min_h, double m
   complexity(0.)
 {
   stenc = new patch_t[nb_nodes];
-  nabla = new double[nb_nodes*2];  
+  nabla = new double[nb_nodes*2];
 }
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 metric_t::~metric_t(){}
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::multi_scale_field(stats_t* tot){
 
 #pragma omp parallel
@@ -42,19 +42,19 @@ void metric_t::multi_scale_field(stats_t* tot){
     local_normalization();
     compute_complexity();
     global_normalization();
-  
+
     recap(tot);
   }
 }
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::clear(){
 
-  if(stenc != nullptr) delete [] stenc;
-  if(nabla != nullptr) delete [] nabla;  
+  delete [] stenc;
+  delete [] nabla;
 }
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::compute_hessian_field(){
 
 #pragma omp for
@@ -73,7 +73,7 @@ void metric_t::compute_hessian_field(){
     mesh->solut.shrink_to_fit();
   }
 }
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::local_normalization(){
 
   // 3) local normalization
@@ -83,27 +83,27 @@ void metric_t::local_normalization(){
   double h[4];
 	double val[2],vec[4];
 	double scale_loc;
-      
+
 #pragma omp for schedule(guided)
   for(int i=0; i < nb_nodes; ++i){
     k=i*3;
-    memset(val, 0, sizeof(double)*2);
-    memset(vec, 0, sizeof(double)*4);
+    std::memset(val, 0, sizeof(double)*2);
+    std::memset(vec, 0, sizeof(double)*4);
 
     m[0] = tens[k];
     m[1] = tens[k+1];
     m[2] = m[1];
-    m[3] = tens[k+2];    
+    m[3] = tens[k+2];
 
     // diagonalize
     numeric::tensor_eigen_decomp(m, val, vec, vec+2);
     val[0] = std::max(std::abs(val[0]), EPSILON);
     val[1] = std::max(std::abs(val[1]), EPSILON);
-    
+
     // modif here: isotropic case
     /*double temp = std::max(val[0],val[1]);
     val[0] = val[1] = temp;*/
-    
+
     // compute local scale factor w.r.t to L^p, and normalize eigenvalues
     det = val[0] * val[1];
     scale_loc = (p_norm > 0 ? pow(det,scale_exp) : 1.);
@@ -111,10 +111,10 @@ void metric_t::local_normalization(){
     val[1] *= scale_loc;
 
     // h = P.D.P^-1
-    m[0] = val[0] * vec[0]; 
-    m[1] = val[0] * vec[2];  
-    m[2] = val[1] * vec[1]; 
-    m[3] = val[1] * vec[3]; 
+    m[0] = val[0] * vec[0];
+    m[1] = val[0] * vec[2];
+    m[2] = val[1] * vec[1];
+    m[3] = val[1] * vec[3];
 
     h[0] = vec[0] * m[0] + vec[1] * m[2];
     h[1] = vec[0] * m[1] + vec[1] * m[3];
@@ -127,7 +127,7 @@ void metric_t::local_normalization(){
     tens[k+2] = h[3];
   }
 }
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::compute_complexity(){
 
   int j,k;
@@ -135,26 +135,26 @@ void metric_t::compute_complexity(){
   double p[6];
   double rho;
 	double area;
-  double phi=0.; 
-  // 4) compute complexity  
-#pragma omp for schedule(guided) nowait 
+  double phi=0.;
+  // 4) compute complexity
+#pragma omp for schedule(guided) nowait
   for(int i=0; i < nb_elems; ++i){
     const int* v = mesh->elem_coord(i,p);
-    // 
-    s[0] = p[2] - p[0];      // t[1].x - t[0].x 
+    //
+    s[0] = p[2] - p[0];      // t[1].x - t[0].x
     s[1] = p[4] - p[0];      // t[2].x - t[0].x
     s[2] = p[3] - p[1];      // t[1].y - t[0].y
     s[3] = p[5] - p[1];      // t[2].y - t[0].y
-    area = 0.5 * (s[0]*s[3] - s[1]*s[2]); 
-    
+    area = 0.5 * (s[0]*s[3] - s[1]*s[2]);
+
     // local average aspect ratio
-    // rho=(1/3) * sum_k=1^3 det(metric[v[k]]) 
+    // rho=(1/3) * sum_k=1^3 det(metric[v[k]])
     rho = 0.;
-    for(j=0; j < 3; ++j){ 
+    for(j=0; j < 3; ++j){
       k   = 3*v[j]; // offset
       det = tens[k] * tens[k+2] - pow(tens[k+1],2);
       assert(det > 0);
-      rho += sqrt(det); 
+      rho += sqrt(det);
     }
     rho /= 3;
     phi += rho * area;
@@ -164,7 +164,7 @@ void metric_t::compute_complexity(){
 #pragma omp barrier
 }
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::global_normalization(){
 
   assert(complexity);
@@ -175,35 +175,35 @@ void metric_t::global_normalization(){
   double h[4];
 	double val[2],vec[4];
 
-#pragma omp single 
+#pragma omp single
   scale_fact = target / complexity;
 
   // 5) global normalization on eigenvalues (only)
 #pragma omp for schedule(guided)
-  for(int i=0; i < nb_nodes; ++i){  
+  for(int i=0; i < nb_nodes; ++i){
 
     k=i*3;
     m[0] = tens[k];
     m[1] = tens[k+1];
     m[2] = m[1];
-    m[3] = tens[k+2];     
+    m[3] = tens[k+2];
 
     numeric::tensor_eigen_decomp(m, val, vec, vec+2);
     val[0] *= scale_fact;
     val[1] *= scale_fact;
     for(j=0; j < 2; ++j){
       val[j] = std::min(val[j], lambda_min);
-      val[j] = std::max(val[j], lambda_max);    
+      val[j] = std::max(val[j], lambda_max);
     }
 
     // modif here: isotropic case
     /*double temp = std::max(val[0],val[1]);
     val[0] = val[1] = temp;*/
 
-    m[0] = val[0] * vec[0]; 
-    m[1] = val[0] * vec[2];  
-    m[2] = val[1] * vec[1]; 
-    m[3] = val[1] * vec[3]; 
+    m[0] = val[0] * vec[0];
+    m[1] = val[0] * vec[2];
+    m[2] = val[1] * vec[1];
+    m[3] = val[1] * vec[3];
 
     // vec * diag(val) * transp(vec)
     h[0] = vec[0] * m[0] + vec[1] * m[2];
@@ -214,63 +214,63 @@ void metric_t::global_normalization(){
 
     tens[k]   = h[0];
     tens[k+1] = h[1];
-    tens[k+2] = h[3];    
+    tens[k+2] = h[3];
   }
 }
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 
 void metric_t::init(){
 #pragma omp master
   {
     assert(p_norm< 5);
     assert(h_min > 0);
-    assert(h_max > 0);                
+    assert(h_max > 0);
 
     if(!verbose)
-      printf("\n\r= Remeshing  ... %3d %% =",0);
-          
+       std::printf("\n\r= Remeshing  ... %3d %% =",0);
+
     else if(verbose==1)
-      printf("%-18s%s","= metric field","...");
+       std::printf("%-18s%s","= metric field","...");
 
     else if(verbose==2)
-      printf("Computing multi-scale metric field ... \n");
+       std::printf("Computing multi-scale metric field ... \n");
 
-    fflush(stdout);
+    std::fflush(stdout);
     start = timer::now();
   }
 
-  int rank = omp_get_thread_num(); 
+  int rank = omp_get_thread_num();
   int off = rank * chunk;
 
   // first-touch
-  memset(nabla+(off*2), 0, (chunk*2)*sizeof(double));
-  memset( tens+(off*3), 0, (chunk*3)*sizeof(double));  
+  std::memset(nabla+(off*2), 0, (chunk*2)*sizeof(double));
+  std::memset( tens+(off*3), 0, (chunk*3)*sizeof(double));
 }
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 void metric_t::recap(stats_t* tot){
 #pragma omp master
-  {  
+  {
     int end = timer::elapsed_ms(start);
-  
+
     tot->eval += nb_nodes;
     tot->task += nb_nodes;
     tot->elap += end;
-    
+
     if(!verbose)
-      printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100*(++iter)/(4*rounds+1)));
-        
+       std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100*(++iter)/(4*rounds+1)));
+
     else if(verbose==1){
-      printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n", 
+       std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n",
         (int)std::floor(nb_nodes/(end*1e-3)), (float)end/1e3);
     }
     else if(verbose==2){
-      printf("= norm L^%s\n", p_norm <= 0 ? "inf":std::to_string(p_norm).data());
-      printf("= target : %.2e\n", (float) target);
-      printf("= complex: %.1f\n", (float) std::floor(complexity));
-      printf("= scale_f: %.1f\n", scale_fact);
-      printf("done. \e[32m(%d ms)\e[0m\n\n", end);
+       std::printf("= norm L^%s\n", p_norm <= 0 ? "inf":std::to_string(p_norm).data());
+       std::printf("= target : %.2e\n", (float) target);
+       std::printf("= complex: %.1f\n", (float) std::floor(complexity));
+       std::printf("= scale_f: %.1f\n", scale_fact);
+       std::printf("done. \e[32m(%d ms)\e[0m\n\n", end);
     }
-    fflush(stdout);
+    std::fflush(stdout);
   }
-}  
+}
