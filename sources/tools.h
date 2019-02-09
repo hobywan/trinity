@@ -1,13 +1,13 @@
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 #pragma once
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 #include "header.h"
 #include "timer.h"
 #include "optparse.h"
 /* -------------------------------- */
-namespace trigen {
+namespace trinity {
   namespace tools {
- 
+
     /* -------------------------------- */
     inline uint32_t hash(const uint32_t id) {
       return ((uint64_t)id * 279470273UL) % 4294967291UL;
@@ -19,32 +19,32 @@ namespace trigen {
     /* -------------------------------- */
     inline void show_elap(time_t& tic, const char* msg, int step){
     #pragma omp single
-      {  
-        printf("%d. %s : \e[32m(%d ms)\e[0m\n", step, msg, timer::elapsed_ms(tic)); 
-        fflush(stdout);
+      {
+         std::printf("%d. %s : \e[32m(%d ms)\e[0m\n", step, msg, timer::elapsed_ms(tic));
+        std::fflush(stdout);
         tic = timer::now();
       }
     }
     /* -------------------------------- */
     inline void ltrim(std::string& line){
       size_t off = line.find_first_not_of(" \t\r\n");
-      if(off != std::string::npos)
-        line.erase(0,off);  
-    }  
+      if(off not_eq std::string::npos)
+        line.erase(0,off);
+    }
     /* -------------------------------- */
     template<typename type_t>
     inline void display(const std::vector<type_t>& list){
-    
+
       std::stringstream buffer;
       buffer << "[";
-      //for(auto it = list.begin(); it != list.end() && *it != -1; ++it){
-      for(auto it = list.begin(); it != list.end(); ++it){
+      //for(auto it = list.begin(); it not_eq list.end() and *it not_eq -1; ++it){
+      for(auto it = list.begin(); it not_eq list.end(); ++it){
         buffer << *it;
-        if(it+1 != list.end()) buffer << ",";
+        if(it+1 not_eq list.end()) buffer << ",";
       }
       buffer << "]";
-      printf("%s\n", buffer.str().data());
-    }		
+       std::printf("%s\n", buffer.str().data());
+    }
     /* -------------------------------- */
     inline std::string basename(const std::string &s)
     {
@@ -59,31 +59,31 @@ namespace trigen {
 
         b.erase(i + 1, b.length() - i - 1);
         i = b.find_last_of("/");
-        if (i != std::string::npos){
+        if (i not_eq std::string::npos){
             b.erase(0, i + 1);
         }
         return b;
     }
-    
+
     /* -------------------------------- */
     template<typename type_t>
     inline void erase(type_t needle, std::vector<type_t>& list){
       auto found = std::find(list.begin(), list.end(), needle);
-      assert(found != list.end());
+      assert(found not_eq list.end());
       std::swap(*found, list.back());
       list.pop_back();
     }
     /* -------------------------------- */
     inline bool exists(std::string path) {
-      
+
       std::ifstream file(path,std::ios::in);
       bool ok = file.good();
       file.close();
       return ok;
-    } 
+    }
     /* -------------------------------- */
     inline void abort(char option, const char* msg, const optparse::parser_t& parser){
-      printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
+       std::printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
       parser.print_help();
       exit(EXIT_FAILURE);
     }
@@ -96,8 +96,8 @@ namespace trigen {
       std::string file(path);
       // get index of the last dot in file name
       size_t last_dot = file.find_last_of(".");
-      return (last_dot != std::string::npos ? file.substr(last_dot+1) : "");
-    } 
+      return (last_dot not_eq std::string::npos ? file.substr(last_dot+1) : "");
+    }
     /* -------------------------------- */
     inline std::ifstream& seek_to_line(int nb, std::ifstream& file){
       assert(nb);
@@ -105,7 +105,7 @@ namespace trigen {
       for(int i=0; i < nb-1; ++i)
         file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
       return file;
-    }    
+    }
     /* ------------------------------------*/
     inline bool is_digit(const char *arg){
       std::string s(arg);
@@ -121,19 +121,19 @@ namespace trigen {
     }
     /* ------------------------------------*/
     inline std::string replace_ext(std::string fname, std::string ext){
-      
+
       // remove file ext
       size_t last_dot = fname.find_last_of(".");
-      assert(last_dot != std::string::npos);
+      assert(last_dot not_eq std::string::npos);
       std::string root_ = fname.substr(0, last_dot);
-      // add new ext 
+      // add new ext
       std::stringstream nuw;
       nuw << root_ << ext;
       return nuw.str();
     }
     /* -------------------------------- */
     inline void separator(){
-      for(int i=0; i < 64; ++i) printf("-"); printf("\n");
+      for(int i=0; i < 64; ++i)  std::printf("-");  std::printf("\n");
     }
   }
 }

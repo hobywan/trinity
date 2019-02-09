@@ -1,6 +1,6 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #include "partition.h"
-using namespace trigen;
+using namespace trinity;
 
 /* ------------------------------------ */
 partit_t::partit_t() :
@@ -31,7 +31,7 @@ partit_t::partit_t(int max_size, int max_part)
   mapping = subset[2];
 
 #pragma omp parallel
-  flush(); 
+  flush();
 }
 /* ------------------------------------ */
 partit_t::~partit_t(){
@@ -46,12 +46,12 @@ partit_t::~partit_t(){
 /* ------------------------------------ */
 void partit_t::flush(){
 
-#pragma omp master        
+#pragma omp master
   {
     parts = defect = rounds = 0;
-    memset(remain, 0, sizeof(int) * 2);
-    memset(  card, 0, sizeof(int) * max_p);
-  } 
+    std::memset(remain, 0, sizeof(int) * 2);
+    std::memset(  card, 0, sizeof(int) * max_p);
+  }
 
   for(int i=0; i < 3; ++i)
 #pragma omp for
@@ -67,8 +67,8 @@ void partit_t::catalyurek(const mesh_t* mesh){
   flush();
 
   std::vector<int> forbidden;     // forbidden colors for vertex 'i'
-  std::vector<int> conflicts;                       
- 
+  std::vector<int> conflicts;
+
   forbidden.resize(max_p,std::numeric_limits<int>::max());
   conflicts.reserve(mesh->nb_nodes);
 
@@ -83,9 +83,9 @@ void partit_t::catalyurek(const mesh_t* mesh){
 
     for(const int& j : primal[i])
       forbidden[color[j]] = i;
-    
+
     for(int c=1; c < max_p; ++c){
-      if(forbidden[c] != i){
+      if(forbidden[c] not_eq i){
         color[i] = c;
         break;
       }
@@ -96,7 +96,7 @@ void partit_t::catalyurek(const mesh_t* mesh){
 #pragma omp for schedule(guided) nowait
   for(int i=0; i < mesh->nb_nodes; ++i){
     for(const int& j : primal[i]){
-      if(i < j && color[i] == color[j]){
+      if(i < j and color[i] == color[j]){
         conflicts.push_back(i);   // (!) index not the node value
         break;
       }
@@ -106,7 +106,7 @@ void partit_t::catalyurek(const mesh_t* mesh){
 
   // - propagation stage
   int k = 0;  // current task list index
- 
+
   while(remain[k]) {
 #pragma omp single
     { rounds++; defect += remain[k]; }
@@ -115,19 +115,19 @@ void partit_t::catalyurek(const mesh_t* mesh){
     for(int i=0; i < remain[k]; ++i){
       const int& v = tasks[k][i];
       if(primal[v].empty())
-        continue;      
+        continue;
       for(const int& w : primal[v])
         forbidden[color[w]] = v;
 
       for(int c=1; c < max_p; ++c){
-        if(forbidden[c] != v){
+        if(forbidden[c] not_eq v){
           color[v] = c;
           break;
         }
       }
       assert(color[v]);
     }
-      
+
 #pragma omp single
     remain[k^1]=0;
 
@@ -137,7 +137,7 @@ void partit_t::catalyurek(const mesh_t* mesh){
     for(int i=0; i < remain[k]; ++i){
       const int& v = tasks[k][i];
       for(const int& w : primal[v]){
-        if(v < w && color[v] == color[w]){
+        if(v < w and color[v] == color[w]){
           conflicts.push_back(v);   // (!) index not the node value
           break;
         }
@@ -167,12 +167,12 @@ void partit_t::catalyurek(const mesh_t* mesh){
  if(parts < nb_col)
    parts = nb_col;
 #pragma omp barrier
-  
+
   // b) populate 'subset'
   for(int k=0; k < parts; ++k)
     sync::task_reduction(subset[k], list+k, card+k, off);
 
-  delete [] list;  
+  delete [] list;
 }
 
 /* ------------------------------------ */
@@ -186,12 +186,12 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
 
   // re-init containers
   flush();
-  
+
   int* color = mapping;
 
   std::vector<int> forbidden;     // forbidden colors for vertex 'i'
-  std::vector<int> heap;                       
- 
+  std::vector<int> heap;
+
   forbidden.resize(max_p,std::numeric_limits<int>::max());
   heap.reserve(nb_nodes/cores);
 
@@ -200,9 +200,9 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
     const int& v = graph[i][0];
     for(auto w = graph[i].begin()+1; w < graph[i].end(); ++w)
       forbidden[color[*w]] = v;
-    
+
     for(int c=1; c < max_p; ++c){
-      if(forbidden[c] != v){
+      if(forbidden[c] not_eq v){
         color[v] = c;
         break;
       }
@@ -215,7 +215,7 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
     const int& v = graph[i][0];
     if(color[v]==1){
       for(auto w = graph[i].begin()+1; w < graph[i].end(); ++w){
-        if(v < *w && color[*w]==1){
+        if(v < *w and color[*w]==1){
           heap.push_back(i);   // (!) index not the node value
           break;
         }
@@ -226,7 +226,7 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
 
   // - propagation stage
   int k = 0;  // current task list index
- 
+
   while(remain[k]) {
 #pragma omp single
     { rounds++; defect += remain[k]; }
@@ -235,18 +235,18 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
     for(int i=0; i < remain[k]; ++i){
       const int& j = tasks[k][i];
       const int& v = graph[j][0];
-      for(auto w = graph[j].begin()+1; w < graph[j].end(); ++w)    
+      for(auto w = graph[j].begin()+1; w < graph[j].end(); ++w)
         forbidden[color[*w]] = v;
 
       for(int c=1; c < max_p; ++c){
-        if(forbidden[c] != v){
+        if(forbidden[c] not_eq v){
           color[v] = c;
           break;
         }
       }
       assert(color[v]);
     }
-      
+
 #pragma omp single
     remain[k^1]=0;
 
@@ -255,8 +255,8 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
       const int& j = tasks[k][i];
       const int& v = graph[j][0];
       if(color[v]==1){
-        for(auto w = graph[j].begin()+1; w < graph[j].end(); ++w){ 
-          if(v < *w && color[*w]==1){
+        for(auto w = graph[j].begin()+1; w < graph[j].end(); ++w){
+          if(v < *w and color[*w]==1){
             heap.push_back(j);   // (!) index not the node value
             break;
           }
@@ -266,7 +266,7 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
     // switch _tasklist
     k ^= 1;
     sync::task_reduction(tasks[k], &heap, remain+k, off);
-  }  
+  }
 
   // post-process
 
@@ -279,4 +279,5 @@ void partit_t::indep_subset(const graph_t& graph, int nb_nodes){
   }
   sync::task_reduction(subset[0], &heap, card, off);
 }
+
 

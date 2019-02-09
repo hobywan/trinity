@@ -1,12 +1,12 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #pragma once
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #include "mesh.h"
 #include "hashtable.h"
 #include "numeric.h"
 #include "partition.h"
 /* ------------------------------------ */
-namespace trigen {
+namespace trinity {
 
   class smooth_t {
 
@@ -52,6 +52,6 @@ private:
     void init();
     void save_stat(int level, int* stat, int* form);
     void show_stat(int level, int* form);
-    void recap(int* time, int* stat, int* form, stats_t* tot);   
+    void recap(int* time, int* stat, int* form, stats_t* tot);
   };
 }

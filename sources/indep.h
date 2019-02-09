@@ -4,39 +4,36 @@
 #include "mesh.h"
 #include "tools.h"
 #include "random_engine.h"
+#include "partition.h"
 /* ------------------------------------ */
-namespace trigen {
-  
-  class indep_t {
+// TODO: one engine per thread
+namespace trinity {
 
-    friend class coarse_t;
+class indep_t {
+
+  friend class coarse_t;
 
 public:
 
-     indep_t(mesh_t* input);
-    ~indep_t();
+  indep_t(mesh_t* input, partit_t* algo);
+  ~indep_t();
 
-    int* luby();
-    int* metivier(const graph_t& graph, int nb);
-
-    void flush();
-    void verif(const graph_t& graph);
+  void luby();
+  void metivier(const graph_t& graph, int nb);
+  void flush();
+  void verif(const graph_t& graph);
 
 private:
 
-    mesh_t* mesh;
-
-    // todo: one engine per thread
-
-    int cores;
-    int remain; 
-    int rounds;
-    int indep;
-    int nb_nodes;
-
-    int* subset;
-    double* weight;
-    char* activ;
-    char* added;
-  };
-}
+  mesh_t* mesh;
+  int cores;
+  int remain;
+  int rounds;
+  int nb_nodes;
+  int& nb_indep;
+  int* subset;
+  char* activ;
+  char* added;
+  double* weight;
+};
+} // namespace trinity

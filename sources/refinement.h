@@ -1,23 +1,23 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #pragma once
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #include "tools.h"
 #include "mesh.h"
 #include "hashtable.h"
 #include "numeric.h"
 /* ------------------------------------ */
-namespace trigen {
+namespace trinity {
 
   class refine_t {
 
-public:    
+public:
 
      refine_t(mesh_t* input, int level);
     ~refine_t();
 
     void run(stats_t* tot);
 
-private:    
+private:
 
     // steps
     void preprocess(std::vector<int>* heap);
@@ -38,14 +38,14 @@ private:
     char* pattern;            // pattern for each elem
 
     // counters
-    int shift;  
+    int shift;
     int nb_adds;
     int nb_split;
     int nb_eval;
-    int nb_tasks;  
+    int nb_tasks;
     int nb_stein;
     //
-    int& cores;                
+    int& cores;
     int& nb_nodes;
     int& nb_elems;
     int& verbose;
@@ -63,7 +63,7 @@ private:
     void init();
     void save_stat(int level, int* stat, int* form);
     void show_stat(int level, int* form);
-    void recap(int* time, int* stat, int* form, stats_t* tot);     
+    void recap(int* time, int* stat, int* form, stats_t* tot);
   };
 }
 

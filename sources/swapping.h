@@ -1,16 +1,16 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #pragma once
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #include "mesh.h"
 #include "hashtable.h"
 #include "numeric.h"
 #include "matching.h"
 /* ------------------------------------ */
-namespace trigen {
+namespace trinity {
 
   class swap_t {
 
-public:    
+public:
 
      swap_t(mesh_t* input);
     ~swap_t();
@@ -24,7 +24,7 @@ private:
     void extract_dual();
     void kernel();
 
-    // 
+    //
     mesh_t* mesh;
     graph_t dual;
     match_t heuris;
@@ -48,10 +48,11 @@ private:
     int  nb_activ;
     int  nb_tasks;
     int  nb_comms;
-    
+    int  count;  // for profiling only
+
     // kernel
     int swap(int k1, int k2, int idx);
-        
+
     // timers and stats
     time_t start;
     time_t round;
@@ -60,6 +61,6 @@ private:
     void init();
     void save_stat(int level, int* stat, int* form);
     void show_stat(int level, int* form);
-    void recap(int* time, int* stat, int* form, stats_t* tot);    
+    void recap(int* time, int* stat, int* form, stats_t* tot);
   };
 }

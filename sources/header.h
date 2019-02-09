@@ -1,4 +1,4 @@
-/* ------------------------------------*/ 
+/* ------------------------------------*/
 #pragma once
 /* ------------------------------------ */
 #include <stack>
@@ -17,21 +17,21 @@
 #include <iostream>
 #include <iomanip>
 /* ------------------------------------ */
-#include <math.h>
 #include <cmath>
 #include <random>
 #include <limits>
 /* ------------------------------------ */
 #include <chrono>
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <csignal>
-#include <assert.h>
+#include <cassert>
 #include <unistd.h>
 /* ------------------------------------ */
 #define EPSILON 1.e-9
 /* ------------------------------------ */
-namespace trigen {
+namespace trinity {
 
   double const l_min  = 0.707106781186547;
   double const l_max  = 1.414213562373095;
@@ -55,10 +55,10 @@ namespace trigen {
     int task = 0;
     int elap = 0;
     int step[5] = {0,0,0,0,0};
-  };    
+  };
 
   // shortcuts
-  using  graph_t = std::vector<std::vector<int> >;  
+  using  graph_t = std::vector<std::vector<int> >;
   struct entry_t { int key; int val; };
   struct patch_t { std::vector<int> node; std::vector<int> elem; };
 }
