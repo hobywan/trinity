@@ -12,7 +12,7 @@ find_library(PAPI_LIBRARY papi
 )
 
 if(PAPI_INCLUDE_DIR)
-#  add_definitions(-DHAVE_PAPI)
+  add_definitions(-DHAVE_PAPI)
   if(PAPI_LIBRARY)
     set( PAPI_LIBRARIES ${PAPI_LIBRARY})
     set( PAPI_FOUND "YES" )
