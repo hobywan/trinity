@@ -3,6 +3,7 @@ import scipy.sparse as sps
 import scipy.io as io
 import matplotlib.pyplot as plt
 import sys
+import optparse
 
 def parse_matrix_market(matrix, figure):
     
