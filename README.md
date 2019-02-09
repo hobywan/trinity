@@ -1,4 +1,4 @@
-# trigen
+# trinity
 A multithreaded anisotropic mesh adaptation toolkit designed for multicore architectures.
 
 [![license](https://img.shields.io/badge/license-CeCILL--C-green.svg)](http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html)
