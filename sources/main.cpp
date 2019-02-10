@@ -1,3 +1,21 @@
+/*
+ *                          'main.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /* ------------------------------------ */
 #include "optparse.h"
@@ -283,17 +301,16 @@ int main(int argc, char* argv[]) {
   showDesc();
   // -----
 
-  auto* mesh = new trinity::Mesh(_size, _bucket, _depth, _verb, _rounds);
-
-  trinity::Metrics metric(mesh, _target, _norm, _h_min, _h_max);
-  trinity::Partit  heuris(mesh->getCapaNode(), 8);
-  trinity::Refine  refine(mesh, _depth);
-  trinity::Swap    swap(mesh);
-  trinity::Coarse  coarse(mesh, &heuris);
-  trinity::Smooth  smooth(mesh, &heuris, _depth);
+  trinity::Mesh    mesh(_size, _bucket, _depth, _verb, _rounds);
+  trinity::Metrics metric(&mesh, _target, _norm, _h_min, _h_max);
+  trinity::Partit  heuris(mesh.getCapaNode(), 8);
+  trinity::Refine  refine(&mesh, _depth);
+  trinity::Swap    swap(&mesh);
+  trinity::Coarse  coarse(&mesh, &heuris);
+  trinity::Smooth  smooth(&mesh, &heuris, _depth);
   trinity::Stats   stat[5];
 
-  mesh->loadFrom(_input, _solut);
+  mesh.loadFrom(_input, _solut);
   metric.computeTensorField(stat);
   metric.clear();
 
@@ -307,6 +324,5 @@ int main(int argc, char* argv[]) {
   recap(stat);
   expor(stat);
 
-  mesh->storeTo(_result);
-  delete mesh;
+  mesh.storeTo(_result);
 }

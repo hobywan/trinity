@@ -1,14 +1,29 @@
-/* ------------------------------------*/
+/*
+ *                          'rmat.h'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "rmat.h"
 /* ------------------------------------ */
-using namespace trinity;
-
+namespace trinity {
 /* ------------------------------------ */
 RMAT::RMAT() { reset(); }
-
 /* ------------------------------------ */
 RMAT::~RMAT() { reset(); }
-
 /* ------------------------------------ */
 void RMAT::reset() {
   start = timer::now();
@@ -32,7 +47,7 @@ void RMAT::load(const std::string path) {
   assert(file.is_open());
   assert(file.good());
 
-   std::printf("Loading '\e[36m%s\e[0m'...", path.data());
+  std::printf("Loading '\e[36m%s\e[0m'...", path.data());
   saveChrono();
 
   // init counters
@@ -73,36 +88,37 @@ void RMAT::load(const std::string path) {
 
 #pragma omp critical
     {
-      if (deg_max < deg_max_local)
+      if (deg_max < deg_max_local) {
         deg_max = deg_max_local;
+      }
       deg_avg += deg_sum_local;
     }
   }  // implicit barrier here
 
   deg_avg /= nb_nodes;
 
-   std::printf("|V|=%d, |E|=%d, deg_max=%d, deg_avg=%d \e[32m(%d ms)\e[0m\n",
-         nb_nodes, nb_edges, deg_max, deg_avg, elapsed());
+  std::printf("|V|=%d, |E|=%d, deg_max=%d, deg_avg=%d \e[32m(%d ms)\e[0m\n",
+              nb_nodes, nb_edges, deg_max, deg_avg, elapsed());
 
 }
 
 /* ------------------------------------ */
 void RMAT::info(const std::string testcase) {
 
-   std::printf("|V|=%d, |E|=%d, rounds=%d, errors=%d, colors=%d, "
-         "deg_max=%d, deg_avg=%d, ratio=%.3f, %s "
-         "[%2d threads] \e[32m(%d ms)\e[0m\n",
-         nb_nodes,
-         nb_edges,
-         nb_rounds,
-         nb_error,
-         nb_color,
-         deg_max,
-         deg_avg,
-         ratio,
-         testcase.data(),
-         omp_get_num_threads(),
-         elapsed());
+  std::printf("|V|=%d, |E|=%d, rounds=%d, errors=%d, colors=%d, "
+              "deg_max=%d, deg_avg=%d, ratio=%.3f, %s "
+              "[%2d threads] \e[32m(%d ms)\e[0m\n",
+              nb_nodes,
+              nb_edges,
+              nb_rounds,
+              nb_error,
+              nb_color,
+              deg_max,
+              deg_avg,
+              ratio,
+              testcase.data(),
+              omp_get_num_threads(),
+              elapsed());
 }
 
 /* ------------------------------------ */
@@ -114,4 +130,4 @@ void RMAT::saveChrono() {
 int RMAT::elapsed() {
   return timer::elapsed_ms(start);
 }
-
+} // namespace trinity

@@ -1,8 +1,25 @@
-/* ------------------------------------*/
+/*
+ *                          'partition.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "partition.h"
-
-using namespace trinity;
-
+/* ------------------------------------ */
+namespace trinity {
 /* ------------------------------------ */
 Partit::Partit(int max_size, int max_part) {
   size = max_size;
@@ -275,5 +292,4 @@ void Partit::extractIndepSet(const Graph& graph, int nb_nodes) {
   }
   sync::reduceTasks(subset[0], &heap, card, off);
 }
-
-
+} // namespace trinity

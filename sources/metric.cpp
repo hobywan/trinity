@@ -1,10 +1,27 @@
-/* ------------------------------------*/
+/*
+ *                          'metric.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "metric.h"
 /* ------------------------------------ */
-using namespace trinity;
-
+namespace trinity {
 /* ------------------------------------ */
-Metrics::Metrics(Mesh* input, float targ_f, int norm, double min_h, double max_h)
+Metrics::Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h)
   : mesh(input),
     solut(input->solut_.data()),
     tens(input->tensor_.data()),
@@ -276,3 +293,4 @@ void Metrics::recap(Stats* tot) {
     std::fflush(stdout);
   }
 }
+} // namespace trinity

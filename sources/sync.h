@@ -1,27 +1,45 @@
-/* ------------------------------------ */
+/*
+ *                          'sync.h'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 /* ------------------------------------ */
 #include "header.h"
 #include "timer.h"
-/* -------------------------------- */
+/* ------------------------------------ */
 namespace trinity { namespace sync {
-
+/* ------------------------------------ */
 template<typename type_t>
 inline bool compareAndSwap(type_t* flag, int expected, int value) {
   return __sync_bool_compare_and_swap(flag, expected, value);
 }
-
+/* ------------------------------------ */
 template<typename type_t>
 inline type_t fetchAndAdd(type_t* shared, int value) {
   return __sync_fetch_and_add(shared, value);
 }
-
+/* ------------------------------------ */
 template<typename type_t>
 inline type_t fetchAndSub(type_t* shared, int value) {
   return __sync_fetch_and_sub(shared, value);
 }
 
-/* -------------------------------- */
+/* ------------------------------------ */
 inline void reduceTasks(int* array, std::vector<int>* heap, int* count, int stride) {
   size_t nb = heap->size();
   if (nb) {
@@ -32,7 +50,7 @@ inline void reduceTasks(int* array, std::vector<int>* heap, int* count, int stri
 #pragma omp barrier
 }
 
-/* -------------------------------- */
+/* ------------------------------------ */
 inline int kernelPrefixSum(int* begin, int* end, size_t grain_size) {
   size_t len = end - begin;
   if (len < grain_size) {
@@ -56,13 +74,13 @@ inline int kernelPrefixSum(int* begin, int* end, size_t grain_size) {
   return begin[len - 1];
 }
 
-/* -------------------------------- */
+/* ------------------------------------ */
 inline void prefixSum(int* values, size_t nb, size_t grain_size) {
 #pragma omp single
   kernelPrefixSum(values, values + nb, grain_size);
 }
 
-/* -------------------------------- */
+/* ------------------------------------ */
 inline void reduceTasks(int* array, std::vector<int>* heap, int* count, int* off) {
   size_t nb = heap->size();
   int tid = omp_get_thread_num();
@@ -84,7 +102,7 @@ inline void reduceTasks(int* array, std::vector<int>* heap, int* count, int* off
   *count += off[cores - 1]; // off[p-1] + N[p-1]
 }
 
-/* -------------------------------- */
+/* ------------------------------------ */
 inline void reallocBucket(std::vector<int>* bucket, int index, size_t chunk, int verbose) {
   if (__builtin_expect(bucket[index].size() <= chunk, 0))
     // at least one thread will perform the reallocation ('single' is not ok)
@@ -100,5 +118,5 @@ inline void reallocBucket(std::vector<int>* bucket, int index, size_t chunk, int
     }
   }
 }
-
+/* ------------------------------------ */
 }} // namespace trinity::sync

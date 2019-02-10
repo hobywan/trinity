@@ -1,4 +1,22 @@
-/* ------------------------------------*/
+/*
+ *                          'header.h'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 /* ------------------------------------ */
 #include <stack>
@@ -31,9 +49,8 @@
 /* ------------------------------------ */
 #define EPSILON 1.e-9
 /* ------------------------------------ */
-// bitmask for multiple tags
 namespace trinity { namespace mask {
-
+// bitmask for multiple tags
 uint8_t const unset  = (0);
 uint8_t const active = (1 << 0);
 uint8_t const reeval = (1 << 1);
@@ -43,7 +60,7 @@ uint8_t const frag   = (1 << 4);   // for mesh
 uint8_t const full   = (1 << 5);
 
 }} // namespace trinity::mask
-
+/* ------------------------------------ */
 namespace trinity {
 
 double const l_min = 0.707106781186547;

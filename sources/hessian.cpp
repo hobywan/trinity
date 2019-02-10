@@ -1,9 +1,27 @@
-/* ------------------------------------ */
+/*
+ *                          'hessian.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "hessian.h"
 /* ------------------------------------ */
-using namespace trinity;
+namespace trinity {
 /* ------------------------------------ */
-void Metrics::computeGradient(int index){
+void Metrics::computeGradient(int index) {
 
   // init
   double size = 0.;      // stencil area
@@ -15,12 +33,12 @@ void Metrics::computeGradient(int index){
   size_t N = stenc[index].elem.size();
 
   auto* area = new double[N];
-  auto* grad = new double[2*N];
-  std::memset(grad, 0, 2*N*sizeof(double));
+  auto* grad = new double[2 * N];
+  std::memset(grad, 0, 2 * N * sizeof(double));
 
   // compute element-wise gradient vector
-  int i=0;
-  for(auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it){
+  int i = 0;
+  for (auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it) {
     // elem attributes
     const int* v = mesh->getElemCoord(*it, p);
 
@@ -45,30 +63,31 @@ void Metrics::computeGradient(int index){
 
     // elem_grad = sum_i=1^3 (solut[i] . psi[i])
     // constant per elem
-    for(int j=0; j < 3; ++j)
-      for(int k=0; k < 2; ++k)
-        grad[i*2+k] += solut[*(v+j)] * psi[j*2+k];
+    for (int j = 0; j < 3; ++j)
+      for (int k = 0; k < 2; ++k)
+        grad[i * 2 + k] += solut[*(v + j)] * psi[j * 2 + k];
 
     ++i;
   }
 
-  int k = index*2;
+  int k = index * 2;
 
   // 3) recover nodal gradient vector
-  nabla[k] = nabla[k+1] = 0.;
-  for(i=0; i < N; ++i)
-    for(int j=0; j < 2; ++j)
-      nabla[k+j] += (area[i] * grad[i*2+j]);
+  nabla[k] = nabla[k + 1] = 0.;
+  for (i = 0; i < N; ++i)
+    for (int j = 0; j < 2; ++j)
+      nabla[k + j] += (area[i] * grad[i * 2 + j]);
 
   // normalize by sizeil area
-  nabla[k]   /= size;
-  nabla[k+1] /= size;
+  nabla[k] /= size;
+  nabla[k + 1] /= size;
 
-  delete [] area;
-  delete [] grad;
+  delete[] area;
+  delete[] grad;
 }
+
 /* ------------------------------------ */
-void Metrics::computeHessian(int index){
+void Metrics::computeHessian(int index) {
 
   // init
   double size = 0.;     // sizeil area
@@ -76,20 +95,20 @@ void Metrics::computeHessian(int index){
   double p[6];           // elem coords and metric tensor
   double s[4];           // matrix for area computation
   double psi[6];         // finite elem basis function
-  double H[4] = {0.,0.,0.,0.};
+  double H[4] = {0., 0., 0., 0.};
 
   size_t N = stenc[index].elem.size();
 
-  auto* area  = new double[N];
+  auto* area = new double[N];
   auto* delta = new double[4 * N];
-  std::memset(delta, 0, 4*N*sizeof(double));
+  std::memset(delta, 0, 4 * N * sizeof(double));
 
   // compute element-wise hessian matrices
   // nb : derivative of basis functions may be already computed on
   // gradient recovery step (if also computed by L2 projection)
   // but may not if another gradient recovery method was used
-  int i=0;
-  for(auto it=stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it){
+  int i = 0;
+  for (auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it) {
     // elem attributes
     const int* v = mesh->getElemCoord(*it, p);
 
@@ -114,32 +133,32 @@ void Metrics::computeHessian(int index){
     psi[5] = norm * (p[2] - p[0]); // (t[1].x - t[0].x)
 
     // hess = sum_i=1^3 (nabla[j] . psi[j])
-    for(int j=0; j < 3; ++j){
-      delta[i*4]   += (nabla[*(v+j)*2]   * psi[j*2]  );
-      delta[i*4+1] += (nabla[*(v+j)*2]   * psi[j*2+1]);
-      delta[i*4+2] += (nabla[*(v+j)*2+1] * psi[j*2]  );
-      delta[i*4+3] += (nabla[*(v+j)*2+1] * psi[j*2+1]);
+    for (int j = 0; j < 3; ++j) {
+      delta[i * 4] += (nabla[*(v + j) * 2] * psi[j * 2]);
+      delta[i * 4 + 1] += (nabla[*(v + j) * 2] * psi[j * 2 + 1]);
+      delta[i * 4 + 2] += (nabla[*(v + j) * 2 + 1] * psi[j * 2]);
+      delta[i * 4 + 3] += (nabla[*(v + j) * 2 + 1] * psi[j * 2 + 1]);
     }
     ++i;
   }
 
   // 3) recover nodal hessian matrix
-  for(i=0; i < N; ++i)
-    for(int j=0; j < 4; ++j)
-      H[j] += area[i] * delta[i*4+j];
+  for (i = 0; i < N; ++i)
+    for (int j = 0; j < 4; ++j)
+      H[j] += area[i] * delta[i * 4 + j];
   // normalize by stencil area
-  for(int j=0; j < 4; ++j)
+  for (int j = 0; j < 4; ++j)
     H[j] /= size;
 
 
-  int k = index*3;
+  int k = index * 3;
   // symmetrize H : 0.5 * (H^t + H)
-  tens[k]   = H[0];
-  tens[k+1] = 0.5 * (H[1] + H[2]);
-  tens[k+2] = H[3];
+  tens[k] = H[0];
+  tens[k + 1] = 0.5 * (H[1] + H[2]);
+  tens[k + 2] = H[3];
 
-  delete [] area;
-  delete [] delta;
+  delete[] area;
+  delete[] delta;
 }
 
 
@@ -176,3 +195,4 @@ void least_squares(int  k,
   nabla[0] = X[0];
   nabla[1] = X[1];
 }*/
+} // namespace trinity

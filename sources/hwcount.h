@@ -1,13 +1,52 @@
+/*
+ *                          'hwcount.h'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *            adapted from 'papi-wrapper' of Sean Chester.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 /**
- * Library for updating/accessing standard PAPI counters
+ *         Library for updating/accessing standard PAPI counters.
+ *                  Copyright (C) 2017 Sean Chester
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
  * @note The first time you use this library on a new architecture, it may be
  * worth running \c papi_avail and \c papi_native_avail to determine which
  * hardware counters are available on the machine that you are using.
  */
-#pragma once
-
 #ifdef HAVE_PAPI
+
 #include <header.h>
 #include <papi.h>
 
@@ -16,16 +55,16 @@
  * set of hardware counters.
  * @tparam NUM_COUNTERS The number of hardware counters used in the given subset.
  *
- * A papi_t object defines all the methods related to hardware
+ * A PAPI object defines all the methods related to hardware
  * counters without knowing how many there are (the template parametre
  * NUM_COUNTERS) and without knowing what they are. These are specialised
  * within the specific subclasses.
  */
-class papi_t {
+class PAPI {
 
 public:
 
-  virtual ~papi_t() {}
+  virtual ~PAPI() {}
 
   /** Starts tracking/reset all the hardware counters in this subset. */
   void start();
@@ -50,11 +89,11 @@ public:
   std::string headers();
 
   // operator overloads
-  papi_t& operator=(const papi_t& other);
-  papi_t& operator+=(const papi_t& other);
-  papi_t& operator-=(const papi_t& other);
-  papi_t& operator/=(const uint32_t scalar);
-  papi_t& operator*=(const uint32_t scalar);
+  PAPI& operator=(const PAPI& other);
+  PAPI& operator+=(const PAPI& other);
+  PAPI& operator-=(const PAPI& other);
+  PAPI& operator/=(const uint32_t scalar);
+  PAPI& operator*=(const uint32_t scalar);
 
   // static functions
 
@@ -64,9 +103,9 @@ public:
    * each thread.
    * @post All threads will now start tracking PAPI statistics.
    */
-  static void start(std::vector<papi_t*>& counters);
-  static void stop(std::vector<papi_t*>& counters);
-  static void sum(std::vector<papi_t*>& counters);
+  static void start(std::vector<PAPI*>& counters);
+  static void stop(std::vector<PAPI*>& counters);
+  static void sum(std::vector<PAPI*>& counters);
 
   // static public constants
 
@@ -83,7 +122,7 @@ public:
   /** Indicates that custom (i.e., user-selected) PAPI events will be specified. */
   static const uint32_t papi_mode_custom = 5;
 
-  friend std::ostream& operator<<(std::ostream& os, const papi_t& p);
+  friend std::ostream& operator<<(std::ostream& os, const PAPI& p);
 
 protected:
 
@@ -125,10 +164,10 @@ private:
 /**
  * A subset of PAPI hardware counters related to the distribution of instructions.
  */
-class papi_instructions : public papi_t {
+class PAPI_Instructions : public PAPI {
 public:
 
-  papi_instructions();
+  PAPI_Instructions();
 
   /** Returns the number of load instructions issued. */
   long long inline load_instructions() const;
@@ -147,18 +186,18 @@ public:
   double branch_instructions_ratio() const;
 
 private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
 
 /**
  * A subset of PAPI hardware counters related to the distribution of cycles.
  */
-class papi_cycles : public papi_t {
+class PAPI_Cycles : public PAPI {
 
 public:
 
-  papi_cycles();
+  PAPI_Cycles();
 
   /** Returns the total number of cycles spent idling. */
   inline long long idle_cycles() const;
@@ -180,16 +219,16 @@ public:
   double cycles_per_instruction() const;
 
 private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
 /**
  * A subset of PAPI hardware counters related to cache hit performance.
  */
-class papi_cache : public papi_t {
+class PAPI_Cache : public PAPI {
 
 public:
-  papi_cache();
+  PAPI_Cache();
 
   /** Returns the number of Level 2 total cache misses. */
   long long inline l2_cache_misses() const;
@@ -208,16 +247,16 @@ public:
   double l3_miss_ratio() const;
 
 //private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
 /**
  * A subset of PAPI hardware counters related to branch prediction performance.
  */
-class papi_branch : public papi_t {
+class PAPI_Branch : public PAPI {
 
 public:
-  papi_branch();
+  PAPI_Branch();
 
   /** Returns the number of branch instructions issued. */
   long long inline branch_instructions() const;
@@ -231,16 +270,16 @@ public:
   double prediction_ratio() const;
 
 private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
 /**
  * A subset of PAPI hardware counters related to transaction lookaside buffer performance.
  */
-class papi_tlb : public papi_t {
+class PAPI_TLB : public PAPI {
 
 public:
-  papi_tlb();
+  PAPI_TLB();
 
   /** Returns the total number of data tlb misses. */
   long long inline data_tlbs() const;
@@ -248,13 +287,13 @@ public:
   long long inline instruction_tlbs() const;
 
 private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
 /**
  * An set of PAPI hardware counters that use custom-defined PAPI events.
  */
-class papi_custom : public papi_t {
+class PAPI_Custom : public PAPI {
 
 public:
   /**
@@ -264,18 +303,16 @@ public:
    * be tracked
    * @post Constructs a new instance of a papi_custom set.
    */
-  papi_custom(const std::vector<std::pair<std::string, std::string> >& event_names);
+  PAPI_Custom(const std::vector<std::pair<std::string, std::string> >& event_names);
 
 private:
-  void to_stream(std::ostream& os) const;
+  void to_stream(std::ostream& os) const override;
 };
 
-namespace trinity {
+namespace trinity { namespace papi {
 //
-void papi_init(const uint32_t num_cores,
-               const uint32_t papi_mode,
-               std::vector<papi_t*> papi_counters[4]);
+void init(int num_cores, int mode, std::vector<PAPI*>* counters);
 //
-void papi_finalize(std::vector<papi_t*> papi_counters[4]);
-}
+void finalize(std::vector<PAPI*> papi_counters[4]);
+}} // namespace trinity::papi
 #endif

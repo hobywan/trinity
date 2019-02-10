@@ -1,8 +1,25 @@
-/* ------------------------------------ */
+/*
+ *                          'io.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "io.h"
 /* ------------------------------------ */
-using namespace trinity;
-
+namespace trinity {
 /* -------------------------------- */
 int io::find(const std::string key, std::ifstream& file) {
 
@@ -87,7 +104,7 @@ void Mesh::loadFrom(const std::string& path, const std::string& solu) {
   input.open(solu, std::ios::in);
 
   k = 0;
-  tools::seek_to_line(2, input);
+  tools::seekToLine(2, input);
   while (k < nb_nodes_ and input >> solut_[k++]);
 
   input.close();
@@ -262,4 +279,4 @@ void Mesh::storePrimalGraph(const std::string& path) const {
   else
     std::printf("= '%s' exported\n", tools::basename(path).data());
 }
-
+} // namespace trinity

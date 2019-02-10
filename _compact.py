@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-__version__ = '1.0'
-__author__  = 'H. Rakotoarivelo'
+__author__    = 'Hoby Rakotoarivelo'
+__license__   = 'GPL v3'
+__version__   = '1.0'
+__copyright__ = 'Copyright 2016, The trinity project'
 
 import os
 import sys
@@ -29,7 +31,7 @@ def compact_benchmark_data(param):
                 # skip if file does not exist
                 if not os.path.exists(path):
                     continue
-                
+
                 count = 0
                 stats = [0] * nb_field
                 with open(path,'r') as f:
@@ -66,7 +68,7 @@ def generate_gnuplot_script(param):
             line = f.readline().split()
             t_seq[i] = line[index]
             #print('>> t_seq['+str(i+1)+'] = '+str(t_seq[i]))
-    
+
         assert(int(t_seq[i]) > 0)
 
     color[0] = '#4682B4'
@@ -108,12 +110,12 @@ def generate_gnuplot_script(param):
     s += 'set xlabel "cores"\n'
     s += 'set yrange [1:'+str(nb_cores)+']\n'
     s += 'set ytics '+str(int(nb_cores/8))+'\n'
-    s += '\n'    
-    s += 't1 = '+t_seq[0]+'\n'    
-    s += 't2 = '+t_seq[1]+'\n'    
-    s += 't3 = '+t_seq[2]+'\n'    
-    s += 't4 = '+t_seq[3]+'\n'    
-    s += '\n'    
+    s += '\n'
+    s += 't1 = '+t_seq[0]+'\n'
+    s += 't2 = '+t_seq[1]+'\n'
+    s += 't3 = '+t_seq[2]+'\n'
+    s += 't4 = '+t_seq[3]+'\n'
+    s += '\n'
     s += 'set style data histogram\n'
     s += 'set style fill solid border\n'
     s += 'set style histogram clustered\n'
@@ -132,7 +134,7 @@ def generate_gnuplot_script(param):
     # a) store to file
     script = testcase+'.gnuplot'
     path = 'results/benchs/'+script
-    print('>> '+path)   
+    print('>> '+path)
     with open(path,'w') as output:
         output.write(s)
 
@@ -141,9 +143,9 @@ def generate_gnuplot_script(param):
     os.chdir('results/benchs')
     print('>> gnuplot '+script)
     subprocess.call(['gnuplot', script])
-    
-    print('>> results/'+testcase+'_runtime.eps')   
-    print('>> results/'+testcase+'_speedup.eps')   
+
+    print('>> results/'+testcase+'_runtime.eps')
+    print('>> results/'+testcase+'_speedup.eps')
 
 #
 def clean_data(param):
@@ -152,7 +154,7 @@ def clean_data(param):
     nb_cores = int(param.cores)
     eps = [''] * 2
 
-    for k in range(1,5):    
+    for k in range(1,5):
         #
         prefix = 'results/_'+str(k)+'/'+testcase+"_w_"
         for rank in range(nb_cores):
@@ -179,13 +181,13 @@ def clean_data(param):
         if os.path.exists(eps[i]):
             print('>> rm '+eps[i])
             os.remove(eps[i])
-        
+
     sys.exit(0)
 
 
 # sum over the 3 architectures
 def reduce_knl_stats(param):
-    
+
     testcase = param.name
     nb_cores = int(param.cores)
     nb_field = 7
@@ -203,7 +205,7 @@ def reduce_knl_stats(param):
         # flush
         stats = [[0 for y in range(nb_field)] for x in range(nb_cores)]
         # set output path
-        out[mode] = 'results/benchs/'+testcase+'_'+run[mode]+'_reduc.dat' 
+        out[mode] = 'results/benchs/'+testcase+'_'+run[mode]+'_reduc.dat'
         # reduce over kernels
         for k in range(4):
             data = 'results/benchs/'+testcase+'_'+run[mode]+'_'+str(k+1)+'.dat'
@@ -228,7 +230,7 @@ def reduce_knl_stats(param):
 
 # sum over the 3 architectures
 def reduce_hasw_stats(param):
-    
+
     testcase = param.name
     nb_cores = int(param.cores)
     nb_field = 7
@@ -245,7 +247,7 @@ def reduce_hasw_stats(param):
         # flush
         stats = [[0 for y in range(nb_field)] for x in range(nb_cores)]
         # set output path
-        out[mode] = 'results/benchs/'+testcase+'_'+run[mode]+'_reduc.dat' 
+        out[mode] = 'results/benchs/'+testcase+'_'+run[mode]+'_reduc.dat'
         # reduce over kernels
         for k in range(4):
             data = 'results/benchs/'+testcase+'_'+run[mode]+'_'+str(k+1)+'.dat'
@@ -270,7 +272,7 @@ def reduce_hasw_stats(param):
 
 # sum over the 3 architectures
 def reduce_neha_stats(param):
-    
+
     testcase = param.name
     nb_cores = int(param.cores)
     nb_field = 7
@@ -282,7 +284,7 @@ def reduce_neha_stats(param):
     # flush
     stats = [[0 for y in range(nb_field)] for x in range(nb_cores)]
     # set output path
-    out = 'results/benchs/'+testcase+'_reduc.dat' 
+    out = 'results/benchs/'+testcase+'_reduc.dat'
     # reduce over kernels
     for k in range(4):
         data = 'results/benchs/'+testcase+'_'+str(k+1)+'.dat'
@@ -295,7 +297,7 @@ def reduce_neha_stats(param):
                     stats[c][i] += int(values[i])
                 c = c+1
             assert(c == nb_runs)
-    
+
     # write to file
     with open(out,'w') as f:
         for r in range(nb_runs):
@@ -316,7 +318,7 @@ if __name__ == '__main__':
     parser.add_option('-c', dest='clean', action='store_true',help='clean benchmark data')
 
     # retrieve and check params
-    (param,args) = parser.parse_args()   
+    (param,args) = parser.parse_args()
 
     # remove data
     #if(param.clean):

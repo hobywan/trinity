@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-__version__ = '1.0'
-__author__  = 'H. Rakotoarivelo'
+__author__    = 'Hoby Rakotoarivelo'
+__license__   = 'GPL v3'
+__version__   = '1.0'
+__copyright__ = 'Copyright 2016, The trinity project'
 
 import os
 
@@ -57,5 +59,5 @@ def parse_medit(path):
             if line and line[0] in _keywords.keys():
                 f = _keywords[line[0]](f,mesh)
 
-    return mesh    
+    return mesh
 

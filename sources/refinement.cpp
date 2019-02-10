@@ -1,8 +1,25 @@
-/* ------------------------------------*/
+/*
+ *                          'refinement.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "refinement.h"
 /* ------------------------------------*/
-using namespace trinity;
-
+namespace trinity {
 /* ------------------------------------*/
 Refine::Refine(Mesh* input, int level)
   :
@@ -16,12 +33,11 @@ Refine::Refine(Mesh* input, int level)
   verbose(input->_verb),
   iter(input->_iter),
   rounds(input->_rounds),
-  depth(level)
-{
+  depth(level) {
   const auto size = input->max_elem;
-  index   = new int[cores + 1];
-  edges   = new int[size * 3];   // 3 data/edge, 3 edges/elem
-  elems   = new int[size];
+  index = new int[cores + 1];
+  edges = new int[size * 3];   // 3 data/edge, 3 edges/elem
+  elems = new int[size];
   pattern = new char[size];
 }
 
@@ -48,7 +64,7 @@ void Refine::run(Stats* tot) {
     std::vector<int> heap[2];
 
     int level = 0;
-    int tid   = omp_get_thread_num();
+    int tid = omp_get_thread_num();
 
     preProcess(heap);
     timer::save(tic, time);
@@ -181,7 +197,7 @@ void Refine::cutElem(int id, int* offset) {
     }
   } else {
 
-    const int t[]     = {id, *offset, *offset + 1, *offset + 2};
+    const int t[] = {id, *offset, *offset + 1, *offset + 2};
     //
     const int elem0[] = {n[0], s[2], s[1]};
     const int elem1[] = {n[1], s[0], s[2]};
@@ -226,13 +242,13 @@ void Refine::preProcess(std::vector<int> heap[2]) {
 
 #pragma omp master
   {
-    old_node   = nb_nodes;
-    old_elem   = nb_elems;
-    shift      = 0;
-    nb_adds    = 0;
-    nb_split   = 0;   // number of elems to be appended
-    nb_eval    = 0;
-    nb_tasks   = 0;
+    old_node = nb_nodes;
+    old_elem = nb_elems;
+    shift = 0;
+    nb_adds = 0;
+    nb_split = 0;   // number of elems to be appended
+    nb_eval = 0;
+    nb_tasks = 0;
     nb_steiner = 0;
   }
 
@@ -256,7 +272,7 @@ void Refine::filterElems(std::vector<int> heap[2]) {
   }
 
   // step 1: filter elems
-  int  count[] = {0, 0};
+  int count[] = {0, 0};
   double len[] = {0, 0, 0};
 
 #pragma omp for schedule(guided) nowait
@@ -307,9 +323,9 @@ void Refine::computeSteinerPoints() {
 #pragma omp for nowait
   for (int i = 0; i < nb_split; ++i) {
     // implicit index
-    const int id   = nb_nodes + i;
-    const int& v1  = edges[i * 3];
-    const int& v2  = edges[i * 3 + 1];
+    const int id = nb_nodes + i;
+    const int& v1 = edges[i * 3];
+    const int& v2 = edges[i * 3 + 1];
     const int& opp = edges[i * 3 + 2];
     // 1) calculate and insert the steiner point
     double* P = mesh->points_.data() + (id * 2);
@@ -401,7 +417,7 @@ void Refine::showStat(int level, int* form) {
 void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end  = timer::elapsed_ms(start);
+    int end = timer::elapsed_ms(start);
     int span = 0;
 
     tot->eval += stat[0];
@@ -442,4 +458,4 @@ void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
     std::fflush(stdout);
   }
 }
-
+} // namespace trinity

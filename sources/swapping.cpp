@@ -1,23 +1,40 @@
-/* ------------------------------------*/
+/*
+ *                          'swapping.cpp'
+ *            This file is part of the "trinity" project.
+ *               (https://github.com/hobywan/trinity)
+ *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "swapping.h"
 /* ------------------------------------ */
-using namespace trinity;
-
+namespace trinity {
 /* ------------------------------------ */
-Swap::Swap(Mesh* input) :
-  mesh    (input),
-  off     (input->off_),
-  fixes   (input->fixes_),
-  activ   (input->activ_),
-  cores   (input->nb_cores_),
-  qualit  (input->qualit_.data()),
+Swap::Swap(Mesh* input)
+  :
+  mesh(input),
+  off(input->off_),
+  fixes(input->fixes_),
+  activ(input->activ_),
+  cores(input->nb_cores_),
+  qualit(input->qualit_.data()),
   nb_nodes(input->nb_cores_),
   nb_elems(input->nb_elems_),
-  verbose (input->_verb),
-  iter    (input->_iter),
-  rounds  (input->_rounds),
-  depth   (20)
-{
+  verbose(input->_verb),
+  iter(input->_iter),
+  rounds(input->_rounds),
+  depth(20) {
   auto size = input->max_elem;
   map = new int[size];
   tasks = new int[size];
@@ -27,7 +44,6 @@ Swap::Swap(Mesh* input) :
 
 /* ------------------------------------ */
 Swap::~Swap() {
-
   delete[] map;
   delete[] tasks;
 }
@@ -132,7 +148,7 @@ int Swap::swap(int k1, int k2, int index) {
     return 0;
 
   // eval computeQuality improvement
-  const double q[] = { mesh->computeQuality(f1), mesh->computeQuality(f2) };
+  const double q[] = {mesh->computeQuality(f1), mesh->computeQuality(f2)};
   const double q_old = std::min(qualit[k1], qualit[k2]);
   const double q_new = std::min(q[0], q[1]);
 
@@ -379,3 +395,4 @@ void Swap::recap(int* time, int* stat, int* form, Stats* tot) {
     std::fflush(stdout);
   }
 }
+} // namespace trinity
