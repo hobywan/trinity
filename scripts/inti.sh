@@ -20,7 +20,7 @@ set -x
 cd ${BRIDGE_MSUB_PWD}
 
 ### Load 'G++5'
-module load c++/gnu/5.2.0
+module loadFile c++/gnu/5.2.0
 
 # Set max thread number
 export OMP_NUM_THREADS=32
