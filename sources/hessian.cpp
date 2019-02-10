@@ -3,7 +3,7 @@
 /* ------------------------------------ */
 using namespace trinity;
 /* ------------------------------------ */
-void Metrics::calculGradient(int index){
+void Metrics::computeGradient(int index){
 
   // init
   double size = 0.;      // stencil area
@@ -68,7 +68,7 @@ void Metrics::calculGradient(int index){
   delete [] grad;
 }
 /* ------------------------------------ */
-void Metrics::calculHessian(int index){
+void Metrics::computeHessian(int index){
 
   // init
   double size = 0.;     // sizeil area

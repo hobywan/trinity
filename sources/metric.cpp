@@ -38,10 +38,10 @@ void Metrics::computeTensorField(Stats* tot) {
   {
     init();
 
-    computeHessianField();
-    localFieldNormalize();
-    calculComplexity();
-    globalFieldNormalize();
+    recoverHessianField();
+    normalizeLocally();
+    computeComplexity();
+    normalizeGlobally();
 
     recap(tot);
   }
@@ -55,17 +55,17 @@ void Metrics::clear() {
 }
 
 /* ------------------------------------ */
-void Metrics::computeHessianField() {
+void Metrics::recoverHessianField() {
 
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i) {
     stenc[i] = mesh->getVicinity(i, 2);
-    calculGradient(i);
+    computeGradient(i);
   }
 
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
-    calculHessian(i);
+    computeHessian(i);
 
 #pragma omp master
   {
@@ -75,7 +75,7 @@ void Metrics::computeHessianField() {
 }
 
 /* ------------------------------------ */
-void Metrics::localFieldNormalize() {
+void Metrics::normalizeLocally() {
 
   // 3) local normalization
   int j, k;
@@ -130,7 +130,7 @@ void Metrics::localFieldNormalize() {
 }
 
 /* ------------------------------------ */
-void Metrics::calculComplexity() {
+void Metrics::computeComplexity() {
 
   int j, k;
   double s[4], det;
@@ -167,7 +167,7 @@ void Metrics::calculComplexity() {
 }
 
 /* ------------------------------------ */
-void Metrics::globalFieldNormalize() {
+void Metrics::normalizeGlobally() {
 
   assert(complexity);
 

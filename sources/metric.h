@@ -19,13 +19,13 @@ public:
 
 private:
   // steps
-  void computeHessianField();
-  void localFieldNormalize();
-  void calculComplexity();
-  void globalFieldNormalize();
+  void recoverHessianField();
+  void normalizeLocally();
+  void computeComplexity();
+  void normalizeGlobally();
   // kernels
-  void calculGradient(int index);
-  void calculHessian(int index);
+  void computeGradient(int index);
+  void computeHessian(int index);
 
   //
   Mesh* mesh;
