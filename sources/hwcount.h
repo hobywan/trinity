@@ -139,9 +139,9 @@ public:
   /** Returns the total number of instructions issued. */
   long long inline total_instructions() const;
 
-  /** Returns the number of load instructions issued as a fraction of the total instructions. */
+  /** Returns the number of loadFile instructions issued as a fraction of the total instructions. */
   double load_instructions_ratio() const;
-  /** Returns the number of store instructions issued as a fraction of the total instructions. */
+  /** Returns the number of storeFile instructions issued as a fraction of the total instructions. */
   double store_instructions_ratio() const;
   /** Returns the number of branch instructions issued as a fraction of the total instructions. */
   double branch_instructions_ratio() const;

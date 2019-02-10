@@ -8,94 +8,94 @@
 /* ------------------------------------*/
 namespace trinity {
 
-class mesh_t {
+class Mesh {
 
-  friend class metric_t;
-  friend class refine_t;
-  friend class coarse_t;
-  friend class swap_t;
-  friend class smooth_t;
-  friend class indep_t;
-  friend class partit_t;
+  friend class Metrics;
+  friend class Refine;
+  friend class Coarse;
+  friend class Swap;
+  friend class Smooth;
+  friend class Indep;
+  friend class Partit;
 
 public:
 
-  mesh_t(int size[2], int bucket, int depth, int verbosity, int rounds);
-  ~mesh_t();
+   Mesh() = default;
+   Mesh(int size[2], int bucket, int depth, int verbosity, int rounds);
+  ~Mesh();
 
   // global routines
-  void realloc();
-  void round_robin_flush();
-  void compress_storage();  // TODO
-  void reorder_cells();     // TODO
-  void extract_primal();
-  void extract_dual(graph_t *dual) const;
+  void reallocMemory();
+  void doFirstTouch();
+  void compressStorage();  // TODO
+  void reorderCells();     // TODO
+  void extractPrimalGraph();
+  void extractDualGraph(Graph* dual) const;
 
   // repair topology
-  void rebuild();
-  void fix();
-  void fix_all();
-  void init_activ();
-  bool verif() const;
+  void rebuildTopology();
+  void fixTagged();
+  void fixAll();
+  void initActivElems();
+  bool verifyTopology() const;
 
   // I/O
-  void load(const std::string &path, const std::string &solu);
-  void store(const std::string &path) const;
-  void store_primal(const std::string &path) const;
+  void loadFrom(const std::string& path, const std::string& solu);
+  void storeTo(const std::string& path) const;
+  void storePrimalGraph(const std::string& path) const;
 
   // topological queries
-  patch_t vicin_dist(int id, int deg) const;
-  const int *elem_coord(int id, double *p) const;
-  int elem_neigh(int id, int i, int j) const;
-
-  inline const int *get_elem(int i) const { return elems.data() + (i * 3); }
-  inline bool active_node(int i) const { return !stenc[i].empty(); }
-  inline bool active_elem(int i) const { return elems[i * 3] > -1; }
-  inline bool bound(int i) const { return (tags[i] & mask::bound); }
-  inline bool corner(int i) const { return (tags[i] & mask::corner); }
-  inline int node_max() const { return static_cast<int>(max_node); }
-  inline int elem_max() const { return static_cast<int>(max_elem); }
+  Patch getVicinity(int id, int deg) const;
+  const int* getElem(int i) const;
+  const int* getElemCoord(int id, double* p) const;
+  int getElemNeigh(int id, int i, int j) const;
+  bool isActiveNode(int i) const;
+  bool isActiveElem(int i) const;
+  bool isBoundary(int i) const;
+  bool isCorner(int i) const;
+  int getCapaNode() const;
+  int getCapaElem() const;
 
   // topological updates
-  void replace_elem(int id, const int *v);
-  void erase_elem(int id);
-  void update_stenc(int i, int t);
-  void update_stenc(int i, const std::initializer_list<int> &t);
-  void copy_stenc(int i, int j, int nb_rm);
+  void replaceElem(int id, const int* v);
+  void eraseElem(int id);
+  void updateStencil(int i, int t);
+  void updateStencil(int i, const std::initializer_list<int>& t);
+  void copyStencil(int i, int j, int nb_rm);
 
   // deferred updates (for perfs comparison)
 #ifdef DEFERRED_UPDATES
-  void init_updates();
-  void commit_updates();
-  void reset_updates();
-  void deferred_append(int tid, int i, int t);
-  void deferred_append(int tid, int i, const std::initializer_list<int>& t);
-  void deferred_remove(int tid, int i, int t);
+  void initUpdates();
+  void commitUpdates();
+  void resetUpdates();
+  void deferredAppend(int tid, int i, int t);
+  void deferredAppend(int tid, int i, const std::initializer_list<int>& t);
+  void deferredRemove(int tid, int i, int t);
 #endif
 
   // geometrical queries
-  double edge_length(int i, int j) const;
-  double elem_qual(int i) const;
-  double elem_qual(const int *t) const;
-  bool counterclockwise(const int *t) const;
-  void calcul_steiner(int i, int j, double *p, double *m) const;
-  void compute_quality(double q[3]);
+  double computeLength(int i, int j) const;
+  double computeQuality(int i) const;
+  double computeQuality(const int* t) const;
+  bool isCounterclockwise(const int* t) const;
+  void computeSteinerPoint(int i, int j, double* p, double* m) const;
+  void computeQuality(double* q);
 
 private:
-  int nb_nodes;
-  int nb_elems;
-  int nb_cores;
-  int nb_bucket;
+  int nb_nodes_;
+  int nb_elems_;
+  int nb_cores_;
+  int nb_bucket_;
 
   // could use a std::set but performance suffers
-  std::vector<std::vector<int>> stenc;
-  std::vector<std::vector<int>> vicin;
+  std::vector<std::vector<int>> stenc_;
+  std::vector<std::vector<int>> vicin_;
 
-  std::vector<int> elems;
-  std::vector<double> points;      // stride=2
-  std::vector<double> tensor;      // stride=3
-  std::vector<double> solut;       // only on metric field calculation
-  std::vector<double> qualit;      //
+  std::vector<int>     elems_;
+  std::vector<double> points_;      // stride=2
+  std::vector<double> tensor_;      // stride=3
+  std::vector<double>  solut_;       // only on metric field calculation
+  std::vector<double> qualit_;      //
 
   int _scale;        // capacity scale factor
   int _bucket;       // bucket capacity
@@ -107,21 +107,21 @@ private:
   size_t max_elem;   // elem max capacity
   int nb_activ_elem;
 
-  int *deg;         // stencil degree
-  int *off;         // offset per thread for prefix sum
-  char *fixes;       // node marker for topology fixes
-  char *activ;       // node marker for kernel propagation
-  uint8_t *tags;     // node tags for geometrical features [bound|corner]
+  int*      deg_;         // stencil degree
+  int*      off_;         // offset per thread for prefix sum
+  char*   fixes_;       // node marker for topology fixes
+  char*   activ_;       // node marker for processFlips propagation
+  uint8_t* tags_;     // node tags for geometrical features [isBoundary|isCorner]
 
-  time_t tic;
+  Time tic;
 
 #ifdef DEFERRED_UPDATES
-  struct updates_t {
+  struct Updates {
     std::vector<int> add;
     std::vector<int> rem;
   };
-  // table for pending updates
-  std::vector<std::vector<updates_t>> deferred;
+  // Table for pending updates
+  std::vector<std::vector<Updates>> deferred;
   // scaling factor
   const int def_scale_fact = 32;
 #endif

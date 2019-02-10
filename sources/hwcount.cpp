@@ -324,7 +324,7 @@ papi_custom::papi_custom(const std::vector <std::pair<std::string, std::string>>
  * Preprocessing stage
  * @param num_cores the number of cores (1 thread/core)
  * @param papi_mode the type of papi counter to track
- * @param papi_counters array of polymorphic papi counter sets per thread and per kernel
+ * @param papi_counters array of polymorphic papi counter sets per thread and per processElems
  */
 void trinity::papi_init(const uint32_t num_cores,
                         const uint32_t papi_mode,
@@ -374,7 +374,7 @@ void trinity::papi_init(const uint32_t num_cores,
  */
 void trinity::papi_finalize(std::vector<papi_t*> hw_counters[4]) {
   for (int k = 0; k < 4; ++k) {
-    // 1: reduce counters for each kernel
+    // 1: reduce counters for each processFlips
     papi_t::sum(hw_counters[k]);
     std::cout << *(hw_counters[k][0]) << std::endl;
     // 2: clean up

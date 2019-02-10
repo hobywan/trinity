@@ -20,18 +20,18 @@
 
 namespace optparse {
 
-class callback_t;
-class option_t;
-class option_group_t;
-class parser_t;
+class Callback;
+class Option;
+class OptionGroup;
+class Parser;
 
 // Class for automatic conversion from string -> anytype.
-class value_t {
+class Value {
 public:
 
-  value_t() : str(), valid(false) {}
+  Value() : str(), valid(false) {}
 
-  explicit value_t(const std::string &v) : str(v), valid(true) {}
+  explicit Value(const std::string &v) : str(v), valid(true) {}
 
   operator const char *() {
     return str.c_str();
@@ -94,10 +94,10 @@ private:
 };
 
 
-class values_t {
+class Values {
 public:
 
-  values_t() : _map() {}
+  Values() : _map() {}
 
   //const std::string &operator[](const std::string &d) const
   const char *operator[](const std::string &d) const {
@@ -125,8 +125,8 @@ public:
     }
   }
 
-  value_t get(const std::string &d) const {
-    return (is_set(d)) ? value_t((*this)[d]) : value_t();
+  Value get(const std::string &d) const {
+    return (is_set(d)) ? Value((*this)[d]) : Value();
   }
 
   typedef std::vector<std::string>::iterator iterator;
@@ -292,36 +292,36 @@ static std::string basename(const std::string &s) {
 }
 
 
-static parser_t &add_option_group_helper(parser_t &parser,
-                                         const option_group_t &group);
+static Parser &add_option_group_helper(Parser &parser,
+                                         const OptionGroup &group);
 
 
-static values_t &parse_args_helper(parser_t &parser,
+static Values &parse_args_helper(Parser &parser,
                                    const std::vector<std::string> &v);
 
 
-static std::string format_help_helper(const parser_t &parser);
+static std::string format_help_helper(const Parser &parser);
 }
 
 
-class callback_t {
+class Callback {
 public:
 
-  virtual void operator()(const option_t &option,
+  virtual void operator()(const Option &option,
                           const std::string &opt,
                           const std::string &val,
-                          const parser_t &parser) = 0;
+                          const Parser &parser) = 0;
 
-  virtual ~callback_t() {}
+  virtual ~Callback() {}
 };
 
 
-class option_t {
+class Option {
 public:
 
-  option_t() : _action("store"), _type("string"), _nargs(1), _suppress_help(false), _callback(0) {}
+  Option() : _action("storeFile"), _type("string"), _nargs(1), _suppress_help(false), _callback(0) {}
 
-  option_t &action(const std::string &a) {
+  Option &action(const std::string &a) {
     _action = a;
     if (a == "store_const" or
         a == "store_true" or
@@ -335,30 +335,30 @@ public:
     return *this;
   }
 
-  option_t &type(const std::string &t) {
+  Option &type(const std::string &t) {
     _type = t;
     return *this;
   }
 
-  option_t &dest(const std::string &d) {
+  Option &dest(const std::string &d) {
     _dest = d;
     return *this;
   }
 
-  option_t &set_default(const std::string &d) {
+  Option &set_default(const std::string &d) {
     _default = d;
     return *this;
   }
 
   template<typename T>
-  option_t &set_default(T t) {
+  Option &set_default(T t) {
     std::ostringstream ss;
     ss << t;
     _default = ss.str();
     return *this;
   }
 
-  option_t &nargs(size_t n) {
+  Option &nargs(size_t n) {
     // This doesn't seem to be currently supported.
     if (n > 1) {
       throw std::invalid_argument(
@@ -369,34 +369,34 @@ public:
     return *this;
   }
 
-  option_t &set_const(const std::string &c) {
+  Option &set_const(const std::string &c) {
     _const = c;
     return *this;
   }
 
   template<typename InputIterator>
-  option_t &choices(InputIterator begin, InputIterator end) {
+  Option &choices(InputIterator begin, InputIterator end) {
     _choices.assign(begin, end);
     type("choice");
     return *this;
   }
 
-  option_t &help(const std::string &h) {
+  Option &help(const std::string &h) {
     _help = h;
     return *this;
   }
 
-  option_t &suppress_help(const bool suppress = true) {
+  Option &suppress_help(const bool suppress = true) {
     _suppress_help = suppress;
     return *this;
   }
 
-  option_t &metavar(const std::string &m) {
+  Option &metavar(const std::string &m) {
     _metavar = m;
     return *this;
   }
 
-  option_t &callback(callback_t &c) {
+  Option &callback(Callback &c) {
     _callback = &c;
     return *this;
   }
@@ -437,7 +437,7 @@ public:
     return _metavar;
   }
 
-  callback_t *callback() const {
+  Callback *callback() const {
     return _callback;
   }
 
@@ -543,20 +543,20 @@ private:
   std::string _help;
   bool _suppress_help;
   std::string _metavar;
-  callback_t *_callback;
+  Callback *_callback;
 
-  friend class parser_t;
+  friend class Parser;
 
-  friend parser_t &detail::add_option_group_helper(
-    parser_t &parser,
-    const option_group_t &group);
+  friend Parser &detail::add_option_group_helper(
+    Parser &parser,
+    const OptionGroup &group);
 };
 
 
-class parser_t {
+class Parser {
 public:
 
-  parser_t() :
+  Parser() :
     _usage("%prog [options]"),
     _add_help_option(true),
     _add_version_option(true),
@@ -564,65 +564,65 @@ public:
   }
 
 
-  parser_t &usage(const std::string &u) {
+  Parser &usage(const std::string &u) {
     set_usage(u);
     return *this;
   }
 
-  parser_t &version(const std::string &v) {
+  Parser &version(const std::string &v) {
     _version = v;
     return *this;
   }
 
-  parser_t &description(const std::string &d) {
+  Parser &description(const std::string &d) {
     _description = d;
     return *this;
   }
 
-  parser_t &add_help_option(bool h) {
+  Parser &add_help_option(bool h) {
     _add_help_option = h;
     return *this;
   }
 
-  parser_t &add_version_option(bool v) {
+  Parser &add_version_option(bool v) {
     _add_version_option = v;
     return *this;
   }
 
-  parser_t &prog(const std::string &p) {
+  Parser &prog(const std::string &p) {
     _prog = p;
     return *this;
   }
 
-  parser_t &epilog(const std::string &e) {
+  Parser &epilog(const std::string &e) {
     _epilog = e;
     return *this;
   }
 
-  parser_t &set_defaults(const std::string &dest, const std::string &val) {
+  Parser &set_defaults(const std::string &dest, const std::string &val) {
     _defaults[dest] = val;
     return *this;
   }
 
   template<typename T>
-  parser_t &set_defaults(const std::string &dest, T t) {
+  Parser &set_defaults(const std::string &dest, T t) {
     std::ostringstream ss;
     ss << t;
     _defaults[dest] = ss.str();
     return *this;
   }
 
-  parser_t &enable_interspersed_args() {
+  Parser &enable_interspersed_args() {
     _interspersed_args = true;
     return *this;
   }
 
-  parser_t &disable_interspersed_args() {
+  Parser &disable_interspersed_args() {
     _interspersed_args = false;
     return *this;
   }
 
-  parser_t &add_option_group(const option_group_t &group) {
+  Parser &add_option_group(const OptionGroup &group) {
     return detail::add_option_group_helper(*this, group);
   }
 
@@ -658,9 +658,9 @@ public:
     return _interspersed_args;
   }
 
-  option_t &add_option(const std::vector<std::string> &opt) {
+  Option &add_option(const std::vector<std::string> &opt) {
     _opts.resize(_opts.size() + 1);
-    option_t &option = _opts.back();
+    Option &option = _opts.back();
     std::string dest_fallback;
     for (std::vector<std::string>::const_iterator it = opt.begin(); it not_eq opt.end(); ++it) {
       if (it->substr(0, 2) == "--") {
@@ -683,34 +683,34 @@ public:
     return option;
   }
 
-  option_t &add_option(const std::string &opt) {
+  Option &add_option(const std::string &opt) {
     const std::string tmp[1] = {opt};
     return add_option(std::vector<std::string>(&tmp[0], &tmp[1]));
   }
 
-  option_t &add_option(const std::string &opt1, const std::string &opt2) {
+  Option &add_option(const std::string &opt1, const std::string &opt2) {
     const std::string tmp[2] = {opt1, opt2};
     return add_option(std::vector<std::string>(&tmp[0], &tmp[2]));
   }
 
-  option_t &add_option(const std::string &opt1, const std::string &opt2, const std::string &opt3) {
+  Option &add_option(const std::string &opt1, const std::string &opt2, const std::string &opt3) {
     const std::string tmp[3] = {opt1, opt2, opt3};
     return add_option(std::vector<std::string>(&tmp[0], &tmp[3]));
   }
 
-  values_t &parse_args(int argc, char const *const *argv) {
+  Values &parse_args(int argc, char const *const *argv) {
     if (prog() == "") {
       prog(detail::basename(argv[0]));
     }
     return parse_args(&argv[1], &argv[argc]);
   }
 
-  values_t &parse_args(const std::vector<std::string> &arguments) {
+  Values &parse_args(const std::vector<std::string> &arguments) {
     return detail::parse_args_helper(*this, arguments);
   }
 
   template<typename InputIterator>
-  values_t &parse_args(InputIterator begin, InputIterator end) {
+  Values &parse_args(InputIterator begin, InputIterator end) {
     return parse_args(std::vector<std::string>(begin, end));
   }
 
@@ -729,7 +729,7 @@ public:
       return ss.str();
     }
 
-    for (std::list<option_t>::const_iterator it = _opts.begin(); it not_eq _opts.end(); ++it) {
+    for (std::list<Option>::const_iterator it = _opts.begin(); it not_eq _opts.end(); ++it) {
       if (not it->_suppress_help) {
         ss << it->format_help(indent);
       }
@@ -791,17 +791,17 @@ public:
 
 private:
 
-  const option_t &lookup_short_opt(const std::string &opt) const {
-    std::map<std::string, option_t const *>::const_iterator it = _optmap_s.find(opt);
+  const Option &lookup_short_opt(const std::string &opt) const {
+    std::map<std::string, Option const *>::const_iterator it = _optmap_s.find(opt);
     if (it == _optmap_s.end()) {
       error("no such option" + std::string(": -") + opt);
     }
     return *it->second;
   }
 
-  const option_t &lookup_long_opt(const std::string &opt) const {
+  const Option &lookup_long_opt(const std::string &opt) const {
     std::vector<std::string> matching;
-    for (std::map<std::string, option_t const *>::const_iterator it = _optmap_l.begin(); it not_eq _optmap_l.end(); ++it) {
+    for (std::map<std::string, Option const *>::const_iterator it = _optmap_l.begin(); it not_eq _optmap_l.end(); ++it) {
       if (it->first.compare(0, opt.length(), opt) == 0) {
         matching.push_back(it->first);
       }
@@ -821,7 +821,7 @@ private:
     _remaining.pop_front();
     std::string value;
 
-    const option_t &option = lookup_short_opt(opt);
+    const Option &option = lookup_short_opt(opt);
     if (option._nargs == 1) {
       value = arg.substr(2);
       if (value == "") {
@@ -853,7 +853,7 @@ private:
       opt = optstr;
     }
 
-    const option_t &option = lookup_long_opt(opt);
+    const Option &option = lookup_long_opt(opt);
     if (option._nargs == 1 and delim == std::string::npos) {
       if (not _remaining.empty()) {
         value = _remaining.front();
@@ -868,8 +868,8 @@ private:
     process_opt(option, std::string("--") + opt, value);
   }
 
-  void process_opt(const option_t &o, const std::string &opt, const std::string &value) {
-    if (o.action() == "store") {
+  void process_opt(const Option &o, const std::string &opt, const std::string &value) {
+    if (o.action() == "storeFile") {
       std::string err = o.check_type(opt, value);
       if (err not_eq "") {
         error(err);
@@ -926,41 +926,41 @@ private:
   std::string _epilog;
   bool _interspersed_args;
 
-  values_t _values;
+  Values _values;
 
-  std::list<option_t> _opts;
-  std::map<std::string, option_t const *> _optmap_s;
-  std::map<std::string, option_t const *> _optmap_l;
+  std::list<Option> _opts;
+  std::map<std::string, Option const *> _optmap_s;
+  std::map<std::string, Option const *> _optmap_l;
   std::map<std::string, std::string> _defaults;
-  std::vector<option_group_t const *> _groups;
+  std::vector<OptionGroup const *> _groups;
 
   std::list<std::string> _remaining;
   std::vector<std::string> _leftover;
 
-  friend parser_t &detail::add_option_group_helper(
-    parser_t &parser,
-    const option_group_t &group);
+  friend Parser &detail::add_option_group_helper(
+    Parser &parser,
+    const OptionGroup &group);
 
-  friend values_t &detail::parse_args_helper(
-    parser_t &parser,
+  friend Values &detail::parse_args_helper(
+    Parser &parser,
     const std::vector<std::string> &v);
 
-  friend std::string detail::format_help_helper(const parser_t &parser);
+  friend std::string detail::format_help_helper(const Parser &parser);
 };
 
 
-class option_group_t : public parser_t {
+class OptionGroup : public Parser {
 public:
 
-  option_group_t(const std::string &t, const std::string &d = "") :
+  OptionGroup(const std::string &t, const std::string &d = "") :
     _title(t), _group_description(d) {}
 
-  option_group_t &title(const std::string &t) {
+  OptionGroup &title(const std::string &t) {
     _title = t;
     return *this;
   }
 
-  option_group_t &group_description(const std::string &d) {
+  OptionGroup &group_description(const std::string &d) {
     _group_description = d;
     return *this;
   }
@@ -981,10 +981,10 @@ private:
 
 
 namespace detail {
-static parser_t &add_option_group_helper(parser_t &parser,
-                                         const option_group_t &group) {
-  for (std::list<option_t>::const_iterator oit = group._opts.begin(); oit not_eq group._opts.end(); ++oit) {
-    const option_t &option = *oit;
+static Parser &add_option_group_helper(Parser &parser,
+                                         const OptionGroup &group) {
+  for (std::list<Option>::const_iterator oit = group._opts.begin(); oit not_eq group._opts.end(); ++oit) {
+    const Option &option = *oit;
     for (std::set<std::string>::const_iterator it = option._short_opts.begin();
          it not_eq option._short_opts.end();
          ++it) {
@@ -1002,7 +1002,7 @@ static parser_t &add_option_group_helper(parser_t &parser,
 }
 
 
-static values_t &parse_args_helper(parser_t &parser,
+static Values &parse_args_helper(Parser &parser,
                                    const std::vector<std::string> &v) {
   parser._remaining.assign(v.begin(), v.end());
 
@@ -1048,13 +1048,13 @@ static values_t &parse_args_helper(parser_t &parser,
     }
   }
 
-  for (std::list<option_t>::const_iterator it = parser._opts.begin(); it not_eq parser._opts.end(); ++it) {
+  for (std::list<Option>::const_iterator it = parser._opts.begin(); it not_eq parser._opts.end(); ++it) {
     if (it->get_default() not_eq "" and not parser._values.is_set(it->dest())) {
       parser._values[it->dest()] = it->get_default();
     }
   }
 
-  for (std::vector<option_group_t const *>::iterator group_it = parser._groups.begin();
+  for (std::vector<OptionGroup const *>::iterator group_it = parser._groups.begin();
        group_it not_eq parser._groups.end(); ++group_it) {
     for (std::map<std::string, std::string>::const_iterator it = (*group_it)->_defaults.begin();
          it not_eq (*group_it)->_defaults.end(); ++it) {
@@ -1063,7 +1063,7 @@ static values_t &parse_args_helper(parser_t &parser,
       }
     }
 
-    for (std::list<option_t>::const_iterator it = (*group_it)->_opts.begin(); it not_eq (*group_it)->_opts.end(); ++it) {
+    for (std::list<Option>::const_iterator it = (*group_it)->_opts.begin(); it not_eq (*group_it)->_opts.end(); ++it) {
       if (it->get_default() not_eq "" and not parser._values.is_set(it->dest())) {
         parser._values[it->dest()] = it->get_default();
       }
@@ -1074,7 +1074,7 @@ static values_t &parse_args_helper(parser_t &parser,
 }
 
 
-static std::string format_help_helper(const parser_t &parser) {
+static std::string format_help_helper(const Parser &parser) {
   std::stringstream ss;
 
   if (parser.description() not_eq "") {
@@ -1087,7 +1087,7 @@ static std::string format_help_helper(const parser_t &parser) {
   ss << parser.format_option_help();
 
   for (auto it = parser._groups.begin(); it not_eq parser._groups.end(); ++it) {
-    const option_group_t &group = **it;
+    const OptionGroup &group = **it;
     ss << std::endl << "  " << group.title() << ":" << std::endl;
     if (group.group_description() not_eq "")
       ss << detail::str_format(group.group_description(), 4, detail::cols()) << std::endl;
@@ -1101,6 +1101,5 @@ static std::string format_help_helper(const parser_t &parser) {
 
   return ss.str();
 }
-}
-}
+}}
 

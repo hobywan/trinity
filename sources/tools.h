@@ -17,7 +17,7 @@ namespace trinity {
       return (num > 0 ? ((int) std::floor(std::log10(num))) + 1 : 0);
     }
     /* -------------------------------- */
-    inline void show_elap(time_t& tic, const char* msg, int step){
+    inline void show_elap(Time& tic, const char* msg, int step){
     #pragma omp single
       {
          std::printf("%d. %s : \e[32m(%d ms)\e[0m\n", step, msg, timer::elapsed_ms(tic));
@@ -82,7 +82,7 @@ namespace trinity {
       return ok;
     }
     /* -------------------------------- */
-    inline void abort(char option, const char* msg, const optparse::parser_t& parser){
+    inline void abort(char option, const char* msg, const optparse::Parser& parser){
        std::printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
       parser.print_help();
       exit(EXIT_FAILURE);

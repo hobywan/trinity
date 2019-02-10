@@ -5,30 +5,30 @@
 #include "sync.h"
 #include "numeric.h"
 #include "partition.h"
-#include "indep.h"
 /* ------------------------------------ */
 namespace trinity {
 
-class coarse_t {
+class Coarse {
 
 public:
 
-  coarse_t(mesh_t* input, partit_t* algo);
-  ~coarse_t();
+   Coarse() = default;
+   Coarse(Mesh* input, Partit* algo);
+  ~Coarse();
 
-  void run(stats_t* tot);
+  void run(Stats* tot);
 
 private:
   // steps
-  void preprocess();
-  void filtering(std::vector<int>* heap);
-  void extract_primal();
-  void kernel();
+  void preProcess();
+  void filterPoints(std::vector<int>* heap);
+  void extractPrimalGraph();
+  void processPoints();
 
   //
-  mesh_t* mesh;
-  graph_t primal;
-  partit_t* heuris;
+  Mesh* mesh;
+  Graph primal;
+  Partit* heuris;
 
   // tasklists
   int* target;
@@ -54,17 +54,14 @@ private:
   void identify(int id);
   void collapse(int i, int j);
 
-  // for profiling only
-  indep_t* alg;
-
   // timers and stats
-  time_t start;
-  time_t round;
-  time_t tic;
+  Time start;
+  Time round;
+  Time tic;
   //
   void init();
-  void save_stat(int level, int* stat, int* form);
-  void show_stat(int level, int* form);
-  void recap(int* time, int* stat, int* form, stats_t* tot);
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* time, int* stat, int* form, Stats* tot);
 };
 }

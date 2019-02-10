@@ -33,7 +33,7 @@ void RMAT::load(const std::string path) {
   assert(file.good());
 
    std::printf("Loading '\e[36m%s\e[0m'...", path.data());
-  save_chrono();
+  saveChrono();
 
   // init counters
   file >> nb_nodes >> nb_edges;
@@ -106,7 +106,7 @@ void RMAT::info(const std::string testcase) {
 }
 
 /* ------------------------------------ */
-void RMAT::save_chrono() {
+void RMAT::saveChrono() {
   start = timer::now();
 }
 

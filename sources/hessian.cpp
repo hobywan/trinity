@@ -3,7 +3,7 @@
 /* ------------------------------------ */
 using namespace trinity;
 /* ------------------------------------ */
-void metric_t::calcul_gradient(int index){
+void Metrics::calculGradient(int index){
 
   // init
   double size = 0.;      // stencil area
@@ -22,7 +22,7 @@ void metric_t::calcul_gradient(int index){
   int i=0;
   for(auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it){
     // elem attributes
-    const int* v = mesh->elem_coord(*it,p);
+    const int* v = mesh->getElemCoord(*it, p);
 
     // elem area
     s[0] = p[2] - p[0];      // t[1].x - t[0].x
@@ -68,7 +68,7 @@ void metric_t::calcul_gradient(int index){
   delete [] grad;
 }
 /* ------------------------------------ */
-void metric_t::calcul_hessian(int index){
+void Metrics::calculHessian(int index){
 
   // init
   double size = 0.;     // sizeil area
@@ -91,7 +91,7 @@ void metric_t::calcul_hessian(int index){
   int i=0;
   for(auto it=stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it){
     // elem attributes
-    const int* v = mesh->elem_coord(*it,p);
+    const int* v = mesh->getElemCoord(*it, p);
 
     // elem area
     s[0] = p[2] - p[0];      // t[1].x - t[0].x
@@ -146,8 +146,8 @@ void metric_t::calcul_hessian(int index){
 /* ------------------------------------
 void least_squares(int  k,
 			             double*  solut,
-			             patch_t* size,
-			             mesh_t*  mesh,
+			             Patch* size,
+			             Mesh*  mesh,
 			             double*  nabla){
   assert(solut not_eq nullptr);
   assert(size not_eq nullptr);

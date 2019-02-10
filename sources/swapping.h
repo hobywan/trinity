@@ -2,65 +2,65 @@
 #pragma once
 /* ------------------------------------*/
 #include "mesh.h"
-#include "hashtable.h"
+#include "Table.h"
 #include "numeric.h"
 #include "matching.h"
 /* ------------------------------------ */
 namespace trinity {
 
-  class swap_t {
+class Swap {
 
 public:
 
-     swap_t(mesh_t* input);
-    ~swap_t();
+   Swap(Mesh* input);
+  ~Swap();
 
-    void run(stats_t* tot);
+  void run(Stats* tot);
 
 private:
-    // steps
-    void cache_qualit();
-    void filter(std::vector<int>* heap);
-    void extract_dual();
-    void kernel();
+  // steps
+  void cacheQuality();
+  void filterElems(std::vector<int>* heap);
+  void extractDualGraph();
+  void processFlips();
 
-    //
-    mesh_t* mesh;
-    graph_t dual;
-    match_t heuris;
+  //
+  Mesh* mesh;
+  Graph dual;
+  Match heuris;
 
-    // tasklist
-    int*  map;
-    int*  tasks;
-    int*  off;
-    char* fixes;
-    char* activ;
-    double* qualit;
+  // tasklist
+  int* map;
+  int* tasks;
+  int* off;
+  char* fixes;
+  char* activ;
+  double* qualit;
 
-    // counters
-    int& cores;
-    int& nb_nodes;
-    int& nb_elems;
-    int& verbose;
-    int& iter;
-    int& rounds;
-    int  depth;
-    int  nb_activ;
-    int  nb_tasks;
-    int  nb_comms;
-    int  count;  // for profiling only
+  // counters
+  int& cores;
+  int& nb_nodes;
+  int& nb_elems;
+  int& verbose;
+  int& iter;
+  int& rounds;
+  int depth;
+  int nb_activ;
+  int nb_tasks;
+  int nb_comms;
+  int count;  // for profiling only
 
-    // kernel
-    int swap(int k1, int k2, int idx);
+  // processFlips
+  int swap(int k1, int k2, int idx);
 
-    // timers and stats
-    time_t start;
-    time_t round;
-    time_t tic;
-    //
-    void init();
-    void save_stat(int level, int* stat, int* form);
-    void show_stat(int level, int* form);
-    void recap(int* time, int* stat, int* form, stats_t* tot);
-  };
+  // timers and stats
+  Time start;
+  Time round;
+  Time tic;
+  //
+  void init();
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* time, int* stat, int* form, Stats* tot);
+};
 }

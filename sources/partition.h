@@ -9,29 +9,28 @@
 /* ------------------------------------ */
 namespace trinity {
 
-class partit_t {
+class Partit {
 
-  friend class coarse_t;
-  friend class smooth_t;
-  friend class indep_t;
+  friend class Coarse;
+  friend class Smooth;
 
 public:
 
-  partit_t();
-  partit_t(int max_size, int max_parts);
-  ~partit_t();
+   Partit() = default;
+   Partit(int max_size, int max_parts);
+  ~Partit();
 
-  void indep_subset(const graph_t& graph, int nb);
-  void catalyurek(const mesh_t* mesh);
-  void partitioning(const mesh_t* mesh);
+  void extractIndepSet(const Graph& graph, int nb);
+  void extractColoring(const Mesh* mesh);
+  void extractPartition(const Mesh* mesh);
 
   // -------------------------
   // implementation in 'coloring.cpp'
-  void process_benchmark(int nb_rounds); // done
-  void catalyurek(RMAT* graph);    // done
-  void gebremedhin(RMAT* graph);   // done
-  void rokos_gorman(RMAT* graph);  // done
-  void monte_carlo(RMAT* graph);
+  void processBenchmark(int nb_rounds);
+  void colorGraph_Catalyurek(RMAT* graph);
+  void colorGraph_Gebremedhin(RMAT* graph);
+  void colorGraph_Rokos(RMAT* graph);
+  void colorGraph_MonteCarlo(RMAT* graph);
   // -------------------------
 
 private:
@@ -52,12 +51,12 @@ private:
   int** tasks;     // 2 tasklists
 
   // kernels
-  void flush();
+  void reset();
 
   // TODO use thread-local storage for 'forbidden' and 'conflicts'
-  void pseudo_color(const graph_t& graph, std::vector<int>& forbidden, int id);
-  bool detect_error(const graph_t& graph, std::vector<int>& conflicts, int id);
-  void reduce_maxcol(int nb_nodes);
+  void pseudoColor(const Graph& graph, std::vector<int>& forbidden, int id);
+  bool detectErrors(const Graph& graph, std::vector<int>& conflicts, int id);
+  void reduceMaxColor(int nb_nodes);
 };
 }
 #endif

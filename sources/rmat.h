@@ -6,29 +6,29 @@
 /* ------------------------------------ */
 namespace trinity {
 
-  struct RMAT {
+struct RMAT {
 
-    time_t start;
-    int nb_nodes;
-    int nb_edges;
-    int nb_rounds;
-    int nb_error;
-    int nb_color;
-    int deg_max;
-    int deg_avg;
-    float ratio;
+  Time  start;
+  int   nb_nodes;
+  int   nb_edges;
+  int   nb_rounds;
+  int   nb_error;
+  int   nb_color;
+  int   deg_max;
+  int   deg_avg;
+  float ratio;
 
-    // adjacency list
-    graph_t graph;
+  // adjacency list
+  Graph graph;
 
-     RMAT();
-    ~RMAT();
+   RMAT();
+  ~RMAT();
 
-    // utils
-    void reset();
-    void load(std::string path);
-    void info(std::string name);
-    void save_chrono();
-    int elapsed();
-  };
+  // utils
+  void reset();
+  void load(std::string path);
+  void info(std::string name);
+  void saveChrono();
+  int elapsed();
+};
 }

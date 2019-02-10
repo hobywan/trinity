@@ -4,7 +4,7 @@
 using namespace trinity;
 
 /* ------------------------------------ */
-void partit_t::pseudo_color(const graph_t& graph, std::vector<int>& forbidden, int i) {
+void Partit::pseudoColor(const Graph& graph, std::vector<int>& forbidden, int i) {
 
   // use alias for clarity
   int* color = mapping;
@@ -24,7 +24,7 @@ void partit_t::pseudo_color(const graph_t& graph, std::vector<int>& forbidden, i
 }
 
 /* ------------------------------------ */
-bool partit_t::detect_error(const graph_t& graph, std::vector<int>& conflicts, int i) {
+bool Partit::detectErrors(const Graph& graph, std::vector<int>& conflicts, int i) {
 
   // use alias for clarity
   int* color = mapping;
@@ -41,7 +41,7 @@ bool partit_t::detect_error(const graph_t& graph, std::vector<int>& conflicts, i
 }
 
 /* ------------------------------------ */
-void partit_t::reduce_maxcol(int nb_nodes) {
+void Partit::reduceMaxColor(int nb_nodes) {
 
   // -- POST PROCESS
   // (!) OMP reduction doesn't work for class variables
@@ -61,13 +61,13 @@ void partit_t::reduce_maxcol(int nb_nodes) {
 }
 
 /* ------------------------------------ */
-void partit_t::catalyurek(RMAT* rmat) {
+void Partit::colorGraph_Catalyurek(RMAT* rmat) {
 
 #pragma omp master
-  rmat->save_chrono();
+  rmat->saveChrono();
 
   // re-init containers
-  flush();
+  reset();
 
   std::vector<int> forbidden;     // forbidden colors for vertex 'i'
   std::vector<int> conflicts;
@@ -85,12 +85,12 @@ void partit_t::catalyurek(RMAT* rmat) {
 
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
-    pseudo_color(graph, forbidden, i);
+    pseudoColor(graph, forbidden, i);
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb_nodes; ++i)
-    detect_error(graph, conflicts, i);
+    detectErrors(graph, conflicts, i);
 
-  sync::task_reduction(tasks[0], &conflicts, remain, off);
+  sync::reduceTasks(tasks[0], &conflicts, remain, off);
 
   // - propagation stage
   int k = 0;  // current task list index
@@ -104,19 +104,19 @@ void partit_t::catalyurek(RMAT* rmat) {
 
 #pragma omp for nowait
     for (int i = 0; i < remain[k]; ++i)
-      pseudo_color(graph, forbidden, tasks[k][i]);
+      pseudoColor(graph, forbidden, tasks[k][i]);
 #pragma omp for schedule(guided) nowait
     for (int i = 0; i < remain[k]; ++i)
-      detect_error(graph, conflicts, tasks[k][i]);
+      detectErrors(graph, conflicts, tasks[k][i]);
 
 #pragma omp single
     remain[k ^ 1] = 0;
     // switch _tasklist
     k ^= 1;
-    sync::task_reduction(tasks[k], &conflicts, remain + k, off);
+    sync::reduceTasks(tasks[k], &conflicts, remain + k, off);
   }
 
-  reduce_maxcol(nb_nodes);
+  reduceMaxColor(nb_nodes);
 
   // final step: print stats
 #pragma omp master
@@ -129,14 +129,14 @@ void partit_t::catalyurek(RMAT* rmat) {
 }
 
 /* ------------------------------------ */
-void partit_t::gebremedhin(RMAT* rmat) {
+void Partit::colorGraph_Gebremedhin(RMAT* rmat) {
 
 
 #pragma omp master
-  rmat->save_chrono();
+  rmat->saveChrono();
 
   // re-init containers
-  flush();
+  reset();
 
   std::vector<int> forbidden;     // forbidden colors for vertex 'i'
   std::vector<int> conflicts;
@@ -153,10 +153,10 @@ void partit_t::gebremedhin(RMAT* rmat) {
   // ----------------------------
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
-    pseudo_color(graph, forbidden, i);
+    pseudoColor(graph, forbidden, i);
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb_nodes; ++i)
-    detect_error(graph, conflicts, i);
+    detectErrors(graph, conflicts, i);
 
 
   // step 3: serial resolution of conflicts
@@ -166,10 +166,10 @@ void partit_t::gebremedhin(RMAT* rmat) {
   defect += nb_conflicts;
 
   for (int i = 0; i < nb_conflicts; ++i)
-    pseudo_color(graph, forbidden, conflicts[i]);
+    pseudoColor(graph, forbidden, conflicts[i]);
 #pragma omp barrier
 
-  reduce_maxcol(nb_nodes);
+  reduceMaxColor(nb_nodes);
 
   // final step: print stats
 #pragma omp master
@@ -182,13 +182,13 @@ void partit_t::gebremedhin(RMAT* rmat) {
 }
 
 /* ------------------------------------ */
-void partit_t::rokos_gorman(RMAT* rmat) {
+void Partit::colorGraph_Rokos(RMAT* rmat) {
 
 #pragma omp master
-  rmat->save_chrono();
+  rmat->saveChrono();
 
   // re-init containers
-  flush();
+  reset();
 
   std::vector<int> forbidden;     // forbidden colors for vertex 'i'
   std::vector<int> conflicts;
@@ -206,15 +206,15 @@ void partit_t::rokos_gorman(RMAT* rmat) {
 
 #pragma omp for schedule(static)
   for (int i = 0; i < nb_nodes; ++i)
-    pseudo_color(graph, forbidden, i);
+    pseudoColor(graph, forbidden, i);
 
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb_nodes; ++i) {
     // if defective, recolor immediately
-    if (detect_error(graph, conflicts, i))
-      pseudo_color(graph, forbidden, i);
+    if (detectErrors(graph, conflicts, i))
+      pseudoColor(graph, forbidden, i);
   }
-  sync::task_reduction(tasks[0], &conflicts, remain, off);
+  sync::reduceTasks(tasks[0], &conflicts, remain, off);
 
   int tid = omp_get_thread_num();
   int k = 0;
@@ -229,23 +229,23 @@ void partit_t::rokos_gorman(RMAT* rmat) {
 
 #pragma omp for schedule(static)
     for (int i = 0; i < nb_nodes; ++i)
-      pseudo_color(graph, forbidden, tasks[k][i]);
+      pseudoColor(graph, forbidden, tasks[k][i]);
 
 #pragma omp for schedule(guided) nowait
     for (int i = 0; i < nb_nodes; ++i) {
       // if defective, recolor immediately
-      if (detect_error(graph, conflicts, tasks[k][i]))
-        pseudo_color(graph, forbidden, tasks[k][i]);
+      if (detectErrors(graph, conflicts, tasks[k][i]))
+        pseudoColor(graph, forbidden, tasks[k][i]);
     }
 
 #pragma omp single
     remain[k ^ 1] = 0;
     // switch _tasklist
     k ^= 1;
-    sync::task_reduction(tasks[k], &conflicts, remain + k, off);
+    sync::reduceTasks(tasks[k], &conflicts, remain + k, off);
   }
 
-  reduce_maxcol(nb_nodes);
+  reduceMaxColor(nb_nodes);
 
   // final step: print stats
 #pragma omp master
@@ -259,7 +259,7 @@ void partit_t::rokos_gorman(RMAT* rmat) {
 }
 
 /* ------------------------------------ */
-void partit_t::process_benchmark(int nb_rounds) {
+void Partit::processBenchmark(int nb_rounds) {
 
   std::string path[] = {"data/RMAT_ER", "data/RMAT_G", "data/RMAT_B"};
 
@@ -269,11 +269,11 @@ void partit_t::process_benchmark(int nb_rounds) {
 
     // (!) don't merge loops to ease stats postprocessing
     for (int iter = 0; iter < nb_rounds; ++iter)
-      catalyurek(&graph);
+      colorGraph_Catalyurek(&graph);
     for (int iter = 0; iter < nb_rounds; ++iter)
-      gebremedhin(&graph);
+      colorGraph_Gebremedhin(&graph);
     for (int iter = 0; iter < nb_rounds; ++iter)
-      rokos_gorman(&graph);
+      colorGraph_Rokos(&graph);
   }
 }
 

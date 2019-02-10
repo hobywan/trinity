@@ -4,7 +4,7 @@
 using namespace trinity;
 
 /* ------------------------------------ */
-match_t::match_t() :
+Match::Match() :
   size(0),
   depth(0),
   cores(1),
@@ -17,7 +17,7 @@ match_t::match_t() :
   tasks(nullptr) {}
 
 /* ------------------------------------ */
-void match_t::init(int capa, int* map, int* idx) {
+void Match::init(int capa, int* map, int* idx) {
   size = capa;
   depth = 0;
   cores = omp_get_max_threads();
@@ -33,7 +33,7 @@ void match_t::init(int capa, int* map, int* idx) {
 }
 
 /* ------------------------------------ */
-match_t::~match_t() {
+Match::~Match() {
 
   delete[] matched;
   delete[] visited;
@@ -41,7 +41,7 @@ match_t::~match_t() {
 }
 
 /* ------------------------------------ */
-void match_t::flush() {
+void Match::flush() {
 
 #pragma omp master
   card[0] = card[1] = 0;
@@ -60,7 +60,7 @@ void match_t::flush() {
 }
 
 /* ------------------------------------ */
-int* match_t::karp_sipser(const graph_t& graph, int nb) {
+int* Match::computeKarpSipser(const Graph& graph, int nb) {
 
   flush();
 
@@ -76,13 +76,13 @@ int* match_t::karp_sipser(const graph_t& graph, int nb) {
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb; ++i)
     // find maximal set of vertex-disjoint augmenting paths via DFS
-    match_and_update(i, graph, &stack);
+    matchAndUpdate(i, graph, &stack);
 
   return matched;
 }
 
 /* ------------------------------------ */
-void match_t::match_and_update(int i, const graph_t& graph, std::stack<int>* stack) {
+void Match::matchAndUpdate(int i, const Graph& graph, std::stack<int>* stack) {
 
   stack->push(i);
 
@@ -95,11 +95,11 @@ void match_t::match_and_update(int i, const graph_t& graph, std::stack<int>* sta
     u = graph[j][0];
     stack->pop();
 
-    if (!sync::compare_and_swap(visited + u, 0, 1))
+    if (!sync::compareAndSwap(visited + u, 0, 1))
       continue;
 
     for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compare_and_swap(visited + (*v), 0, 1)) {
+      if (sync::compareAndSwap(visited + (*v), 0, 1)) {
         matched[u] = *v;
         matched[*v] = MATCHED;  // avoid duplicates
 
@@ -111,7 +111,7 @@ void match_t::match_and_update(int i, const graph_t& graph, std::stack<int>* sta
         // and recursive call to match the new vertex w of degree=1
         for (auto w = graph[k].begin() + 1; w < graph[k].end(); ++w) {
           const int& nxt = mapping[*w];
-          if (nxt > -1 and sync::fetch_and_sub(degree + (*w), 1) == 2)
+          if (nxt > -1 and sync::fetchAndSub(degree + (*w), char(1)) == 2)
             stack->push(nxt);
         }
         break;
@@ -121,7 +121,7 @@ void match_t::match_and_update(int i, const graph_t& graph, std::stack<int>* sta
 }
 
 /* ------------------------------------ */
-int match_t::get_ratio(const graph_t& graph, int nb, int* count) {
+int Match::getRatio(const Graph& graph, int nb, int* count) {
 
   int local_matched = 0;
 
@@ -145,12 +145,12 @@ int match_t::get_ratio(const graph_t& graph, int nb, int* count) {
 }
 
 /* ------------------------------------ */
-int* match_t::pothen_fan(const graph_t& graph, int nb) {
+int* Match::computePothenFan(const Graph& graph, int nb) {
 
   auto tic = timer::now();
 
   // retrieve a greedy matching using karp-sipser heuristic
-  karp_sipser(graph, nb);
+  computeKarpSipser(graph, nb);
 
   //
   int* look_ahead = tasks[0]; // reuse array
@@ -179,7 +179,7 @@ int* match_t::pothen_fan(const graph_t& graph, int nb) {
       const int& u = graph[i][0];
 
       if (matched[u] < 0)
-        found = DFS_look_ahead(i, graph, &stack);
+        found = DFS_lookAhead(i, graph, &stack);
     }
 #pragma omp critical
     path |= found;
@@ -191,7 +191,7 @@ int* match_t::pothen_fan(const graph_t& graph, int nb) {
 }
 
 /* ------------------------------------ */
-bool match_t::DFS_look_ahead(int i, const graph_t& graph, std::stack<int>* stack) {
+bool Match::DFS_lookAhead(int i, const Graph& graph, std::stack<int>* stack) {
 
   int* look_ahead = tasks[0];
 
@@ -210,7 +210,7 @@ bool match_t::DFS_look_ahead(int i, const graph_t& graph, std::stack<int>* stack
     for (auto v = graph[j].begin() + look_ahead[u]; v < graph[j].end(); ++v) {
       look_ahead[u]++;
       if (matched[*v] < 0) {
-        if (sync::compare_and_swap(visited + u, 0, 1)) {
+        if (sync::compareAndSwap(visited + u, 0, 1)) {
           matched[u] = *v;
           matched[*v] = u;
           return true;
@@ -219,7 +219,7 @@ bool match_t::DFS_look_ahead(int i, const graph_t& graph, std::stack<int>* stack
     }
     // scan unmatched but visited neighbors if not found
     for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compare_and_swap(visited + u, 0, 1)) {
+      if (sync::compareAndSwap(visited + u, 0, 1)) {
         const int& w = mapping[matched[*v]];
         if (w > -1)
           stack->push(w);

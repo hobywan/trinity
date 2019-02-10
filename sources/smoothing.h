@@ -2,30 +2,30 @@
 #pragma once
 /* ------------------------------------*/
 #include "mesh.h"
-#include "hashtable.h"
+#include "Table.h"
 #include "numeric.h"
 #include "partition.h"
 /* ------------------------------------ */
 namespace trinity {
 
-  class smooth_t {
+  class Smooth {
 
 public:
 
-     smooth_t(mesh_t* input, partit_t* algo, int level);
-    ~smooth_t();
+     Smooth(Mesh* input, Partit* algo, int level);
+    ~Smooth();
 
-    void run(stats_t* tot);
+    void run(Stats* tot);
 
 private:
 
     // steps
-    void preprocess();
-    void cache_qualit();
-    void kernel();
+    void preProcess();
+    void cacheQuality();
+    void movePoints();
 
-    mesh_t*   mesh;
-    partit_t* heuris;
+    Mesh*   mesh;
+    Partit* heuris;
     //
     char* activ;
     double* qualit;
@@ -41,17 +41,17 @@ private:
     int  nb_tasks;
     int  nb_comms;
 
-    // kernel
-    int laplacian(int id);
+    // processFlips
+    int moveLaplacian(int id);
 
     // timers and stats
-    time_t start;
-    time_t round;
-    time_t tic;
+    Time start;
+    Time round;
+    Time tic;
     //
     void init();
-    void save_stat(int level, int* stat, int* form);
-    void show_stat(int level, int* form);
-    void recap(int* time, int* stat, int* form, stats_t* tot);
+    void saveStat(int level, int* stat, int* form);
+    void showStat(int level, int* form);
+    void recap(int* time, int* stat, int* form, Stats* tot);
   };
 }
