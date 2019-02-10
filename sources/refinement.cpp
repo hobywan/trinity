@@ -24,17 +24,18 @@ namespace trinity {
 Refine::Refine(Mesh* input, int level)
   :
   mesh(input),
-  off(input->off_),
-  activ(input->activ_),
-  cores(input->nb_cores_),
-  steiner(input->max_node, input->_bucket, 2),
-  nb_nodes(input->nb_nodes_),
-  nb_elems(input->nb_elems_),
-  verbose(input->_verb),
-  iter(input->_iter),
-  rounds(input->_rounds),
-  depth(level) {
-  const auto size = input->max_elem;
+  off(input->sync.off),
+  activ(input->sync.activ),
+  cores(input->nb.cores),
+  steiner(input->capa.node, input->capa.bucket, 2),
+  nb_nodes(input->nb.nodes),
+  nb_elems(input->nb.elems),
+  verbose(input->param.verb),
+  iter(input->param.iter),
+  rounds(input->param.rounds),
+  depth(level)
+{
+  const auto size = input->capa.elem;
   index = new int[cores + 1];
   edges = new int[size * 3];   // 3 data/edge, 3 edges/elem
   elems = new int[size];
@@ -328,8 +329,8 @@ void Refine::computeSteinerPoints() {
     const int& v2 = edges[i * 3 + 1];
     const int& opp = edges[i * 3 + 2];
     // 1) calculate and insert the steiner point
-    double* P = mesh->points_.data() + (id * 2);
-    double* M = mesh->tensor_.data() + (id * 3);
+    double* P = mesh->geom.points.data() + (id * 2);
+    double* M = mesh->geom.tensor.data() + (id * 3);
     mesh->computeSteinerPoint(v1, v2, P, M);
 
     count++;
@@ -339,7 +340,7 @@ void Refine::computeSteinerPoints() {
     steiner.push(v, {w, id});
 
     if (opp < 0) {
-      mesh->tags_[id] = mask::bound;
+      mesh->sync.tags[id] = mask::bound;
     }
   }
 
@@ -417,7 +418,7 @@ void Refine::showStat(int level, int* form) {
 void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = timer::elapsed_ms(start);
+    int end = std::max(timer::elapsed_ms(start), 1);
     int span = 0;
 
     tot->eval += stat[0];

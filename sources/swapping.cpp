@@ -24,18 +24,18 @@ namespace trinity {
 Swap::Swap(Mesh* input)
   :
   mesh(input),
-  off(input->off_),
-  fixes(input->fixes_),
-  activ(input->activ_),
-  cores(input->nb_cores_),
-  qualit(input->qualit_.data()),
-  nb_nodes(input->nb_cores_),
-  nb_elems(input->nb_elems_),
-  verbose(input->_verb),
-  iter(input->_iter),
-  rounds(input->_rounds),
+  off(input->sync.off),
+  fixes(input->sync.fixes),
+  activ(input->sync.activ),
+  cores(input->nb.cores),
+  qualit(input->geom.qualit.data()),
+  nb_nodes(input->nb.cores),
+  nb_elems(input->nb.elems),
+  verbose(input->param.verb),
+  iter(input->param.iter),
+  rounds(input->param.rounds),
   depth(20) {
-  auto size = input->max_elem;
+  auto size = input->capa.elem;
   map = new int[size];
   tasks = new int[size];
   dual.resize(size);
@@ -243,8 +243,8 @@ void Swap::filterElems(std::vector<int>* heap) {
 /* ------------------------------------ */
 void Swap::extractDualGraph() {
 
-  const auto& stenc = mesh->stenc_;
-  const int* deg = mesh->deg_;
+  const auto& stenc = mesh->topo.stenc;
+  const int* deg = mesh->sync.deg;
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb_tasks; ++i) {
@@ -356,7 +356,7 @@ void Swap::showStat(int level, int* form) {
 void Swap::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = timer::elapsed_ms(start);
+    int end = std::max(timer::elapsed_ms(start), 1);
 
     tot->eval += stat[0];
     tot->task += stat[1];
@@ -384,10 +384,10 @@ void Swap::recap(int* time, int* stat, int* form, Stats* tot) {
       std::printf("= rate : %d flip/sec (%d tasks) \n", (int) std::floor(stat[1] / (end * 1e-3)), stat[1]);
       std::printf("= time per step\n");
       std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", (int) time[0] * 100 / end, *form, time[0]);
-      std::printf("  %2d %% filterElems \e[32m(%*d ms)\e[0m\n", (int) time[1] * 100 / end, *form, time[1]);
+      std::printf("  %2d %% filter \e[32m(%*d ms)\e[0m\n", (int) time[1] * 100 / end, *form, time[1]);
       std::printf("  %2d %% dual   \e[32m(%*d ms)\e[0m\n", (int) time[2] * 100 / end, *form, time[2]);
       std::printf("  %2d %% match  \e[32m(%*d ms)\e[0m\n", (int) time[3] * 100 / end, *form, time[3]);
-      std::printf("  %2d %% processFlips \e[32m(%*d ms)\e[0m\n", (int) time[4] * 100 / end, *form, time[4]);
+      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", (int) time[4] * 100 / end, *form, time[4]);
       std::printf("  %2d %% fixes  \e[32m(%*d ms)\e[0m\n", (int) time[5] * 100 / end, *form, time[5]);
       std::printf("done. \e[32m(%d ms)\e[0m\n", end);
       tools::separator();

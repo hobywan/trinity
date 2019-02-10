@@ -100,38 +100,50 @@ public:
   void computeQuality(double* q);
 
 private:
-  int nb_nodes_;
-  int nb_elems_;
-  int nb_cores_;
-  int nb_bucket_;
 
-  // could use a std::set but performance suffers
-  std::vector<std::vector<int>> stenc_;
-  std::vector<std::vector<int>> vicin_;
+  struct {
+    int nodes;
+    int elems;
+    int cores;
+    int activ_elem;
+  } nb;
 
-  std::vector<int>     elems_;
-  std::vector<double> points_;      // stride=2
-  std::vector<double> tensor_;      // stride=3
-  std::vector<double>  solut_;       // only on metric field calculation
-  std::vector<double> qualit_;      //
+  struct {
+    std::vector<int> elems;
+    // could use a std::set but performance suffers
+    Graph stenc;
+    Graph vicin;
+  } topo;
 
-  int _scale;        // capacity scale factor
-  int _bucket;       // bucket capacity
-  int _depth;        // max refinement/smoothing level
-  int _verb;         // verbosity level
-  int _iter;
-  int _rounds;       // remeshing rounds
-  size_t max_node;   // node max capacity
-  size_t max_elem;   // elem max capacity
-  int nb_activ_elem;
+  struct {
+    std::vector<double> points;      // stride=2
+    std::vector<double> tensor;      // stride=3
+    std::vector<double> solut;       // for metric field calculation
+    std::vector<double> qualit;      // to speedup calculations
+  } geom;
 
-  int*      deg_;         // stencil degree
-  int*      off_;         // offset per thread for prefix sum
-  char*   fixes_;       // node marker for topology fixes
-  char*   activ_;       // node marker for processFlips propagation
-  uint8_t* tags_;     // node tags for geometrical features [isBoundary|isCorner]
+  struct {
+    int scale;            // capacity scale factor
+    int depth;            // max refinement/smoothing level
+    int verb;             // verbosity level
+    int iter;
+    int rounds;           // remeshing rounds
+  } param;
 
-  Time tic;
+  struct {
+    size_t bucket;        // bucket capacity
+    size_t node;          // node max capacity
+    size_t elem;          // elem max capacity
+  } capa;
+
+  struct {
+    int*     deg;         // stencil degree
+    int*     off;         // offset per thread for prefix sum
+    char*    fixes;       // node marker for topology fixes
+    char*    activ;       // node marker for processFlips propagation
+    uint8_t* tags;     // node tags for geometrical features [bound|corner]
+    Time     tic;
+  } sync;
 
 #ifdef DEFERRED_UPDATES
   struct Updates {

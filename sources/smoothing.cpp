@@ -23,14 +23,14 @@ namespace trinity {
 /* ------------------------------------ */
 Smooth::Smooth(Mesh* input, Partit* algo, int level)
   : mesh(input),
-    cores(input->nb_cores_),
-    activ(input->activ_),
-    qualit(input->qualit_.data()),
-    nb_nodes(input->nb_nodes_),
-    nb_elems(input->nb_elems_),
-    verbose(input->_verb),
-    iter(input->_iter),
-    rounds(input->_rounds),
+    cores(input->nb.cores),
+    activ(input->sync.activ),
+    qualit(input->geom.qualit.data()),
+    nb_nodes(input->nb.nodes),
+    nb_elems(input->nb.elems),
+    verbose(input->param.verb),
+    iter(input->param.iter),
+    rounds(input->param.rounds),
     heuris(algo),
     depth(level)
 {}
@@ -72,9 +72,9 @@ void Smooth::run(Stats* tot) {
 /* ------------------------------------ */
 int Smooth::moveLaplacian(int i) {
 
-  const auto& vicin = mesh->vicin_[i];
-  const auto& stenc = mesh->stenc_[i];
-  const int deg = mesh->deg_[i];
+  const auto& vicin = mesh->topo.vicin[i];
+  const auto& stenc = mesh->topo.stenc[i];
+  const int deg = mesh->sync.deg[i];
   const int nb = vicin.size();
 
   double q_min = std::numeric_limits<double>::max();
@@ -84,8 +84,8 @@ int Smooth::moveLaplacian(int i) {
 
   double* M = new double[nb * 3];
   double* q = new double[stenc.size()];
-  double* pa = mesh->points_.data() + (i * 2);
-  double* ma = mesh->tensor_.data() + (i * 3);
+  double* pa = mesh->geom.points.data() + (i * 2);
+  double* ma = mesh->geom.tensor.data() + (i * 3);
 
   double len = 0.;
   double p_opt[] = {0, 0};
@@ -94,8 +94,8 @@ int Smooth::moveLaplacian(int i) {
   for (int k = 0; k < nb; ++k) {
 
     const int& j = vicin[k];
-    const double* pb = mesh->points_.data() + (j * 2);
-    const double* mb = mesh->tensor_.data() + (j * 3);
+    const double* pb = mesh->geom.points.data() + (j * 2);
+    const double* mb = mesh->geom.tensor.data() + (j * 3);
 
     // a. reduction on each local Pimal position of v[i]
     len = mesh->computeLength(i, j);
@@ -168,7 +168,7 @@ void Smooth::preProcess() {
 
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
-    if (not mesh->stenc_[i].empty()) {
+    if (not mesh->topo.stenc[i].empty()) {
       activ[i] = static_cast<char>(__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
     }
 
@@ -180,7 +180,7 @@ void Smooth::preProcess() {
 void Smooth::cacheQuality() {
 
 #pragma omp for
-  for (int i = 0; i < mesh->nb_elems_; ++i)
+  for (int i = 0; i < mesh->nb.elems; ++i)
     if (mesh->isActiveElem(i)) {
       qualit[i] = mesh->computeQuality(i);
     }
@@ -259,7 +259,7 @@ void Smooth::showStat(int level, int* form) {
 void Smooth::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = timer::elapsed_ms(start);
+    int end = std::max(timer::elapsed_ms(start), 1);
 
     tot->eval += stat[0];
     tot->task += stat[1];

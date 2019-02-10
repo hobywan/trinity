@@ -77,14 +77,14 @@ void Partit::extractColoring(const Mesh* mesh) {
   std::vector<int> conflicts;
 
   forbidden.resize(max_p, std::numeric_limits<int>::max());
-  conflicts.reserve(mesh->nb_nodes_);
+  conflicts.reserve(mesh->nb.nodes);
 
   // use aliases for clarity
   int* color = mapping;
-  const auto& primal = mesh->vicin_;
+  const auto& primal = mesh->topo.vicin;
 
 #pragma omp for
-  for (int i = 0; i < mesh->nb_nodes_; ++i) {
+  for (int i = 0; i < mesh->nb.nodes; ++i) {
     if (primal[i].empty())
       continue;
 
@@ -101,7 +101,7 @@ void Partit::extractColoring(const Mesh* mesh) {
   }
 
 #pragma omp for schedule(guided) nowait
-  for (int i = 0; i < mesh->nb_nodes_; ++i) {
+  for (int i = 0; i < mesh->nb.nodes; ++i) {
     for (const int& j : primal[i]) {
       if (i < j and color[i] == color[j]) {
         conflicts.push_back(i);   // (!) index not the node value
@@ -165,7 +165,7 @@ void Partit::extractColoring(const Mesh* mesh) {
   int nb_col = 0;
 
 #pragma omp for nowait
-  for (int i = 0; i < mesh->nb_nodes_; ++i) {
+  for (int i = 0; i < mesh->nb.nodes; ++i) {
     const int& k = mapping[i];
     if (k) {
       list[k - 1].push_back(i);

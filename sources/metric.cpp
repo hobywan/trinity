@@ -18,21 +18,22 @@
  */
 
 #include "metric.h"
+#include "mesh.h"
 /* ------------------------------------ */
 namespace trinity {
 /* ------------------------------------ */
 Metrics::Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h)
   : mesh(input),
-    solut(input->solut_.data()),
-    tens(input->tensor_.data()),
-    nb_nodes(input->nb_nodes_),
-    nb_elems(input->nb_elems_),
-    nb_cores(input->nb_cores_),
-    verbose(input->_verb),
-    iter(input->_iter),
-    rounds(input->_rounds),
-    chunk(input->nb_nodes_ / input->nb_cores_),
-    target((int) std::floor(input->nb_nodes_ * targ_f)),
+    solut(input->geom.solut.data()),
+    tens(input->geom.tensor.data()),
+    nb_nodes(input->nb.nodes),
+    nb_elems(input->nb.elems),
+    nb_cores(input->nb.cores),
+    verbose(input->param.verb),
+    iter(input->param.iter),
+    rounds(input->param.rounds),
+    chunk(input->nb.nodes / input->nb.cores),
+    target((int) std::floor(input->nb.cores * targ_f)),
     p_norm(norm),
     h_min(min_h),
     h_max(max_h),
@@ -86,8 +87,8 @@ void Metrics::recoverHessianField() {
 
 #pragma omp master
   {
-    mesh->solut_.clear();
-    mesh->solut_.shrink_to_fit();
+    mesh->geom.solut.clear();
+    mesh->geom.solut.shrink_to_fit();
   }
 }
 

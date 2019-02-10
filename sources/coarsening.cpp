@@ -18,20 +18,21 @@
  */
 /* ------------------------------------*/
 #include "coarsening.h"
+#include "mesh.h"
 /* ------------------------------------ */
 namespace trinity {
 /* ------------------------------------*/
 Coarse::Coarse(Mesh* input, Partit* algo)
   : mesh    (input),
-    off     (mesh->off_),
-    fixes   (mesh->fixes_),
-    activ   (mesh->activ_),
-    cores   (mesh->nb_cores_),
-    nb_nodes(mesh->nb_nodes_),
-    nb_elems(mesh->nb_elems_),
-    verbose (mesh->_verb),
-    iter    (mesh->_iter),
-    rounds  (mesh->_rounds),
+    off     (mesh->sync.off),
+    fixes   (mesh->sync.fixes),
+    activ   (mesh->sync.activ),
+    cores   (mesh->nb.cores),
+    nb_nodes(mesh->nb.nodes),
+    nb_elems(mesh->nb.elems),
+    verbose (mesh->param.verb),
+    iter    (mesh->param.iter),
+    rounds  (mesh->param.rounds),
     heuris  (algo),
     indep   (algo->subset[0]),
     target  (algo->subset[3]),
@@ -39,7 +40,7 @@ Coarse::Coarse(Mesh* input, Partit* algo)
     nb_indep(algo->card[0]),
     depth(20)
 {
-  primal.resize(input->max_node);
+  primal.resize(input->capa.node);
 }
 
 /* ------------------------------------ */
@@ -98,9 +99,9 @@ void Coarse::run(Stats* tot) {
 /* ------------------------------------ */
 void Coarse::identify(int i) {
 
-  const auto& vicin = mesh->vicin_[i];
-  const auto stenc_beg = mesh->stenc_[i].begin();
-  const auto stenc_end = mesh->stenc_[i].begin() + mesh->deg_[i];
+  const auto& vicin = mesh->topo.vicin[i];
+  const auto stenc_beg = mesh->topo.stenc[i].begin();
+  const auto stenc_end = mesh->topo.stenc[i].begin() + mesh->sync.deg[i];
   const bool bound_src = mesh->isBoundary(i);
 
   // 1) filterElems step
@@ -153,7 +154,7 @@ void Coarse::identify(int i) {
       f[2] = (n[2] == i ? j : n[2]);
       if (not (f[0] not_eq f[1] and f[1] not_eq f[2] and f[2] not_eq f[0])) {
         std::printf("problem identify: v: %d, t: %d, f:[%d,%d,%d]\n", i, *t, f[0], f[1], f[2]);
-        tools::display(mesh->stenc_[i]);
+        tools::display(mesh->topo.stenc[i]);
         if (mesh->isBoundary(i))
           std::printf("boundary vertex %d\n", i);
       }
@@ -181,8 +182,8 @@ void Coarse::collapse(int i, int j) {
   int tid = omp_get_thread_num();
 #endif
 
-  auto& stenc = mesh->stenc_[i];
-  auto& vicin = mesh->vicin_[i];
+  auto& stenc = mesh->topo.stenc[i];
+  auto& vicin = mesh->topo.vicin[i];
 
   int k = 0;
   // branches can be factorized for genericity but performance suffers
@@ -301,7 +302,7 @@ void Coarse::preProcess() {
     if (__builtin_expect(mesh->isCorner(i), 0))
       activ[i] = -1;
     else
-      activ[i] = static_cast<char>(mesh->stenc_[i].empty() ? 0 : 1);
+      activ[i] = static_cast<char>(mesh->topo.stenc[i].empty() ? 0 : 1);
   }
 
 #pragma omp for nowait
@@ -345,10 +346,10 @@ void Coarse::extractPrimalGraph() {
 #pragma omp for
   for (int i = 0; i < nb_tasks; ++i) {
     const int& k = filter[i];
-    size_t deg = mesh->vicin_[k].size();
+    size_t deg = mesh->topo.vicin[k].size();
     primal[i].resize(deg + 1);
     primal[i][0] = k;
-    std::memcpy(primal[i].data() + 1, mesh->vicin_[k].data(), sizeof(int) * deg);
+    std::memcpy(primal[i].data() + 1, mesh->topo.vicin[k].data(), sizeof(int) * deg);
   }
 }
 
@@ -411,7 +412,7 @@ void Coarse::showStat(int level, int* form) {
 void Coarse::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = timer::elapsed_ms(start);
+    int end = std::max(timer::elapsed_ms(start), 1);
     int span = 0;
 
     // reduction
