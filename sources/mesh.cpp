@@ -27,7 +27,7 @@ Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
   nb.nodes     = size[0];
   nb.elems     = size[1];
   nb.cores     = omp_get_max_threads();
-  param.scale  = (depth - 1) * 3;
+  capa.scale  = (depth - 1) * 3;
   capa.bucket  = (size_t) bucket;
   param.depth  = depth;
   param.verb   = verbosity;
@@ -66,9 +66,9 @@ void Mesh::reallocMemory() {
   {
     assert(nb.nodes);   // expected nb of nodes
     assert(nb.elems);   // expected nb of elems
-    assert(param.scale);
-    capa.node = (size_t) nb.nodes * param.scale;
-    capa.elem = (size_t) nb.elems * param.scale;
+    assert(capa.scale);
+    capa.node = (size_t) nb.nodes * capa.scale;
+    capa.elem = (size_t) nb.elems * capa.scale;
 
   #pragma omp task
     topo.stenc.resize(capa.node);

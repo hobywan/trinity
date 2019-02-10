@@ -145,10 +145,10 @@ void Mesh::loadFrom(const std::string& path, const std::string& solu) {
 
   else if (param.verb == 2) {
     std::printf("= %*d nodes, %*lu max. \e[0m(x%d)\e[0m, %d bound. \e[0m(%.1f %%)\e[0m\n",
-                form[0], nb.nodes, form[1], capa.node, param.scale, nb_bounds,
+                form[0], nb.nodes, form[1], capa.node, capa.scale, nb_bounds,
                 (float) nb_bounds * 100 / nb.nodes);
     std::printf("= %*d elems, %*lu max. \e[0m(x%d)\e[0m\n\n",
-                form[0], nb.elems, form[0], capa.elem, param.scale);
+                form[0], nb.elems, form[0], capa.elem, capa.scale);
   }
 }
 

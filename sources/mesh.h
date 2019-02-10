@@ -102,47 +102,46 @@ public:
 private:
 
   struct {
-    int nodes;
-    int elems;
-    int cores;
-    int activ_elem;
+    int nodes;                        // nb of active+deleted nodes
+    int elems;                        // nb of active+deleted elems
+    int cores;                        // nb of logical cores used
+    int activ_elem;                   // actual nb of elems
   } nb;
 
   struct {
     std::vector<int> elems;
-    // could use a std::set but performance suffers
-    Graph stenc;
-    Graph vicin;
-  } topo;
+    Graph stenc;                      // incident elems to each node
+    Graph vicin;                      // adjacent nodes to each node
+  } topo;                             // could use a std::set but performance suffers
 
   struct {
-    std::vector<double> points;      // stride=2
-    std::vector<double> tensor;      // stride=3
-    std::vector<double> solut;       // for metric field calculation
-    std::vector<double> qualit;      // to speedup calculations
+    std::vector<double> points;       // nodal coordinates, stride=2
+    std::vector<double> tensor;       // nodal metric tensor, stride=3
+    std::vector<double> solut;        // solut value (for metric field calculation)
+    std::vector<double> qualit;       // cache elem quality to speedup kernels
   } geom;
 
   struct {
-    int scale;            // capacity scale factor
-    int depth;            // max refinement/smoothing level
-    int verb;             // verbosity level
-    int iter;
-    int rounds;           // remeshing rounds
+    int depth;                        // refine|smooth max depth
+    int verb;                         // verbosity level
+    int iter;                         // current iteration
+    int rounds;                       // remeshing rounds
   } param;
 
   struct {
-    size_t bucket;        // bucket capacity
-    size_t node;          // node max capacity
-    size_t elem;          // elem max capacity
+    int    scale;                     // capacity scale factor
+    size_t bucket;                    // bucket capacity
+    size_t node;                      // node capacity
+    size_t elem;                      // elem capacity
   } capa;
 
   struct {
-    int*     deg;         // stencil degree
-    int*     off;         // offset per thread for prefix sum
-    char*    fixes;       // node marker for topology fixes
-    char*    activ;       // node marker for processFlips propagation
-    uint8_t* tags;     // node tags for geometrical features [bound|corner]
-    Time     tic;
+    int*     deg;                     // nodal degree
+    int*     off;                     // offset per thread for prefix sum
+    char*    fixes;                   // nodal marker for topology fixes
+    char*    activ;                   // nodal marker for kernel propagation
+    uint8_t* tags;                    // nodal tags for geometrical features [bound|corner]
+    Time     tic;                     // time point for profiling purposes
   } sync;
 
 #ifdef DEFERRED_UPDATES
