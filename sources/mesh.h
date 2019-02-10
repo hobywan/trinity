@@ -110,8 +110,8 @@ private:
 
   struct {
     std::vector<int> elems;
-    Graph stenc;                      // incident elems to each node
-    Graph vicin;                      // adjacent nodes to each node
+    Graph stenc;                      // nodal incident elems
+    Graph vicin;                      // nodal adjacent nodes
   } topo;                             // could use a std::set but performance suffers
 
   struct {
