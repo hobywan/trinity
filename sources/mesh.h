@@ -38,7 +38,7 @@ class Mesh {
 
 public:
 
-   Mesh() = default;
+   Mesh() = delete;
    Mesh(int size[2], int bucket, int depth, int verbosity, int rounds);
   ~Mesh();
 
