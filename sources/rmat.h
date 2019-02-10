@@ -25,22 +25,17 @@
 /* ------------------------------------ */
 namespace trinity {
 /* ------------------------------------ */
-struct RMAT {
+class RMAT {
 
-  Time  start;
-  int   nb_nodes;
-  int   nb_edges;
-  int   nb_rounds;
-  int   nb_error;
-  int   nb_color;
-  int   deg_max;
-  int   deg_avg;
-  float ratio;
+  friend class Partit;
 
-  // adjacency list
-  Graph graph;
-
-   RMAT();
+public:
+  // rule of five
+  RMAT();
+  RMAT(const RMAT& other) = delete;
+  RMAT& operator=(RMAT other) = delete;
+  RMAT(RMAT&& other) noexcept = delete;
+  RMAT& operator=(RMAT&& other) noexcept = delete;
   ~RMAT();
 
   // utils
@@ -49,5 +44,17 @@ struct RMAT {
   void info(std::string name);
   void saveChrono();
   int elapsed();
+
+private:
+  Graph graph;
+  int   nb_nodes;
+  int   nb_edges;
+  int   nb_rounds;
+  int   nb_error;
+  int   nb_color;
+  int   deg_max;
+  int   deg_avg;
+  float ratio;
+  Time  start;
 };
 } // namespace trinity

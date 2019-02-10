@@ -23,7 +23,7 @@
 /* ------------------------------------ */
 namespace trinity { namespace numeric {
 /* ------------------------------------ */
-void eigenDecomposeTensor(const double* M, double* val, double* vec1, double* vec2);
+void eigenDecompose(const double* m, double* val, double* vec1, double* vec2);
 void interpolateTensor(const double* M, double* R, int n);
 void kroneckerProduct(const double* u1, const double* u2, double* M);
 

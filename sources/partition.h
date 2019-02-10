@@ -34,8 +34,13 @@ class Partit {
 
 public:
 
-   Partit() = default;
-   Partit(int max_size, int max_parts);
+  // rule of five
+  Partit() = delete;
+  Partit(const Partit& other) = delete;
+  Partit& operator=(Partit other) = delete;
+  Partit(Partit&& other) noexcept = delete;
+  Partit& operator=(Partit&& other) noexcept = delete;
+  Partit(int max_size, int max_parts);
   ~Partit();
 
   void extractIndepSet(const Graph& graph, int nb);

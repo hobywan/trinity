@@ -115,7 +115,7 @@ void Metrics::normalizeLocally() {
     m[3] = tens[k + 2];
 
     // diagonalize
-    numeric::eigenDecomposeTensor(m, val, vec, vec + 2);
+    numeric::eigenDecompose(m, val, vec, vec + 2);
     val[0] = std::max(std::abs(val[0]), EPSILON);
     val[1] = std::max(std::abs(val[1]), EPSILON);
 
@@ -208,7 +208,7 @@ void Metrics::normalizeGlobally() {
     m[2] = m[1];
     m[3] = tens[k + 2];
 
-    numeric::eigenDecomposeTensor(m, val, vec, vec + 2);
+    numeric::eigenDecompose(m, val, vec, vec + 2);
     val[0] *= scale_fact;
     val[1] *= scale_fact;
     for (j = 0; j < 2; ++j) {

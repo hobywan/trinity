@@ -21,7 +21,7 @@
 /* ------------------------------------ */
 #include "tools.h"
 #include "mesh.h"
-#include "Table.h"
+#include "hashtable.h"
 #include "numeric.h"
 /* ------------------------------------ */
 namespace trinity {
@@ -30,7 +30,13 @@ class Refine {
 
 public:
 
-   Refine(Mesh* input, int level);
+  // rule of five
+  Refine() = delete;
+  Refine(const Refine& other) = delete;
+  Refine& operator=(Refine other) = delete;
+  Refine(Refine&& other) noexcept = delete;
+  Refine& operator=(Refine&& other) noexcept = delete;
+  Refine(Mesh* input, int level);
   ~Refine();
 
   void run(Stats* tot);
@@ -44,9 +50,8 @@ private:
   void processElems(int tid);
   void cutElem(int id, int* offset);
 
-  Mesh* mesh;             // input mesh
-  Table<int> steiner;   // mapping: vi -> (vj,s)
-
+  Mesh* mesh;               // input mesh
+  Hashtable<int> steiner;   // mapping: vi -> (vj,s)
 
   int*  index;              // offset for elems insertion
   int*  edges;              // tasklist for steiner point calc. step

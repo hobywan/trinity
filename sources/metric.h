@@ -29,7 +29,13 @@ class Metrics {
 
 public:
 
-   Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h);
+  // rule of five
+  Metrics() = delete;
+  Metrics(const Metrics& other) = delete;
+  Metrics& operator=(Metrics other) = delete;
+  Metrics(Metrics&& other) noexcept = delete;
+  Metrics& operator=(Metrics&& other) noexcept = delete;
+  Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h);
   ~Metrics();
 
   void computeTensorField(Stats* tot);

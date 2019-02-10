@@ -33,13 +33,17 @@ class Mesh {
   friend class Coarse;
   friend class Swap;
   friend class Smooth;
-  friend class Indep;
   friend class Partit;
 
 public:
 
-   Mesh() = delete;
-   Mesh(int size[2], int bucket, int depth, int verbosity, int rounds);
+  // rule of five
+  Mesh() = delete;
+  Mesh(const Mesh& other) = delete;
+  Mesh& operator=(Mesh other) = delete;
+  Mesh(Mesh&& other) noexcept = delete;
+  Mesh& operator=(Mesh&& other) noexcept = delete;
+  Mesh(int size[2], int bucket, int depth, int verbosity, int rounds);
   ~Mesh();
 
   // global routines

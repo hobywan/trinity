@@ -20,7 +20,7 @@
 #pragma once
 /* ------------------------------------*/
 #include "mesh.h"
-#include "Table.h"
+#include "hashtable.h"
 #include "numeric.h"
 #include "matching.h"
 /* ------------------------------------ */
@@ -30,7 +30,13 @@ class Swap {
 
 public:
 
-   Swap(Mesh* input);
+  // rule of five
+  Swap() = delete;
+  Swap(const Swap& other) = delete;
+  Swap& operator=(Swap other) = delete;
+  Swap(Swap&& other) noexcept = delete;
+  Swap& operator=(Swap&& other) noexcept = delete;
+  explicit Swap(Mesh* input);
   ~Swap();
 
   void run(Stats* tot);

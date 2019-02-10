@@ -22,10 +22,10 @@
 
 namespace trinity {
 /* ------------------------------------ */
-void numeric::eigenDecomposeTensor(const double m[4],
-                                   double val[2],
-                                   double vec1[2],
-                                   double vec2[2]) {
+void numeric::eigenDecompose(const double m[4],
+                             double val[2],
+                             double vec1[2],
+                             double vec2[2]) {
 
   if (m[1] * m[2] < EPSILON) {
     val[0] = m[3];
@@ -113,7 +113,7 @@ void numeric::interpolateTensor(const double* M, double R[3], int nb) {
     for (double k : m)
       assert(std::isfinite(k));
 
-    eigenDecomposeTensor(m, val, vec, vec + 2);
+    eigenDecompose(m, val, vec, vec + 2);
 
     if (not std::isnormal(val[0]) or not std::isnormal(val[1])) {
       std::printf("(val[0],val[1]) = (%.2f,%.2f)\n", val[0], val[1]);
@@ -173,7 +173,7 @@ void numeric::interpolateTensor(const double* M, double R[3], int nb) {
 
   // exponentiate 'log_m' to get the average tensor
   // (!) 'log_m' is not symmetric
-  eigenDecomposeTensor(log_m, val, vec, vec + 2);
+  eigenDecompose(log_m, val, vec, vec + 2);
   val[0] = std::exp(val[0]);
   val[1] = std::exp(val[1]);
 

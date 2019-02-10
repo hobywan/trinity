@@ -29,8 +29,13 @@ class Coarse {
 
 public:
 
-   Coarse() = default;
-   Coarse(Mesh* input, Partit* algo);
+  // rule of five
+  Coarse() = delete;
+  Coarse(const Coarse& other) = delete;
+  Coarse& operator=(Coarse other) = delete;
+  Coarse(Coarse&& other) noexcept = delete;
+  Coarse& operator=(Coarse&& other) noexcept = delete;
+  Coarse(Mesh* input, Partit* algo);
   ~Coarse();
 
   void run(Stats* tot);

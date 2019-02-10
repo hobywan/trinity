@@ -70,7 +70,7 @@ void Smooth::run(Stats* tot) {
 }
 
 /* ------------------------------------ */
-int Smooth::moveLaplacian(int i) {
+int Smooth::moveSmartLaplacian(int i) {
 
   const auto& vicin = mesh->topo.vicin[i];
   const auto& stenc = mesh->topo.stenc[i];
@@ -203,7 +203,7 @@ void Smooth::movePoints() {
     for (int j = 0; j < heuris->card[i]; ++j) {
       const int& k = heuris->subset[i][j];
       if (activ[k]) {
-        succ += moveLaplacian(k);
+        succ += moveSmartLaplacian(k);
         tota++;
       }
     }

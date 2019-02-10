@@ -20,7 +20,7 @@
 #pragma once
 /* ------------------------------------ */
 #include "mesh.h"
-#include "Table.h"
+#include "hashtable.h"
 #include "numeric.h"
 #include "partition.h"
 /* ------------------------------------ */
@@ -30,7 +30,13 @@ class Smooth {
 
 public:
 
-   Smooth(Mesh* input, Partit* algo, int level);
+  // rule of five
+  Smooth() = delete;
+  Smooth(const Smooth& other) = delete;
+  Smooth& operator=(Smooth other) = delete;
+  Smooth(Smooth&& other) noexcept = delete;
+  Smooth& operator=(Smooth&& other) noexcept = delete;
+  Smooth(Mesh* input, Partit* algo, int level);
   ~Smooth();
 
   void run(Stats* tot);
@@ -60,7 +66,7 @@ private:
   int nb_comms;
 
   // processFlips
-  int moveLaplacian(int id);
+  int moveSmartLaplacian(int id);
 
   // timers and stats
   Time start;
