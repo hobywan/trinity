@@ -18,23 +18,23 @@
  */
 
 #pragma once
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 #include "header.h"
 #include "timer.h"
 #include "optparse.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity { namespace tools {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline uint32_t hash(const uint32_t id) {
   return uint32_t(((uint64_t) id * 279470273UL) % 4294967291UL);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline int format(int num) {
   return (num > 0 ? ((int) std::floor(std::log10(num))) + 1 : 0);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline void showElapsed(Time& tic, const char* msg, int step) {
 #pragma omp single
   {
@@ -44,7 +44,7 @@ inline void showElapsed(Time& tic, const char* msg, int step) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline void ltrim(std::string& line) {
   size_t off = line.find_first_not_of(" \t\r\n");
   if (off not_eq std::string::npos) {
@@ -52,7 +52,7 @@ inline void ltrim(std::string& line) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 template<typename type_t>
 inline void display(const std::vector<type_t>& list) {
 
@@ -67,7 +67,7 @@ inline void display(const std::vector<type_t>& list) {
   std::printf("%s\n", buffer.str().data());
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline std::string basename(const std::string& s) {
   std::string b = s;
   size_t i = b.find_last_not_of('/');
@@ -86,7 +86,7 @@ inline std::string basename(const std::string& s) {
   return b;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 template<typename type_t>
 inline void erase(type_t needle, std::vector<type_t>& list) {
   auto found = std::find(list.begin(), list.end(), needle);
@@ -95,7 +95,7 @@ inline void erase(type_t needle, std::vector<type_t>& list) {
   list.pop_back();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline bool exists(std::string path) {
 
   std::ifstream file(path, std::ios::in);
@@ -104,19 +104,19 @@ inline bool exists(std::string path) {
   return ok;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline void abort(char option, const char* msg, const optparse::Parser& parser) {
   std::printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
   parser.print_help();
   exit(EXIT_FAILURE);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline bool equals(const char* s1, const char* s2) {
   return !std::strcmp(s1, s2);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline std::string getExt(const char* path) {
   std::string file(path);
   // get index of the last dot in file name
@@ -124,7 +124,7 @@ inline std::string getExt(const char* path) {
   return (last_dot not_eq std::string::npos ? file.substr(last_dot + 1) : "");
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline std::ifstream& seekToLine(int nb, std::ifstream& file) {
   assert(nb);
   file.seekg(std::ios::beg);
@@ -133,13 +133,13 @@ inline std::ifstream& seekToLine(int nb, std::ifstream& file) {
   return file;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline bool isDigit(const char* arg) {
   std::string s(arg);
   return std::all_of(s.begin(), s.end(), ::isdigit); //C++11
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline std::string rootOf(std::string& path) {
 
   std::string s = basename(path);
@@ -148,7 +148,7 @@ inline std::string rootOf(std::string& path) {
   return s;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline std::string replaceExt(std::string fname, std::string ext) {
 
   // remove file ext
@@ -161,10 +161,10 @@ inline std::string replaceExt(std::string fname, std::string ext) {
   return nuw.str();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 inline void separator() {
   for (int i = 0; i < 64; ++i) std::printf("-");
   std::printf("\n");
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 }} // namespace trinity::tools

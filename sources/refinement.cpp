@@ -51,7 +51,7 @@ Refine::~Refine() {
   delete[] pattern;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::run(Stats* tot) {
 
   init();
@@ -235,7 +235,7 @@ void Refine::cutElem(int id, int* offset) {
   *offset += pattern[id];
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::preProcess(std::vector<int> heap[2]) {
 
   heap[0].reserve(nb_elems);
@@ -264,7 +264,7 @@ void Refine::preProcess(std::vector<int> heap[2]) {
   round = timer::now();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::filterElems(std::vector<int> heap[2]) {
 #pragma omp single
   {
@@ -315,7 +315,7 @@ void Refine::filterElems(std::vector<int> heap[2]) {
   sync::reduceTasks(elems, heap + 1, &nb_tasks, off);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::computeSteinerPoints() {
 
   int count = 0;
@@ -348,7 +348,7 @@ void Refine::computeSteinerPoints() {
 #pragma omp barrier
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::processElems(int tid) {
 #pragma omp master
   {
@@ -369,7 +369,7 @@ void Refine::processElems(int tid) {
     cutElem(elems[i], index + tid);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::init() {
 #pragma omp master
   {
@@ -384,7 +384,7 @@ void Refine::init() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::saveStat(int level, int* stat, int* form) {
 #pragma omp master
   {
@@ -399,7 +399,7 @@ void Refine::saveStat(int level, int* stat, int* form) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::showStat(int level, int* form) {
 #pragma omp single
   {
@@ -414,7 +414,7 @@ void Refine::showStat(int level, int* form) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {

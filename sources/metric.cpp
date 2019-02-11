@@ -19,9 +19,9 @@
 
 #include "metric.h"
 #include "mesh.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Metrics::Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h)
   : mesh(input),
     solut(input->geom.solut.data()),
@@ -46,10 +46,10 @@ Metrics::Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_
   nabla = new double[nb_nodes * 2];
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Metrics::~Metrics() {}
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::computeTensorField(Stats* tot) {
 
 #pragma omp parallel
@@ -65,14 +65,14 @@ void Metrics::computeTensorField(Stats* tot) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::clear() {
 
   delete[] stenc;
   delete[] nabla;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::recoverHessianField() {
 
 #pragma omp for
@@ -92,7 +92,7 @@ void Metrics::recoverHessianField() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::normalizeLocally() {
 
   // 3) local normalization
@@ -147,7 +147,7 @@ void Metrics::normalizeLocally() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::computeComplexity() {
 
   int j, k;
@@ -184,7 +184,7 @@ void Metrics::computeComplexity() {
 #pragma omp barrier
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::normalizeGlobally() {
 
   assert(complexity);
@@ -238,7 +238,7 @@ void Metrics::normalizeGlobally() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 
 void Metrics::init() {
 #pragma omp master
@@ -268,7 +268,7 @@ void Metrics::init() {
   std::memset( tens + (off * 3), 0, (chunk * 3) * sizeof(double));
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Metrics::recap(Stats* tot) {
 #pragma omp master
   {

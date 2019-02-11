@@ -18,12 +18,12 @@
  */
 
 #pragma once
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 #include "sync.h"
 #include "tools.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 template<typename type_t>
 class Hashtable {
 
@@ -36,77 +36,79 @@ public:
   Hashtable(Hashtable&& other) noexcept = delete;
   Hashtable& operator=(Hashtable&& other) noexcept = delete;
 
-  Hashtable(size_t size, size_t bucket, size_t stride)
-    : size_(size),
-      capacity_(bucket),
-      stride_(stride)
-  {
-    offset_ = new int[size_];
-    bucket_ = new type_t* [size_];
+  Hashtable(size_t size, size_t bucket, size_t stride) {
 
-#pragma omp parallel for
-    for (int i = 0; i < size_; ++i)
-      bucket_[i] = new type_t[capacity_];
+    this->size     = size;
+    this->capacity = bucket;
+    this->stride   = stride;
+    this->offset   = new int[size];
+    this->bucket   = new type_t* [size];
+
+    #pragma omp parallel for
+    for (int i = 0; i < size; ++i){
+      this->bucket[i] = new type_t[capacity];
+    }
   }
 
-  /* ------------------------------------ */
+  /* --------------------------------------------------------------------------- */
   ~Hashtable() {
-    for (int i = 0; i < size_; ++i)
-      delete[] bucket_[i];
-    delete[] bucket_;
-    delete[] offset_;
+    for (int i = 0; i < size; ++i){
+      delete[] bucket[i];
+    }
+    delete[] bucket;
+    delete[] offset;
   }
 
-  /* ------------------------------------ */
+  /* --------------------------------------------------------------------------- */
   inline int generateKey(int i, int j, int scale, int nb_cores) const {
 
     auto min_key = static_cast<uint32_t>(std::min(i, j));
     return tools::hash(min_key) % (scale * nb_cores);
   }
 
-  /* ------------------------------------ */
-  inline size_t getCapacity() const { return size_; }
+  /* --------------------------------------------------------------------------- */
+  inline size_t getCapacity() const { return size; }
 
-  /* ------------------------------------ */
+  /* --------------------------------------------------------------------------- */
   void push(int key, const std::initializer_list<type_t>& val) {
-    assert(val.size() == stride_);
-    int j = sync::fetchAndAdd(offset_ + key, (int) stride_);
-    assert((j + stride_) < capacity_);
+    assert(val.size() == stride);
+    int j = sync::fetchAndAdd(offset + key, (int) stride);
+    assert((j + stride) < capacity);
 
-    for (int i = 0; i < stride_; ++i)
-      bucket_[key][j + i] = *(val.begin() + i);
+    for (int i = 0; i < stride; ++i)
+      bucket[key][j + i] = *(val.begin() + i);
   }
 
-  /* ------------------------------------ */
+  /* --------------------------------------------------------------------------- */
   inline int getValue(int v1, int v2) const {
 
     const int index[] = {std::min(v1, v2), std::max(v1, v2)};
 
-    for (int k = 0; k < offset_[*index] - 1; k += 2)
-      if (bucket_[*index][k] == *(index + 1))
-        return bucket_[*index][k + 1];
+    for (int k = 0; k < offset[*index] - 1; k += 2)
+      if (bucket[*index][k] == *(index + 1))
+        return bucket[*index][k + 1];
     // not found
     return -1;
   }
 
-  /* ------------------------------------ */
+  /* --------------------------------------------------------------------------- */
   inline void reset() {
 #pragma omp for
-    for (int i = 0; i < size_; ++i)
-      std::memset(bucket_[i], -1, capacity_ * sizeof(int));
+    for (int i = 0; i < size; ++i)
+      std::memset(bucket[i], -1, capacity * sizeof(int));
 #pragma omp for
-    for (int i = 0; i < size_; ++i)
-      offset_[i] = 0;
+    for (int i = 0; i < size; ++i)
+      offset[i] = 0;
   }
 
 private:
 
-  type_t** bucket_;
-  int*     offset_;
-  size_t capacity_;
-  size_t     size_;
-  size_t   stride_;
+  type_t** bucket;
+  int*     offset;
+  size_t   capacity;
+  size_t   size;
+  size_t   stride;
 
 };
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 } // namespace trinity

@@ -18,9 +18,9 @@
  */
 
 #include "partition.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Partit::Partit(int max_size, int max_part) {
   size = max_size;
   max_p = std::max(6, max_part);
@@ -40,7 +40,7 @@ Partit::Partit(int max_size, int max_part) {
   reset();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Partit::~Partit() {
 
   for (int i = 0; i < max_p; ++i)
@@ -50,7 +50,7 @@ Partit::~Partit() {
   delete[] off;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::reset() {
 
 #pragma omp master
@@ -66,7 +66,7 @@ void Partit::reset() {
       subset[i][j] = 0;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 // nb : nested in a parallel region, so update params accordingly
 void Partit::extractColoring(const Mesh* mesh) {
 
@@ -185,7 +185,7 @@ void Partit::extractColoring(const Mesh* mesh) {
   delete[] list;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::extractIndepSet(const Graph& graph, int nb_nodes) {
 
   if (__builtin_expect(1 == nb_nodes, 0)) {

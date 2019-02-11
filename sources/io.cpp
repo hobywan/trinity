@@ -18,7 +18,7 @@
  */
 
 #include "io.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
 /* -------------------------------- */
 int io::find(const std::string key, std::ifstream& file) {
@@ -48,7 +48,7 @@ int io::find(const std::string key, std::ifstream& file) {
 }
 
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::loadFrom(const std::string& path, const std::string& solu) {
 
   if (param.verb) {
@@ -152,7 +152,7 @@ void Mesh::loadFrom(const std::string& path, const std::string& solu) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::storeTo(const std::string& path) const {
 
   if (param.verb) {
@@ -242,7 +242,7 @@ void Mesh::storeTo(const std::string& path) const {
     std::printf("= '%s' exported\n", tools::basename(path).data());
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::storePrimalGraph(const std::string& path) const {
 
   if (param.verb) {

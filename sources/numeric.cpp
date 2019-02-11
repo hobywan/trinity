@@ -21,7 +21,7 @@
 #include <tools.h>
 
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void numeric::eigenDecompose(const double m[4],
                              double val[2],
                              double vec1[2],
@@ -86,7 +86,7 @@ void numeric::eigenDecompose(const double m[4],
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void numeric::interpolateTensor(const double* M, double R[3], int nb) {
 
   assert(nb);
@@ -220,7 +220,7 @@ void numeric::interpolateTensor(const double* M, double R[3], int nb) {
   assert(std::isfinite(R[2]));
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 double numeric::computeQuality(const double pa[2], const double pb[2], const double pc[2],
                                const double Ma[3], const double Mb[3], const double Mc[3]) {
 
@@ -333,7 +333,7 @@ void numeric::approxRiemannCircum(const double* pa,
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void numeric::kroneckerProduct(const double* u1, const double* u2, double* M) {
 
   assert(u1 not_eq nullptr);
@@ -347,7 +347,7 @@ void numeric::kroneckerProduct(const double* u1, const double* u2, double* M) {
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void numeric::computeSteinerPoint(const double pa[2], const double pb[2],
                                   const double Ma[3], const double Mb[3],
                                   double p[2], double M[3]) {
@@ -403,7 +403,7 @@ void numeric::computeSteinerPoint(const double pa[2], const double pb[2],
   assert(std::isnormal(M[2]));
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 // len = sqrt(u M u)
 // nb : M is an upper triangular matrix
 double numeric::approxRiemannDist(const double pa[2], const double pb[2], const double m[3]) {

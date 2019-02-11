@@ -19,7 +19,7 @@
 /* ------------------------------------*/
 #include "coarsening.h"
 #include "mesh.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
 /* ------------------------------------*/
 Coarse::Coarse(Mesh* input, Partit* algo)
@@ -43,10 +43,10 @@ Coarse::Coarse(Mesh* input, Partit* algo)
   primal.resize(input->capa.node);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Coarse::~Coarse() {}
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::run(Stats* tot) {
 
   init();
@@ -96,7 +96,7 @@ void Coarse::run(Stats* tot) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::identify(int i) {
 
   const auto& vicin = mesh->topo.vicin[i];
@@ -175,7 +175,7 @@ void Coarse::identify(int i) {
   target[i] = (skip ? -1 : j);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::collapse(int i, int j) {
 
 #ifdef DEFERRED_UPDATES
@@ -289,7 +289,7 @@ void Coarse::collapse(int i, int j) {
   stenc.clear();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::preProcess() {
 #pragma omp single
   {
@@ -316,7 +316,7 @@ void Coarse::preProcess() {
     filter[i] = 0;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::filterPoints(std::vector<int>* heap) {
 
 #pragma omp master
@@ -339,7 +339,7 @@ void Coarse::filterPoints(std::vector<int>* heap) {
   sync::fetchAndAdd(&nb_activ, count);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::extractPrimalGraph() {
 #pragma omp barrier
 
@@ -353,7 +353,7 @@ void Coarse::extractPrimalGraph() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::processPoints() {
 
 #pragma omp for schedule(guided)
@@ -363,7 +363,7 @@ void Coarse::processPoints() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::init() {
 #pragma omp master
   {
@@ -378,7 +378,7 @@ void Coarse::init() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::saveStat(int level, int* stat, int* form) {
 #pragma omp master
   {
@@ -393,7 +393,7 @@ void Coarse::saveStat(int level, int* stat, int* form) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::showStat(int level, int* form) {
 #pragma omp single
   {
@@ -408,7 +408,7 @@ void Coarse::showStat(int level, int* form) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Coarse::recap(int* time, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {

@@ -19,9 +19,9 @@
 
 #include "mesh.h"
 #include "tools.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
 
   nb.nodes     = size[0];
@@ -43,7 +43,7 @@ Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
   reallocMemory();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Mesh::~Mesh() {
 
   std::free(sync.activ);
@@ -53,7 +53,7 @@ Mesh::~Mesh() {
   std::free(sync.tags);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::reallocMemory() {
 #pragma omp master
   {
@@ -130,7 +130,7 @@ void Mesh::reallocMemory() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::doFirstTouch() {
 #pragma omp barrier
 
@@ -185,7 +185,7 @@ void Mesh::doFirstTouch() {
     geom.qualit[i] = 0.;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::rebuildTopology() {
 
 #pragma omp for schedule(static, nb.nodes/nb.cores)
@@ -244,7 +244,7 @@ void Mesh::rebuildTopology() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::verifyTopology() const {
 
 #pragma omp for
@@ -280,7 +280,7 @@ bool Mesh::verifyTopology() const {
   return true;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::initActivElems() {
 
 #pragma omp for
@@ -288,7 +288,7 @@ void Mesh::initActivElems() {
     sync.activ[i] = static_cast<char>(__builtin_expect(topo.vicin[i].empty(), 0) ? 0 : 1);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::extractPrimalGraph() {
 
 #pragma omp for schedule(guided)
@@ -322,7 +322,7 @@ void Mesh::extractPrimalGraph() {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::extractDualGraph(Graph* dual) const {
 
 #pragma omp for schedule(guided)
@@ -350,21 +350,21 @@ void Mesh::extractDualGraph(Graph* dual) const {
     assert(list[0] == i);
   }
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 const int* Mesh::getElem(int i) const { return topo.elems.data() + (i * 3); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::isActiveNode(int i) const { return !topo.stenc[i].empty(); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::isActiveElem(int i) const { return topo.elems[i * 3] > -1; }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::isBoundary(int i) const { return (sync.tags[i] & mask::bound); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::isCorner(int i) const { return (sync.tags[i] & mask::corner); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int Mesh::getCapaNode() const { return static_cast<int>(capa.node); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int Mesh::getCapaElem() const { return static_cast<int>(capa.elem); }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Patch Mesh::getVicinity(int id, int dist) const {
 
   // verify step
@@ -409,7 +409,7 @@ Patch Mesh::getVicinity(int id, int dist) const {
   return patch;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int Mesh::getElemNeigh(int id, int i, int j) const {
 
   assert(not topo.stenc[i].empty());
@@ -428,26 +428,26 @@ int Mesh::getElemNeigh(int id, int i, int j) const {
   return -1;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::replaceElem(int id, const int* v) {
   assert(v not_eq nullptr);
   std::memcpy(topo.elems.data() + (id * 3), v, sizeof(int) * 3);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::eraseElem(int id) {
   // nb: std::memsetting with -1 is ok
   std::memset(topo.elems.data() + (id * 3), -1, sizeof(int) * 3);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::updateStencil(int i, int t) {
   int k = sync::fetchAndAdd(sync.deg + i, 1);
   sync::reallocBucket(topo.stenc.data(), i, (k + 1), param.verb);
   topo.stenc[i][k] = t;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
   int j = sync::fetchAndAdd(sync.deg + i, (int) t.size());
   if (topo.stenc[i].empty()) {
@@ -467,7 +467,7 @@ void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
     topo.stenc[i][j + k] = *(t.begin() + k);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::copyStencil(int i, int j, int nb_rm) {
   int chunk = sync.deg[i] - nb_rm;
   int k = sync::fetchAndAdd(sync.deg + j, chunk);
@@ -478,15 +478,15 @@ void Mesh::copyStencil(int i, int j, int nb_rm) {
   std::memcpy(topo.stenc[j].data() + k, topo.stenc[i].data(), chunk * sizeof(int));
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 #ifdef DEFERRED_UPDATES
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, int t){
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
   deferred[tid][key].add.push_back(i);
   deferred[tid][key].add.push_back(t);
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
 
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
@@ -497,7 +497,7 @@ void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
     deferred[tid][key].add.push_back(*(t.begin()+k));
   }
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::deferredRemove(int tid, int i, int t){
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
   auto found = std::find(stenc[i].begin(), stenc[i].end(), t);
@@ -505,7 +505,7 @@ void Mesh::deferredRemove(int tid, int i, int t){
   deferred[tid][key].rem.push_back(i);
   deferred[tid][key].rem.push_back(t);
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::initUpdates(){
 
   int size = nb_cores * def_scale_fact;
@@ -522,7 +522,7 @@ void Mesh::initUpdates(){
     }
   }
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::commitUpdates(){
 
   // from 'pragmatic'
@@ -549,7 +549,7 @@ void Mesh::commitUpdates(){
 
   verify();
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::resetUpdates(){
 
 #pragma omp for schedule(guided)
@@ -560,10 +560,10 @@ void Mesh::resetUpdates(){
     }
   }
 }
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 #endif
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 const int* Mesh::getElemCoord(int id, double* p) const {
 
   // manually unrolled
@@ -574,7 +574,7 @@ const int* Mesh::getElemCoord(int id, double* p) const {
   return n;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 double Mesh::computeLength(int i, int j) const {
 
   const double* p1 = geom.points.data() + (i * 2);
@@ -585,7 +585,7 @@ double Mesh::computeLength(int i, int j) const {
   return numeric::approxRiemannDist(p1, p2, M1, M2);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 double Mesh::computeQuality(const int* t) const {
 
   assert(t[0] > -1 and t[1] > -1 and t[2] > -1);
@@ -601,12 +601,12 @@ double Mesh::computeQuality(const int* t) const {
   return numeric::computeQuality(pa, pb, pc, ma, mb, mc);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 double Mesh::computeQuality(int id) const {
   return computeQuality(getElem(id));
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::computeQuality(double* q) {
 
   double q_min = 3.;
@@ -643,7 +643,7 @@ void Mesh::computeQuality(double* q) {
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::computeSteinerPoint(int i, int j, double* p, double* M) const {
 
   assert(p not_eq nullptr);
@@ -657,7 +657,7 @@ void Mesh::computeSteinerPoint(int i, int j, double* p, double* M) const {
   numeric::computeSteinerPoint(p1, p2, m1, m2, p, M);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Mesh::isCounterclockwise(const int* t) const {
 
   const double* pa = geom.points.data() + (t[0] * 2);
@@ -673,7 +673,7 @@ bool Mesh::isCounterclockwise(const int* t) const {
   return 0.5 * (s[0] * s[3] - s[1] * s[2]) > EPSILON;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::fixTagged() {
 #ifdef DEFERRED_UPDATES
 #pragma omp for schedule(guided)
@@ -715,7 +715,7 @@ void Mesh::fixTagged() {
 #endif
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Mesh::fixAll() {
 
 #pragma omp for

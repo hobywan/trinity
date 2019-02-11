@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 #include "optparse.h"
 #include "tools.h"
 #include "mesh.h"
@@ -30,7 +30,7 @@
 #include "matching.h"
 #include "random_engine.h"
 #include <hwloc.h>
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 // accessible only in this file
 namespace {
 
@@ -56,7 +56,7 @@ std::string _result;
 std::string _solut;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void parse(int argc, char* argv[]) {
 
   optparse::Parser parser;
@@ -148,7 +148,7 @@ void parse(int argc, char* argv[]) {
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void showDesc() {
 
   std::string compil;
@@ -174,7 +174,7 @@ void showDesc() {
               symbol, _threads > _hw_cores ? "hyperthreading" : "native");
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void recap(trinity::Stats* stat) {
 
   _makespan = 0;
@@ -256,7 +256,7 @@ void recap(trinity::Stats* stat) {
               "", "N/A");
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void expor(trinity::Stats* stat) {
 
   _name.pop_back();
@@ -292,7 +292,7 @@ void expor(trinity::Stats* stat) {
   std::printf("= '%s' exported\n", suffix.data());
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int main(int argc, char* argv[]) {
 
   parse(argc, argv);

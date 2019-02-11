@@ -22,7 +22,7 @@
 #include "sync.h"
 #include "numeric.h"
 #include "partition.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
 
 class Coarse {

@@ -18,9 +18,9 @@
  */
 
 #include "partition.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::pseudoColor(const Graph& graph, std::vector<int>& forbidden, int i) {
 
   // use alias for clarity
@@ -40,7 +40,7 @@ void Partit::pseudoColor(const Graph& graph, std::vector<int>& forbidden, int i)
   assert(color[v]);
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Partit::detectErrors(const Graph& graph, std::vector<int>& conflicts, int i) {
 
   // use alias for clarity
@@ -57,7 +57,7 @@ bool Partit::detectErrors(const Graph& graph, std::vector<int>& conflicts, int i
   return false;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::reduceMaxColor(int nb_nodes) {
 
   // -- POST PROCESS
@@ -77,7 +77,7 @@ void Partit::reduceMaxColor(int nb_nodes) {
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::colorGraph_Catalyurek(RMAT* rmat) {
 
 #pragma omp master
@@ -145,7 +145,7 @@ void Partit::colorGraph_Catalyurek(RMAT* rmat) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::colorGraph_Gebremedhin(RMAT* rmat) {
 
 
@@ -177,7 +177,7 @@ void Partit::colorGraph_Gebremedhin(RMAT* rmat) {
 
 
   // step 3: serial resolution of conflicts
-  int nb_conflicts = conflicts.size();
+  int nb_conflicts = (int) conflicts.size();
 
 #pragma omp atomic
   defect += nb_conflicts;
@@ -198,7 +198,7 @@ void Partit::colorGraph_Gebremedhin(RMAT* rmat) {
   }
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::colorGraph_Rokos(RMAT* rmat) {
 
 #pragma omp master
@@ -275,7 +275,7 @@ void Partit::colorGraph_Rokos(RMAT* rmat) {
 
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Partit::processBenchmark(int nb_rounds) {
 
   std::string path[] = {"data/RMAT_ER", "data/RMAT_G", "data/RMAT_B"};

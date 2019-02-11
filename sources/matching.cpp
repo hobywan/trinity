@@ -18,9 +18,9 @@
  */
 
 #include "matching.h"
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Match::Match()
   :
   size(0),
@@ -34,7 +34,7 @@ Match::Match()
   off(nullptr),
   tasks(nullptr) {}
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Match::init(int capa, int* map, int* idx) {
   size = capa;
   depth = 0;
@@ -50,7 +50,7 @@ void Match::init(int capa, int* map, int* idx) {
   flush();
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 Match::~Match() {
 
   delete[] matched;
@@ -58,7 +58,7 @@ Match::~Match() {
   delete[] degree;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Match::flush() {
 
 #pragma omp master
@@ -77,7 +77,7 @@ void Match::flush() {
     matched[i] = -1;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int* Match::computeKarpSipser(const Graph& graph, int nb) {
 
   flush();
@@ -99,7 +99,7 @@ int* Match::computeKarpSipser(const Graph& graph, int nb) {
   return matched;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 void Match::matchAndUpdate(int i, const Graph& graph, std::stack<int>* stack) {
 
   stack->push(i);
@@ -138,7 +138,7 @@ void Match::matchAndUpdate(int i, const Graph& graph, std::stack<int>* stack) {
   } while (!stack->empty());
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int Match::getRatio(const Graph& graph, int nb, int* count) {
 
   int local_matched = 0;
@@ -162,7 +162,7 @@ int Match::getRatio(const Graph& graph, int nb, int* count) {
   return *count;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 int* Match::computePothenFan(const Graph& graph, int nb) {
 
   auto tic = timer::now();
@@ -208,7 +208,7 @@ int* Match::computePothenFan(const Graph& graph, int nb) {
   return matched;
 }
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 bool Match::DFS_lookAhead(int i, const Graph& graph, std::stack<int>* stack) {
 
   int* look_ahead = tasks[0];
