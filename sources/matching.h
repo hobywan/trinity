@@ -43,30 +43,40 @@ public:
   ~Match();
 
 
-  void init(size_t capa, int* map, int* idx);
+  void initialize(size_t capa, int* mapping, int* index);
   int* computeKarpSipser(const Graph& graph, int nb);
   int* computePothenFan(const Graph& graph, int nb);
   int  getRatio(const Graph& graph, int nb, int* count);
 
 private:
-  int size;         // max number of nodes (capacity)
-  int depth;        // max depth (unused)
-  int cores;        // number of cores used
-  int card[2];      // tasklists cardinalities
 
-  //
-  int* matched;    // matched vertex pairs
-  char* visited;    // flag for DFS
-  char* degree;     // active vertex degree
-  int* mapping;    // mapping: node id -> index in G
-  int* off;        // offset for prefix sum
-  int** tasks;      // tasklists (used only for general sparse trinity)
-
-  bool path;
-
-  void flush();
+  // kernels
+  void reset();
   void matchAndUpdate(int id, const Graph& graph, std::stack<int>* stack);
-  bool DFS_lookAhead(int id, const Graph& graph, std::stack<int>* stack);
+  bool lookAheadDFS(int id, const Graph& graph, std::stack<int>* stack);
 
+  struct {
+    int  cores;        // number of cores used
+    bool found;
+  } param;
+
+  struct {
+    int  capa;         // max number of nodes (capacity)
+    int  depth;        // max depth
+  } max;
+
+  struct {
+    int*  matched;    // matched vertex pairs
+    int** lists;      // tasklists (used only for general sparse trinity)
+    int*  mapping;    // mapping: node id -> index in G
+    int   cardin[2];      // tasklists cardinalities
+  } task;
+
+  struct {
+    char* visited;    // flag for DFS
+    char* degree;     // active vertex degree
+    int*  off;        // offset for prefix sum
+  } sync;
 };
+/* --------------------------------------------------------------------------- */
 } // namespace trinity

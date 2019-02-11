@@ -41,7 +41,7 @@ Swap::Swap(Mesh* input)
   task.depth = 20;
 
   dual.resize(capacity);
-  heuris.init(capacity, task.match, sync.off);
+  heuris.initialize(capacity, task.match, sync.off);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -306,7 +306,7 @@ void Swap::processFlips() {
 #pragma omp for schedule(guided) nowait
   for (int index = 0; index < nb.tasks; ++index) {
     const int& k1 = dual[index][0];
-    const int& k2 = heuris.matched[k1];
+    const int& k2 = heuris.task.matched[k1];
     if (__builtin_expect(k2 > -1, 1))
       succ += swap(k1, k2, index);
   }

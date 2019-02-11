@@ -27,7 +27,7 @@ Partit::Partit(int max_graph_size, int max_part_size) {
   max.part = std::max(6, max_part_size);
   nb.cores = omp_get_max_threads();
   //
-  sync.offset    = new int[nb.cores];
+  sync.offset = new int[nb.cores];
   task.cardin = new int[max.part];
   task.subset = new int* [max.part];
 

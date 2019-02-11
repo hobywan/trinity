@@ -21,74 +21,76 @@
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */
-Match::Match()
-  :
-  size(0),
-  depth(0),
-  cores(1),
-  path(false),
-  mapping(nullptr),
-  matched(nullptr),
-  visited(nullptr),
-  degree(nullptr),
-  off(nullptr),
-  tasks(nullptr) {}
+Match::Match() {
+  max.capa     = 0;
+  max.depth    = 0;
+  param.cores  = 1;
+  param.found  = false;
+  task.mapping = nullptr;
+  task.matched = nullptr;
+  task.lists   = nullptr;
+  sync.visited = nullptr;
+  sync.degree  = nullptr;
+  sync.off     = nullptr;
+}
 
 /* --------------------------------------------------------------------------- */
-void Match::init(size_t capa, int* map, int* idx) {
-  size = capa;
-  depth = 0;
-  cores = omp_get_max_threads();
-  path = false;
-  off = idx;
+void Match::initialize(size_t capacity, int* mapping, int* index) {
+
+  max.capa    = (int) capacity;
+  max.depth   = 0;
+  param.cores = omp_get_max_threads();
+  param.found = false;
+  sync.off    = index;
   // memalloc
-  mapping = map;
-  matched = new int[size];
-  visited = new char[size];
-  degree = new char[size];
+  task.mapping = mapping;
+  task.matched = new int[max.capa];
+  sync.visited = new char[max.capa];
+  sync.degree  = new char[max.capa];
+
 #pragma omp parallel
-  flush();
+  reset();
 }
 
 /* --------------------------------------------------------------------------- */
 Match::~Match() {
 
-  delete[] matched;
-  delete[] visited;
-  delete[] degree;
+  delete[] task.matched;
+  delete[] sync.visited;
+  delete[] sync.degree;
 }
 
 /* --------------------------------------------------------------------------- */
-void Match::flush() {
+void Match::reset() {
 
 #pragma omp master
-  card[0] = card[1] = 0;
+  task.cardin[0] = task.cardin[1] = 0;
 
 #pragma omp for nowait
-  for (int i = 0; i < size; ++i)
-    visited[i] = 0;
+  for (int i = 0; i < max.capa; ++i)
+    sync.visited[i] = 0;
 
 #pragma omp for nowait
-  for (int i = 0; i < size; ++i)
-    degree[i] = 0;
+  for (int i = 0; i < max.capa; ++i)
+    sync.degree[i] = 0;
 
 #pragma omp for
-  for (int i = 0; i < size; ++i)
-    matched[i] = -1;
+  for (int i = 0; i < max.capa; ++i)
+    task.matched[i] = -1;
 }
 
 /* --------------------------------------------------------------------------- */
 int* Match::computeKarpSipser(const Graph& graph, int nb) {
 
-  flush();
+  reset();
 
   std::stack<int> stack;
 
 #pragma omp for
   for (int i = 0; i < nb; ++i) {
     const int& u = graph[i][0];
-    degree[u] = static_cast<char>(graph[i].size() - 1);
-    assert(degree[u]);
+    sync.degree[u] = (char) (graph[i].size() - 1);
+    assert(sync.degree[u]);
   }
 
 #pragma omp for schedule(guided)
@@ -96,7 +98,7 @@ int* Match::computeKarpSipser(const Graph& graph, int nb) {
     // find maximal set of vertex-disjoint augmenting paths via DFS
     matchAndUpdate(i, graph, &stack);
 
-  return matched;
+  return task.matched;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -113,23 +115,23 @@ void Match::matchAndUpdate(int i, const Graph& graph, std::stack<int>* stack) {
     u = graph[j][0];
     stack->pop();
 
-    if (!sync::compareAndSwap(visited + u, 0, 1))
+    if (!sync::compareAndSwap(sync.visited + u, 0, 1))
       continue;
 
     for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compareAndSwap(visited + (*v), 0, 1)) {
-        matched[u] = *v;
-        matched[*v] = MATCHED;  // avoid duplicates
+      if (sync::compareAndSwap(sync.visited + (*v), 0, 1)) {
+        task.matched[u] = *v;
+        task.matched[*v] = MATCHED;  // avoid duplicates
 
-        k = mapping[*v];
+        k = task.mapping[*v];
         if (k < 0)
           continue;
 
         // update the degree of neighbors of v
         // and recursive call to match the new vertex w of degree=1
         for (auto w = graph[k].begin() + 1; w < graph[k].end(); ++w) {
-          const int& nxt = mapping[*w];
-          if (nxt > -1 and sync::fetchAndSub(degree + (*w), char(1)) == 2)
+          const int& nxt = task.mapping[*w];
+          if (nxt > -1 and sync::fetchAndSub(sync.degree + (*w), char(1)) == 2)
             stack->push(nxt);
         }
         break;
@@ -149,7 +151,7 @@ int Match::getRatio(const Graph& graph, int nb, int* count) {
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb; ++i) {
     const int& u = graph[i][0];
-    if (-1 < matched[u] or matched[u] == MATCHED)
+    if (-1 < task.matched[u] or task.matched[u] == MATCHED)
       local_matched++;
   }
 #pragma omp critical
@@ -157,7 +159,7 @@ int Match::getRatio(const Graph& graph, int nb, int* count) {
 #pragma omp barrier
 #ifdef DEBUG
 #pragma omp master
-  std::printf("ratio matched: %.2f %%\n", float((*count)*100)/nb);
+  std::printf("ratio task.matched: %.2f %%\n", float((*count)*100)/nb);
 #endif
   return *count;
 }
@@ -171,9 +173,9 @@ int* Match::computePothenFan(const Graph& graph, int nb) {
   computeKarpSipser(graph, nb);
 
   //
-  int* look_ahead = tasks[0]; // reuse array
+  int* look_ahead = task.lists[0]; // reuse array
 #pragma omp for
-  for (int i = 0; i < size; ++i)
+  for (int i = 0; i < max.capa; ++i)
     look_ahead[i] = 1;
 
   bool found;
@@ -185,39 +187,39 @@ int* Match::computePothenFan(const Graph& graph, int nb) {
     // (!) mandatory barrier
 #pragma omp barrier
 #pragma omp master
-    path = false;
+    param.found = false;
     found = false;
 
 #pragma omp for
-    for (int i = 0; i < size; ++i)
-      visited[i] = 0;
+    for (int i = 0; i < max.capa; ++i)
+      sync.visited[i] = 0;
 
 #pragma omp for schedule(guided) nowait
     for (size_t i = 0; i < graph.size(); ++i) {
       const int& u = graph[i][0];
 
-      if (matched[u] < 0)
-        found = DFS_lookAhead(i, graph, &stack);
+      if (task.matched[u] < 0)
+        found = lookAheadDFS(i, graph, &stack);
     }
 #pragma omp critical
-    path |= found;
+    param.found |= found;
 #pragma omp barrier
-  } while (path);
+  } while (param.found);
 
   tools::showElapsed(tic, "pothen-fan maximal matching done", 2);
-  return matched;
+  return task.matched;
 }
 
 /* --------------------------------------------------------------------------- */
-bool Match::DFS_lookAhead(int i, const Graph& graph, std::stack<int>* stack) {
+bool Match::lookAheadDFS(int id, const Graph& graph, std::stack<int>* stack) {
 
-  int* look_ahead = tasks[0];
+  int* look_ahead = task.lists[0];
 
   int j;
   int u;
   int k;
 
-  stack->push(i);
+  stack->push(id);
 
   do {
     j = stack->top();
@@ -227,18 +229,18 @@ bool Match::DFS_lookAhead(int i, const Graph& graph, std::stack<int>* stack) {
     // look ahead step
     for (auto v = graph[j].begin() + look_ahead[u]; v < graph[j].end(); ++v) {
       look_ahead[u]++;
-      if (matched[*v] < 0) {
-        if (sync::compareAndSwap(visited + u, 0, 1)) {
-          matched[u] = *v;
-          matched[*v] = u;
+      if (task.matched[*v] < 0) {
+        if (sync::compareAndSwap(sync.visited + u, 0, 1)) {
+          task.matched[u] = *v;
+          task.matched[*v] = u;
           return true;
         }
       }
     }
-    // scan unmatched but visited neighbors if not found
+    // scan unmatched but sync.visited neighbors if not found
     for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compareAndSwap(visited + u, 0, 1)) {
-        const int& w = mapping[matched[*v]];
+      if (sync::compareAndSwap(sync.visited + u, 0, 1)) {
+        const int& w = task.mapping[task.matched[*v]];
         if (w > -1)
           stack->push(w);
       }
@@ -246,4 +248,5 @@ bool Match::DFS_lookAhead(int i, const Graph& graph, std::stack<int>* stack) {
   } while (!stack->empty());
   return false;
 }
+/* --------------------------------------------------------------------------- */
 } // namespace trinity
