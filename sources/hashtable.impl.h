@@ -21,29 +21,32 @@
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-Hashtable<type_t>::Hashtable(size_t table_size, size_t bucket_size, size_t access_stride) {
-
+template <typename type_t, typename flag_t>
+Hashtable<type_t, flag_t>::Hashtable(size_t table_size,
+                                     size_t bucket_size,
+                                     size_t bucket_stride) {
   assert(table_size);
   assert(bucket_size);
-  assert(access_stride);
+  assert(bucket_stride);
 
+  nb_cores = omp_get_max_threads();
   size     = table_size;
   capacity = bucket_size;
-  stride   = access_stride;
+  stride   = bucket_stride;
   offset   = new int[table_size];
   bucket   = new type_t* [table_size];
 
 #pragma omp parallel for
-  for (int i = 0; i < table_size; ++i){
+  for (int i = 0; i < table_size; ++i) {
     bucket[i] = new type_t[capacity];
   }
 }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-Hashtable<type_t>::~Hashtable() {
-  for (int i = 0; i < size; ++i){
+template <typename type_t, typename flag_t>
+Hashtable<type_t, flag_t>::~Hashtable() {
+
+  for (int i = 0; i < size; ++i) {
     delete[] bucket[i];
   }
   delete[] bucket;
@@ -51,22 +54,26 @@ Hashtable<type_t>::~Hashtable() {
 }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-int Hashtable<type_t>::generateKey(int i, int j, int scale, int nb_cores) const {
+template <typename type_t, typename flag_t>
+type_t Hashtable<type_t, flag_t>::generateKey(type_t i, type_t j, size_t scale) const {
 
-  auto min_key = static_cast<uint32_t>(std::min(i, j));
-  return tools::hash(min_key) % (scale * nb_cores);
+  assert(scale);
+  assert(nb_cores);
+
+  auto min_key = (uint32_t) std::min(i, j);
+  return (type_t) tools::hash(min_key) % (scale * nb_cores);
 }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-size_t Hashtable<type_t>::getCapacity() const { return size; }
+template <typename type_t, typename flag_t>
+size_t Hashtable<type_t, flag_t>::getCapacity() const { return size; }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-void Hashtable<type_t>::push(int key, const std::initializer_list<type_t>& val) {
+template <typename type_t, typename flag_t>
+void Hashtable<type_t, flag_t>::push(type_t key, const std::initializer_list<type_t>& val) {
   assert(val.size() == stride);
-  int j = sync::fetchAndAdd(offset + key, (int) stride);
+
+  auto j = sync::fetchAndAdd(offset + key, (int) stride);
   assert((j + stride) < capacity);
 
   for (int i = 0; i < stride; ++i)
@@ -74,27 +81,33 @@ void Hashtable<type_t>::push(int key, const std::initializer_list<type_t>& val) 
 }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-int Hashtable<type_t>::getValue(int v1, int v2) const {
+template <typename type_t, typename flag_t>
+type_t Hashtable<type_t, flag_t>::getValue(type_t v1, type_t v2, bool use_hash) const {
 
-  const int index[] = {std::min(v1, v2), std::max(v1, v2)};
+  assert(stride == 2);
+  type_t key  = (use_hash ? generateKey(v1,v2) : std::min(v1, v2));
+  type_t hint = std::min(v1, v2);
 
-  for (int k = 0; k < offset[*index] - 1; k += 2)
-    if (bucket[*index][k] == *(index + 1))
-      return bucket[*index][k + 1];
-  // not found
-  return -1;
+  for (int k = 0; k < offset[key] - 1; k += 2) {
+    if (bucket[key][k] == hint) {
+      return bucket[key][k + 1];
+    }
+  }
+  return (type_t) -1; // not found
 }
 
 /* --------------------------------------------------------------------------- */
-template<typename type_t>
-void Hashtable<type_t>::reset() {
+template <typename type_t, typename flag_t>
+void Hashtable<type_t, flag_t>::reset() {
 #pragma omp for
-  for (int i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i) {
     std::memset(bucket[i], -1, capacity * sizeof(int));
+  }
+
 #pragma omp for
-  for (int i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i){
     offset[i] = 0;
+  }
 }
 /* --------------------------------------------------------------------------- */
 } // namespace trinity
