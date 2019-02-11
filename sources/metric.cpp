@@ -39,8 +39,8 @@ Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_m
   param.h_max      = h_max;
   param.scale.fact = 0.;
   param.scale.exp  = Lp_norm ? -1. / (2 * Lp_norm + 2) : 1.;
-  param.lambda_min = 1. / (h_min * h_min);
-  param.lambda_max = 1. / (h_max * h_max);
+  param.eigen.min = 1. / (h_min * h_min);
+  param.eigen.max = 1. / (h_max * h_max);
 
   field.complexity = 0.;
   field.solut      = mesh->geom.solut.data();
@@ -213,8 +213,8 @@ void Metrics::normalizeGlobally() {
     val[0] *= param.scale.fact;
     val[1] *= param.scale.fact;
     for (j = 0; j < 2; ++j) {
-      val[j] = std::min(val[j], param.lambda_min);
-      val[j] = std::max(val[j], param.lambda_max);
+      val[j] = std::min(val[j], param.eigen.min);
+      val[j] = std::max(val[j], param.eigen.max);
     }
 
     // modif here: isotropic case

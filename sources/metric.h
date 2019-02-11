@@ -73,8 +73,7 @@ private:
     int    norm;
     double h_min;
     double h_max;
-    double lambda_min;
-    double lambda_max;
+    struct { double min, max; }  eigen;
     struct { double fact, exp; } scale;
   } param;
 
