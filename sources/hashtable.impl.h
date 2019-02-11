@@ -1,5 +1,5 @@
 /*
- *                          'hashtable.h'
+ *                      'hashtable.impl.h'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
  *               Copyright (c) 2016 Hoby Rakotoarivelo.
