@@ -238,9 +238,9 @@ void Mesh::rebuildTopology() {
     heap.erase(std::unique(heap.begin(), heap.end()), heap.end());
     topo.vicin[i].swap(heap);
     std::sort(topo.stenc[i].begin(), topo.stenc[i].begin() + sync.deg[i]);
-#ifdef DEFERRED_UPDATES
-    topo.stenc[i].resize(deg[i]);
-#endif
+    #ifdef DEFERRED_UPDATES
+      topo.stenc[i].resize(deg[i]);
+    #endif
   }
 }
 
@@ -604,7 +604,7 @@ double Mesh::computeQuality(int id) const {
 }
 
 /* --------------------------------------------------------------------------- */
-void Mesh::computeQuality(double* q) {
+void Mesh::computeQuality(double q[3]) {
 
   double q_min = 3.;
   double q_max = 0.;

@@ -101,7 +101,7 @@ public:
   double computeQuality(const int* t) const;
   bool isCounterclockwise(const int* t) const;
   void computeSteinerPoint(int i, int j, double* p, double* m) const;
-  void computeQuality(double* q);
+  void computeQuality(double q[3]);
 
 private:
 
@@ -113,7 +113,7 @@ private:
   } nb;
 
   struct {
-    std::vector<int> elems;
+    std::vector<int> elems;           // elem vertices, stride=3
     Graph stenc;                      // nodal incident elems
     Graph vicin;                      // nodal adjacent nodes
   } topo;                             // could use a std::set but performance suffers
@@ -121,7 +121,7 @@ private:
   struct {
     std::vector<double> points;       // nodal coordinates, stride=2
     std::vector<double> tensor;       // nodal metric tensor, stride=3
-    std::vector<double> solut;        // solut value (for metric field calculation)
+    std::vector<double> solut;        // solut value for metric field construction
     std::vector<double> qualit;       // cache elem quality to speedup kernels
   } geom;
 
