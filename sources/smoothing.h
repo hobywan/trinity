@@ -48,34 +48,40 @@ private:
   void cacheQuality();
   void movePoints();
 
-  Mesh* mesh;
-  Partit* heuris;
-  //
-  char* activ;
-  double* qualit;
+  // kernel
+  int moveSmartLaplacian(int id);
 
-  // counters
+  // stats
+  void initialize();
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* elap, int* stat, int* form, Stats* tot);
+
+  Mesh*   mesh;
+  Partit* heuris;
+
+  struct { char* activ; }    sync;
+  struct { double* qualit; } geom;
+  struct { int depth; }      task;
+
+  struct {
+    int tasks;
+    int commit;
+  } nb;
+
+  struct {
+    Time start;
+    Time iter;
+    Time tic;
+  } time;
+
+  // unpackable
   int& cores;
   int& nb_nodes;
   int& nb_elems;
   int& verbose;
   int& iter;
   int& rounds;
-  int depth;
-  int nb_tasks;
-  int nb_comms;
-
-  // processFlips
-  int moveSmartLaplacian(int id);
-
-  // timers and stats
-  Time start;
-  Time round;
-  Time tic;
-  //
-  void init();
-  void saveStat(int level, int* stat, int* form);
-  void showStat(int level, int* form);
-  void recap(int* time, int* stat, int* form, Stats* tot);
 };
+/* --------------------------------------------------------------------------- */
 } // namespace trinity

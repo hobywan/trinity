@@ -22,18 +22,19 @@
 namespace trinity {
 /* --------------------------------------------------------------------------- */
 Smooth::Smooth(Mesh* input, Partit* algo, int level)
-  : mesh(input),
-    cores(input->nb.cores),
-    activ(input->sync.activ),
-    qualit(input->geom.qualit.data()),
-    nb_nodes(input->nb.nodes),
-    nb_elems(input->nb.elems),
-    verbose(input->param.verb),
-    iter(input->param.iter),
-    rounds(input->param.rounds),
-    heuris(algo),
-    depth(level)
-{}
+  : mesh    (input),
+    cores   (mesh->nb.cores),
+    nb_nodes(mesh->nb.nodes),
+    nb_elems(mesh->nb.elems),
+    verbose (mesh->param.verb),
+    iter    (mesh->param.iter),
+    rounds  (mesh->param.rounds),
+    heuris  (algo)
+{
+  sync.activ  = mesh->sync.activ;
+  geom.qualit = mesh->geom.qualit.data();
+  task.depth  = level;
+}
 
 /* --------------------------------------------------------------------------- */
 Smooth::~Smooth() {}
@@ -41,31 +42,31 @@ Smooth::~Smooth() {}
 /* --------------------------------------------------------------------------- */
 void Smooth::run(Stats* tot) {
 
-  init();
+  initialize();
 
-  int time[] = {0, 0, 0, 0};
+  int elap[] = {0, 0, 0, 0};
   int form[] = {0, 0};
   int stat[] = {0, 0};
 
 #pragma omp parallel
   {
     preProcess();
-    timer::save(tic, time);
+    timer::save(time.tic, elap);
 
     heuris->extractColoring(mesh);
-    timer::save(tic, time + 1);
+    timer::save(time.tic, elap + 1);
 
     cacheQuality();
-    timer::save(tic, time + 2);
+    timer::save(time.tic, elap + 2);
 
-    for (int level = 0; level < depth; ++level) {
+    for (int level = 0; level < task.depth; ++level) {
       movePoints();
       saveStat(level, stat, form);
       showStat(level, form);
     }
-    timer::save(tic, time + 3);
+    timer::save(time.tic, elap + 3);
     // finalize
-    recap(time, stat, form, tot);
+    recap(elap, stat, form, tot);
   }
 }
 
@@ -75,19 +76,19 @@ int Smooth::moveSmartLaplacian(int i) {
   const auto& vicin = mesh->topo.vicin[i];
   const auto& stenc = mesh->topo.stenc[i];
   const int deg = mesh->sync.deg[i];
-  const int nb = vicin.size();
+  const int nb = (int) vicin.size();
 
   double q_min = std::numeric_limits<double>::max();
 
   for (auto t = stenc.begin(); t < stenc.begin() + deg; ++t)
-    q_min = std::min(q_min, qualit[*t]);
+    q_min = std::min(q_min, geom.qualit[*t]);
 
-  double* M = new double[nb * 3];
-  double* q = new double[stenc.size()];
+  auto* M = new double[nb * 3];
+  auto* q = new double[stenc.size()];
   double* pa = mesh->geom.points.data() + (i * 2);
   double* ma = mesh->geom.tensor.data() + (i * 3);
 
-  double len = 0.;
+  double len;
   double p_opt[] = {0, 0};
 
   // 1) compute average optimal position of v[i]
@@ -147,7 +148,7 @@ int Smooth::moveSmartLaplacian(int i) {
   if (valid) {
     int j = 0;
     for (auto t = stenc.begin(); t < stenc.begin() + deg; ++t, ++j)
-      qualit[*t] = q[j];
+      geom.qualit[*t] = q[j];
   } else {
     std::memcpy(pa, p_ini, sizeof(double) * 2);
     std::memcpy(ma, m_ini, sizeof(double) * 3);
@@ -164,12 +165,12 @@ void Smooth::preProcess() {
   int count = 0;
 
 #pragma omp single
-  nb_tasks = nb_comms = 0;
+  nb.tasks = nb.commit = 0;
 
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
     if (not mesh->topo.stenc[i].empty()) {
-      activ[i] = static_cast<char>(__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
+      sync.activ[i] = static_cast<char>(__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
     }
 
   mesh->extractPrimalGraph();
@@ -182,11 +183,11 @@ void Smooth::cacheQuality() {
 #pragma omp for
   for (int i = 0; i < mesh->nb.elems; ++i)
     if (mesh->isActiveElem(i)) {
-      qualit[i] = mesh->computeQuality(i);
+      geom.qualit[i] = mesh->computeQuality(i);
     }
 
 #pragma omp master
-  round = tic;
+  time.iter = time.tic;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -196,25 +197,25 @@ void Smooth::movePoints() {
   int tota = 0;
 
 #pragma omp single
-  nb_tasks = nb_comms = 0;
+  nb.tasks = nb.commit = 0;
 
   for (int i = 0; i < heuris->parts; ++i) {
 #pragma omp for schedule(guided)
     for (int j = 0; j < heuris->card[i]; ++j) {
       const int& k = heuris->subset[i][j];
-      if (activ[k]) {
+      if (sync.activ[k]) {
         succ += moveSmartLaplacian(k);
         tota++;
       }
     }
   }
-  sync::fetchAndAdd(&nb_comms, succ);
-  sync::fetchAndAdd(&nb_tasks, tota);
+  sync::fetchAndAdd(&nb.commit, succ);
+  sync::fetchAndAdd(&nb.tasks, tota);
 #pragma omp barrier
 }
 
 /* --------------------------------------------------------------------------- */
-void Smooth::init() {
+void Smooth::initialize() {
 #pragma omp master
   {
     if (verbose == 1) {
@@ -224,7 +225,7 @@ void Smooth::init() {
     }
 
     std::fflush(stdout);
-    start = round = tic = timer::now();
+    time.start = time.iter = time.tic = timer::now();
   }
 }
 
@@ -232,11 +233,11 @@ void Smooth::init() {
 void Smooth::saveStat(int level, int* stat, int* form) {
 #pragma omp single
   {
-    stat[0] += nb_tasks;
-    stat[1] += nb_comms;
+    stat[0] += nb.tasks;
+    stat[1] += nb.commit;
     if (!level) {
-      form[0] = tools::format(nb_tasks);
-      form[1] = tools::format(nb_comms);
+      form[0] = tools::format(nb.tasks);
+      form[1] = tools::format(nb.commit);
     }
   }
 }
@@ -248,26 +249,26 @@ void Smooth::showStat(int level, int* form) {
     if (verbose == 2) {
       std::printf("\n= round %2d. %*d tasks \e[0m(100 %%)\e[0m, "
                   "%*d comm. \e[0m(%2d %%) \e[32m(%d ms)\e[0m",
-                  level + 1, form[0], nb_tasks, form[1], nb_comms,
-                  (int) (nb_comms * 100 / nb_tasks), timer::round(round));
+                  level + 1, form[0], nb.tasks, form[1], nb.commit,
+                  (int) (nb.commit * 100 / nb.tasks), timer::round(time.iter));
       std::fflush(stdout);
     }
   }
 }
 
 /* --------------------------------------------------------------------------- */
-void Smooth::recap(int* time, int* stat, int* form, Stats* tot) {
+void Smooth::recap(int* elap, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = std::max(timer::elapsed_ms(start), 1);
+    int end = std::max(timer::elapsed_ms(time.start), 1);
 
     tot->eval += stat[0];
     tot->task += stat[1];
     tot->elap += end;
     for (int i = 0; i < 4; ++i)
-      tot->step[i] += time[i];
+      tot->step[i] += elap[i];
 
-    *form = tools::format(time[3]);
+    *form = tools::format(elap[3]);
     if (not verbose) {
       std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
     } else if (verbose == 1) {
@@ -276,14 +277,15 @@ void Smooth::recap(int* time, int* stat, int* form, Stats* tot) {
       std::printf("\n\n");
       std::printf("= rate : %d move/sec (%d tasks) \n", (int) std::floor(stat[0] / (end * 1e-3)), stat[0]);
       std::printf("= time per step\n");
-      std::printf("  %2d %% primal \e[32m(%*d ms)\e[0m\n", (int) time[0] * 100 / end, *form, time[0]);
-      std::printf("  %2d %% color  \e[32m(%*d ms)\e[0m\n", (int) time[1] * 100 / end, *form, time[1]);
-      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", (int) time[2] * 100 / end, *form, time[2]);
-      std::printf("  %2d %% processFlips \e[32m(%*d ms)\e[0m\n", (int) time[3] * 100 / end, *form, time[3]);
+      std::printf("  %2d %% primal \e[32m(%*d ms)\e[0m\n", (int) elap[0] * 100 / end, *form, elap[0]);
+      std::printf("  %2d %% color  \e[32m(%*d ms)\e[0m\n", (int) elap[1] * 100 / end, *form, elap[1]);
+      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", (int) elap[2] * 100 / end, *form, elap[2]);
+      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", (int) elap[3] * 100 / end, *form, elap[3]);
       std::printf("done. \e[32m(%d ms)\e[0m\n", end);
       tools::separator();
     }
     std::fflush(stdout);
   }
 }
+/* --------------------------------------------------------------------------- */
 } // namespace trinity
