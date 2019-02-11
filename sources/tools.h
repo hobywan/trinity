@@ -25,40 +25,41 @@
 /* --------------------------------------------------------------------------- */
 namespace trinity { namespace tools {
 /* --------------------------------------------------------------------------- */
-inline uint32_t hash(const uint32_t id) {
-  return uint32_t(((uint64_t) id * 279470273UL) % 4294967291UL);
-}
-
-/* --------------------------------------------------------------------------- */
-inline int format(int num) {
-  return (num > 0 ? ((int) std::floor(std::log10(num))) + 1 : 0);
-}
-
-/* --------------------------------------------------------------------------- */
-inline void showElapsed(Time& tic, const char* msg, int step) {
-#pragma omp single
-  {
-    std::printf("%d. %s : \e[32m(%d ms)\e[0m\n", step, msg, timer::elapsed_ms(tic));
-    std::fflush(stdout);
-    tic = timer::now();
-  }
-}
-
-/* --------------------------------------------------------------------------- */
-inline void ltrim(std::string& line) {
-  size_t off = line.find_first_not_of(" \t\r\n");
-  if (off not_eq std::string::npos) {
-    line.erase(0, off);
-  }
-}
+// hash provided key
+uint32_t hash(const uint32_t id);
+// get number of digits to print 'num'
+int format(int num);
+// print a separator line
+void separator();
+// trim left blank space
+void ltrim(std::string& line);
+// get end file name of a given path
+std::string basename(const std::string& s);
+// check if a file exists
+bool exists(const std::string& path);
+// abort if given command option is not supported
+void abort(char option, const char* msg, const optparse::Parser& parser);
+// check equality of two c-strings
+bool equals(const char* s1, const char* s2);
+// retrieve extension of a file
+std::string getExt(const char* path);
+// seek line pointer to a given line number
+std::ifstream& seekToLine(int nb, std::ifstream& file);
+// check if provided arg is a digit
+bool isDigit(const char* arg);
+// get file name without extension
+std::string rootOf(const std::string& path);
+// replace a file extension by another
+std::string replaceExt(const std::string& fname, const std::string& ext);
+// display elapsed time
+void showElapsed(Time& tic, const char* msg, int step);
 
 /* --------------------------------------------------------------------------- */
 template<typename type_t>
-inline void display(const std::vector<type_t>& list) {
+void display(const std::vector<type_t>& list) {
 
   std::stringstream buffer;
   buffer << "[";
-  //for(auto it = list.begin(); it not_eq list.end() and *it not_eq -1; ++it){
   for (auto it = list.begin(); it not_eq list.end(); ++it) {
     buffer << *it;
     if (it + 1 not_eq list.end()) { buffer << ","; }
@@ -68,103 +69,13 @@ inline void display(const std::vector<type_t>& list) {
 }
 
 /* --------------------------------------------------------------------------- */
-inline std::string basename(const std::string& s) {
-  std::string b = s;
-  size_t i = b.find_last_not_of('/');
-  if (i == std::string::npos) {
-    if (b[0] == '/') {
-      b.erase(1);
-    }
-    return b;
-  }
-
-  b.erase(i + 1, b.length() - i - 1);
-  i = b.find_last_of('/');
-  if (i not_eq std::string::npos) {
-    b.erase(0, i + 1);
-  }
-  return b;
-}
-
-/* --------------------------------------------------------------------------- */
 template<typename type_t>
-inline void erase(type_t needle, std::vector<type_t>& list) {
+void erase(type_t needle, std::vector<type_t>& list) {
   auto found = std::find(list.begin(), list.end(), needle);
   assert(found not_eq list.end());
   std::swap(*found, list.back());
   list.pop_back();
 }
 
-/* --------------------------------------------------------------------------- */
-inline bool exists(const std::string& path) {
-
-  std::ifstream file(path, std::ios::in);
-  bool ok = file.good();
-  file.close();
-  return ok;
-}
-
-/* --------------------------------------------------------------------------- */
-inline void abort(char option, const char* msg, const optparse::Parser& parser) {
-  std::printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
-  parser.print_help();
-  std::exit(EXIT_FAILURE);
-}
-
-/* --------------------------------------------------------------------------- */
-inline bool equals(const char* s1, const char* s2) {
-  return not std::strcmp(s1, s2);
-}
-
-/* --------------------------------------------------------------------------- */
-inline std::string getExt(const char* path) {
-  std::string file(path);
-  // get index of the last dot in file name
-  size_t last_dot = file.find_last_of('.');
-  return (last_dot not_eq std::string::npos ? file.substr(last_dot + 1) : "");
-}
-
-/* --------------------------------------------------------------------------- */
-inline std::ifstream& seekToLine(int nb, std::ifstream& file) {
-  assert(nb);
-  file.seekg(std::ios::beg);
-  for (int i = 0; i < nb - 1; ++i)
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  return file;
-}
-
-/* --------------------------------------------------------------------------- */
-inline bool isDigit(const char* arg) {
-  std::string s(arg);
-  return std::all_of(s.begin(), s.end(), ::isdigit); //C++11
-}
-
-/* --------------------------------------------------------------------------- */
-inline std::string rootOf(const std::string& path) {
-
-  std::string s = basename(path);
-  auto last_dot = s.find_last_of('.');
-  s.substr(0, last_dot);
-  return s;
-}
-
-/* --------------------------------------------------------------------------- */
-inline std::string replaceExt(const std::string& fname, const std::string& ext) {
-
-  // remove file ext
-  size_t last_dot = fname.find_last_of('.');
-  assert(last_dot not_eq std::string::npos);
-  std::string root_ = fname.substr(0, last_dot);
-  // add new ext
-  std::stringstream nuw;
-  nuw << root_ << ext;
-  return nuw.str();
-}
-
-/* --------------------------------------------------------------------------- */
-inline void separator() {
-  for (int i = 0; i < 64; ++i) std::printf("-");
-  std::printf("\n");
-}
 /* --------------------------------------------------------------------------- */
 }} // namespace trinity::tools
