@@ -59,7 +59,11 @@ private:
     int color;
   } nb;
 
-  struct { int max, avg; } deg;
+  struct {
+    int max;
+    int avg;
+  } deg;
+
   struct { double ratio; } stat;
   struct { Time start; }   time;
 };
