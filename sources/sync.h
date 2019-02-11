@@ -36,6 +36,7 @@ namespace { int kernelPrefixSum(int* begin, int* end, size_t grain_size); }
 template <typename type_t,
           typename = std::enable_if_t<std::is_integral<type_t>::value> >
 bool compareAndSwap(type_t* flag, int expected, int value) {
+  assert(flag not_eq nullptr);
   return __sync_bool_compare_and_swap(flag, expected, value);
 }
 
@@ -43,6 +44,7 @@ bool compareAndSwap(type_t* flag, int expected, int value) {
 template <typename type_t,
           typename = std::enable_if_t<std::is_integral<type_t>::value> >
 type_t fetchAndAdd(type_t* shared, int value) {
+  assert(shared not_eq nullptr);
   return __sync_fetch_and_add(shared, value);
 }
 
@@ -50,6 +52,7 @@ type_t fetchAndAdd(type_t* shared, int value) {
 template <typename type_t,
           typename = std::enable_if_t<std::is_integral<type_t>::value> >
 type_t fetchAndSub(type_t* shared, int value) {
+  assert(shared not_eq nullptr);
   return __sync_fetch_and_sub(shared, value);
 }
 /* --------------------------------------------------------------------------- */
