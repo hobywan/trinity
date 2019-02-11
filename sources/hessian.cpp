@@ -30,7 +30,7 @@ void Metrics::computeGradient(int index) {
   double s[4];           // matrix for area computation
   double psi[6];         // finite elem basis function
 
-  size_t N = stenc[index].elem.size();
+  size_t N = field.stencil[index].elem.size();
 
   auto* area = new double[N];
   auto* grad = new double[2 * N];
@@ -38,7 +38,7 @@ void Metrics::computeGradient(int index) {
 
   // compute element-wise gradient vector
   int i = 0;
-  for (auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it) {
+  for (auto it = field.stencil[index].elem.begin(); it < field.stencil[index].elem.end(); ++it) {
     // elem attributes
     const int* v = mesh->getElemCoord(*it, p);
 
@@ -65,7 +65,7 @@ void Metrics::computeGradient(int index) {
     // constant per elem
     for (int j = 0; j < 3; ++j)
       for (int k = 0; k < 2; ++k)
-        grad[i * 2 + k] += solut[*(v + j)] * psi[j * 2 + k];
+        grad[i * 2 + k] += field.solut[*(v + j)] * psi[j * 2 + k];
 
     ++i;
   }
@@ -73,14 +73,14 @@ void Metrics::computeGradient(int index) {
   int k = index * 2;
 
   // 3) recover nodal gradient vector
-  nabla[k] = nabla[k + 1] = 0.;
+  field.gradient[k] = field.gradient[k + 1] = 0.;
   for (i = 0; i < N; ++i)
     for (int j = 0; j < 2; ++j)
-      nabla[k + j] += (area[i] * grad[i * 2 + j]);
+      field.gradient[k + j] += (area[i] * grad[i * 2 + j]);
 
   // normalize by sizeil area
-  nabla[k] /= size;
-  nabla[k + 1] /= size;
+  field.gradient[k] /= size;
+  field.gradient[k + 1] /= size;
 
   delete[] area;
   delete[] grad;
@@ -97,7 +97,7 @@ void Metrics::computeHessian(int index) {
   double psi[6];         // finite elem basis function
   double H[4] = {0., 0., 0., 0.};
 
-  size_t N = stenc[index].elem.size();
+  size_t N = field.stencil[index].elem.size();
 
   auto* area = new double[N];
   auto* delta = new double[4 * N];
@@ -108,7 +108,7 @@ void Metrics::computeHessian(int index) {
   // gradient recovery step (if also computed by L2 projection)
   // but may not if another gradient recovery method was used
   int i = 0;
-  for (auto it = stenc[index].elem.begin(); it < stenc[index].elem.end(); ++it) {
+  for (auto it = field.stencil[index].elem.begin(); it < field.stencil[index].elem.end(); ++it) {
     // elem attributes
     const int* v = mesh->getElemCoord(*it, p);
 
@@ -132,12 +132,12 @@ void Metrics::computeHessian(int index) {
     psi[4] = norm * (p[1] - p[3]); // (t[0].y - t[1].y)
     psi[5] = norm * (p[2] - p[0]); // (t[1].x - t[0].x)
 
-    // hess = sum_i=1^3 (nabla[j] . psi[j])
+    // hess = sum_i=1^3 (field.gradient[j] . psi[j])
     for (int j = 0; j < 3; ++j) {
-      delta[i * 4] += (nabla[*(v + j) * 2] * psi[j * 2]);
-      delta[i * 4 + 1] += (nabla[*(v + j) * 2] * psi[j * 2 + 1]);
-      delta[i * 4 + 2] += (nabla[*(v + j) * 2 + 1] * psi[j * 2]);
-      delta[i * 4 + 3] += (nabla[*(v + j) * 2 + 1] * psi[j * 2 + 1]);
+      delta[i * 4]     += (field.gradient[*(v + j) * 2]     * psi[j * 2]);
+      delta[i * 4 + 1] += (field.gradient[*(v + j) * 2]     * psi[j * 2 + 1]);
+      delta[i * 4 + 2] += (field.gradient[*(v + j) * 2 + 1] * psi[j * 2]);
+      delta[i * 4 + 3] += (field.gradient[*(v + j) * 2 + 1] * psi[j * 2 + 1]);
     }
     ++i;
   }
@@ -153,9 +153,9 @@ void Metrics::computeHessian(int index) {
 
   int k = index * 3;
   // symmetrize H : 0.5 * (H^t + H)
-  tens[k] = H[0];
-  tens[k + 1] = 0.5 * (H[1] + H[2]);
-  tens[k + 2] = H[3];
+  field.tensor[k] = H[0];
+  field.tensor[k + 1] = 0.5 * (H[1] + H[2]);
+  field.tensor[k + 2] = H[3];
 
   delete[] area;
   delete[] delta;

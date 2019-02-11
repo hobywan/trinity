@@ -334,7 +334,7 @@ void numeric::approxRiemannCircum(const double* pa,
 }
 
 /* --------------------------------------------------------------------------- */
-void numeric::kroneckerProduct(const double* u1, const double* u2, double* M) {
+void numeric::doKroneckerProduct(const double* u1, const double* u2, double* M) {
 
   assert(u1 not_eq nullptr);
   assert(u2 not_eq nullptr);

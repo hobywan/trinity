@@ -35,52 +35,57 @@ public:
   Metrics& operator=(Metrics other) = delete;
   Metrics(Metrics&& other) noexcept = delete;
   Metrics& operator=(Metrics&& other) noexcept = delete;
-  Metrics(Mesh* input, double targ_f, int norm, double min_h, double max_h);
+  Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_min, double h_max);
   ~Metrics();
 
   void computeTensorField(Stats* tot);
   void clear();
 
 private:
+
   // steps
   void recoverHessianField();
   void normalizeLocally();
   void computeComplexity();
   void normalizeGlobally();
+
   // kernels
   void computeGradient(int index);
   void computeHessian(int index);
 
-  //
+  // stats
+  void initialize();
+  void recap(Stats* tot);
+
   Mesh* mesh;
 
-  int target;
-  int p_norm;
-  int chunk;
+  struct {
+    double* gradient;
+    double* solut;
+    double* tensor;
+    Patch*  stencil;
+    double  complexity;
+  } field;
+
+  struct {
+    int    chunk;
+    int    target;
+    int    norm;
+    double h_min;
+    double h_max;
+    double lambda_min;
+    double lambda_max;
+    struct { double fact, exp; } scale;
+  } param;
+
+  struct { Time start; } time;
+
   int& nb_nodes;
   int& nb_elems;
   int& nb_cores;
   int& verbose;
   int& iter;
   int& rounds;
-
-  double* nabla;
-  double* solut;
-  double* tens;
-  Patch* stenc;
-
-  double h_min;
-  double h_max;
-  double scale_fact;
-  double scale_exp;
-  double lambda_min;
-  double lambda_max;
-  double complexity;
-
-  // timers and stats
-  Time start;
-  void init();
-  void recap(Stats* tot);
 
 };
 } // namespace trinity
