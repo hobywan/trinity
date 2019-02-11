@@ -18,45 +18,46 @@
  */
 
 #include "refinement.h"
+#include "mesh.h"
 /* ------------------------------------*/
 namespace trinity {
 /* ------------------------------------*/
 Refine::Refine(Mesh* input, int level)
-  :
-  mesh(input),
-  off(input->sync.off),
-  activ(input->sync.activ),
-  cores(input->nb.cores),
-  steiner(input->capa.node, input->capa.bucket, 2),
-  nb_nodes(input->nb.nodes),
-  nb_elems(input->nb.elems),
-  verbose(input->param.verb),
-  iter(input->param.iter),
-  rounds(input->param.rounds),
-  depth(level)
+  : mesh    (input),
+    steiner (input->capa.node, input->capa.bucket, 2),
+    cores   (input->nb.cores),
+    nb_nodes(input->nb.nodes),
+    nb_elems(input->nb.elems),
+    iter    (input->param.iter),
+    verbose (input->param.verb),
+    rounds  (input->param.rounds)
 {
-  const auto size = input->capa.elem;
-  index = new int[cores + 1];
-  edges = new int[size * 3];   // 3 data/edge, 3 edges/elem
-  elems = new int[size];
-  pattern = new char[size];
+  sync.index = new int[cores + 1];
+  sync.off   = input->sync.off;
+  sync.activ = input->sync.activ;
+
+  size_t capacity = mesh->capa.elem;
+  task.edges   = new int[capacity * 3];   // 3 data/edge, 3 edges/elem
+  task.elems   = new int[capacity];
+  task.pattern = new char[capacity];
+  task.level   = level;
 }
 
 /* ------------------------------------*/
 Refine::~Refine() {
 
-  delete[] index;
-  delete[] edges;
-  delete[] elems;
-  delete[] pattern;
+  delete[] sync.index;
+  delete[] task.edges;
+  delete[] task.elems;
+  delete[] task.pattern;
 }
 
 /* --------------------------------------------------------------------------- */
 void Refine::run(Stats* tot) {
 
-  init();
+  initialize();
 
-  int time[] = {0, 0, 0, 0, 0};
+  int elap[] = {0, 0, 0, 0, 0};
   int stat[] = {0, 0};
   int form[] = {0, 0, 0};
 
@@ -68,37 +69,36 @@ void Refine::run(Stats* tot) {
     int tid = omp_get_thread_num();
 
     preProcess(heap);
-    timer::save(tic, time);
+    timer::save(time.tic, elap);
 
     do {
       filterElems(heap);
-      timer::save(tic, time + 1);
+      timer::save(time.tic, elap + 1);
 
-      if (!nb_tasks) {
+      if (!nb.tasks)
         break;
-      }
 
       computeSteinerPoints();
       saveStat(level, stat, form);
-      timer::save(tic, time + 2);
+      timer::save(time.tic, elap + 2);
 
       processElems(tid);
-      timer::save(tic, time + 3);
+      timer::save(time.tic, elap + 3);
 
-#ifdef DEFERRED_UPDATES
-      mesh->commitUpdates();
-      timer::save(tic, time+4);
-#endif
+      #ifdef DEFERRED_UPDATES
+        mesh->commitUpdates();
+        timer::save(time.tic, elap+4);
+      #endif
       showStat(level, form);
 
-    } while (++level < depth);
+    } while (++level < task.level);
 
 #ifndef DEFERRED_UPDATES
     mesh->fixAll();
-    timer::save(tic, time + 4);
+    timer::save(time.tic, elap + 4);
 #endif
 
-    recap(time, stat, form, tot);
+    recap(elap, stat, form, tot);
     mesh->verifyTopology();
   }
 }
@@ -118,7 +118,7 @@ void Refine::cutElem(int id, int* offset) {
     steiner.getValue(n[0], n[1])
   };
 
-  if (pattern[id] == 1) {
+  if (task.pattern[id] == 1) {
 
     const int t[] = {id, *offset};
 
@@ -147,11 +147,11 @@ void Refine::cutElem(int id, int* offset) {
         mesh->replaceElem(t[0], elem0);
         mesh->replaceElem(t[1], elem1);
         // manually unrolled
-        activ[t[0]] = activ[t[1]] = 1;
+        sync.activ[t[0]] = sync.activ[t[1]] = 1;
         break;
       }
     }
-  } else if (pattern[id] == 2) {
+  } else if (task.pattern[id] == 2) {
 
     const int t[] = {id, *offset, *offset + 1};
 
@@ -192,7 +192,7 @@ void Refine::cutElem(int id, int* offset) {
         mesh->replaceElem(t[1], elem1);
         mesh->replaceElem(t[2], elem2);
         // manually unrolled
-        activ[t[0]] = activ[t[1]] = activ[t[2]] = 1;
+        sync.activ[t[0]] = sync.activ[t[1]] = sync.activ[t[2]] = 1;
         break;
       }
     }
@@ -230,46 +230,46 @@ void Refine::cutElem(int id, int* offset) {
     mesh->replaceElem(t[2], elem2);
     mesh->replaceElem(t[3], elem3);
     // manually unrolled
-    activ[t[0]] = activ[t[1]] = activ[t[2]] = activ[t[3]] = 1;
+    sync.activ[t[0]] = sync.activ[t[1]] = sync.activ[t[2]] = sync.activ[t[3]] = 1;
   }
-  *offset += pattern[id];
+  *offset += task.pattern[id];
 }
 
 /* --------------------------------------------------------------------------- */
 void Refine::preProcess(std::vector<int> heap[2]) {
 
-  heap[0].reserve(nb_elems);
-  heap[1].reserve(nb_elems / cores);
+  heap[0].reserve((size_t) nb_elems);
+  heap[1].reserve((size_t) nb_elems / cores);
 
 #pragma omp master
   {
-    old_node = nb_nodes;
-    old_elem = nb_elems;
-    shift = 0;
-    nb_adds = 0;
-    nb_split = 0;   // number of elems to be appended
-    nb_eval = 0;
-    nb_tasks = 0;
-    nb_steiner = 0;
+    nb.old.node = nb_nodes;
+    nb.old.elem = nb_elems;
+    sync.shift  = 0;
+    nb.adds     = 0;
+    nb.split    = 0;   // number of elems to be appended
+    nb.eval     = 0;
+    nb.tasks    = 0;
+    nb.steiner  = 0;
   }
 
 #pragma omp for
   for (int i = 0; i < nb_elems; ++i) {
-    activ[i] = static_cast<char>(mesh->isActiveElem(i) ? 1 : 0);
+    sync.activ[i] = (char) (mesh->isActiveElem(i) ? 1 : 0);
   }
 
   steiner.reset();
 
 #pragma omp single
-  round = timer::now();
+  time.iter = timer::now();
 }
 
 /* --------------------------------------------------------------------------- */
 void Refine::filterElems(std::vector<int> heap[2]) {
 #pragma omp single
   {
-    nb_eval = nb_adds = nb_split = nb_tasks = nb_steiner = 0;
-    std::memset(index, 0, (cores + 1) * sizeof(int));
+    nb.eval = nb.adds = nb.split = nb.tasks = nb.steiner = 0;
+    std::memset(sync.index, 0, (cores + 1) * sizeof(int));
   }
 
   // step 1: filter elems
@@ -278,9 +278,9 @@ void Refine::filterElems(std::vector<int> heap[2]) {
 
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb_elems; ++i) {
-    pattern[i] = 0;
+    task.pattern[i] = 0;
     // i > offset => new elems
-    if (__builtin_expect(activ[i], i > shift)) {
+    if (__builtin_expect(sync.activ[i], i > sync.shift)) {
       auto n = mesh->getElem(i);
       len[0] = mesh->computeLength(n[0], n[1]);
       len[1] = mesh->computeLength(n[1], n[2]);
@@ -290,7 +290,7 @@ void Refine::filterElems(std::vector<int> heap[2]) {
         const int k = (j + 1) % 3;
         // (!) avoid duplicated steiner-points but don't forget boundary edges
         if (len[j] > trinity::l_max) {
-          ++pattern[i];
+          ++task.pattern[i];
           // (!) be aware of diagonals: dont rely only on node activs
           const int opp = mesh->getElemNeigh(i, n[j], n[k]);
           if (n[j] < n[k] or opp < 0) {
@@ -300,19 +300,19 @@ void Refine::filterElems(std::vector<int> heap[2]) {
           }
         }
       }
-      if (pattern[i]) {
-        count[1] += pattern[i];
+      if (task.pattern[i]) {
+        count[1] += task.pattern[i];
         heap[1].push_back(i);
       }
       count[0]++;
     }
   }
-  sync::fetchAndAdd(&nb_eval, count[0]);
-  sync::fetchAndAdd(&nb_adds, count[1]);
+  sync::fetchAndAdd(&nb.eval, count[0]);
+  sync::fetchAndAdd(&nb.adds, count[1]);
 
   // reductions on steiner point & bad elems list
-  sync::reduceTasks(edges, heap, &nb_split, 3);
-  sync::reduceTasks(elems, heap + 1, &nb_tasks, off);
+  sync::reduceTasks(task.edges, heap, &nb.split, 3);
+  sync::reduceTasks(task.elems, heap + 1, &nb.tasks, sync.off);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -322,12 +322,12 @@ void Refine::computeSteinerPoints() {
 
   // step 2: compute steiner point and fix new cells ID
 #pragma omp for nowait
-  for (int i = 0; i < nb_split; ++i) {
+  for (int i = 0; i < nb.split; ++i) {
     // implicit index
     const int id = nb_nodes + i;
-    const int& v1 = edges[i * 3];
-    const int& v2 = edges[i * 3 + 1];
-    const int& opp = edges[i * 3 + 2];
+    const int& v1 = task.edges[i * 3];
+    const int& v2 = task.edges[i * 3 + 1];
+    const int& opp = task.edges[i * 3 + 2];
     // 1) calculate and insert the steiner point
     double* P = mesh->geom.points.data() + (id * 2);
     double* M = mesh->geom.tensor.data() + (id * 3);
@@ -344,7 +344,7 @@ void Refine::computeSteinerPoints() {
     }
   }
 
-  sync::fetchAndAdd(&nb_steiner, count);
+  sync::fetchAndAdd(&nb.steiner, count);
 #pragma omp barrier
 }
 
@@ -352,25 +352,25 @@ void Refine::computeSteinerPoints() {
 void Refine::processElems(int tid) {
 #pragma omp master
   {
-    index[0] = shift = nb_elems;
-    nb_nodes += nb_split;
-    nb_elems += nb_adds;
+    sync.index[0] = sync.shift = nb_elems;
+    nb_nodes += nb.split;
+    nb_elems += nb.adds;
   }
 
 #pragma omp for schedule(static)
-  for (int i = 0; i < nb_tasks; ++i)
-    index[tid + 1] += pattern[elems[i]];  // no data race
+  for (int i = 0; i < nb.tasks; ++i)
+    sync.index[tid + 1] += task.pattern[task.elems[i]];  // no data race
 
-  sync::prefixSum(index, cores, 16);
+  sync::prefixSum(sync.index, cores, 16);
 
   // step 3: refine bad elems
 #pragma omp for schedule(static)
-  for (int i = 0; i < nb_tasks; ++i)
-    cutElem(elems[i], index + tid);
+  for (int i = 0; i < nb.tasks; ++i)
+    cutElem(task.elems[i], sync.index + tid);
 }
 
 /* --------------------------------------------------------------------------- */
-void Refine::init() {
+void Refine::initialize() {
 #pragma omp master
   {
     if (verbose == 1) {
@@ -380,7 +380,7 @@ void Refine::init() {
     }
 
     std::fflush(stdout);
-    start = round = tic = timer::now();
+    time.start = time.iter = time.tic = timer::now();
   }
 }
 
@@ -388,13 +388,13 @@ void Refine::init() {
 void Refine::saveStat(int level, int* stat, int* form) {
 #pragma omp master
   {
-    cur_elem = nb_elems;
-    stat[0] += nb_eval;
-    stat[1] += nb_tasks;
-    if (!level) {
-      form[0] = tools::format(nb_eval);
-      form[1] = tools::format(nb_tasks);
-      form[2] = tools::format(nb_steiner);
+//    nb.cur_elem = nb_elems;
+    stat[0] += nb.eval;
+    stat[1] += nb.tasks;
+    if (not level) {
+      form[0] = tools::format(nb.eval);
+      form[1] = tools::format(nb.tasks);
+      form[2] = tools::format(nb.steiner);
     }
   }
 }
@@ -406,32 +406,32 @@ void Refine::showStat(int level, int* form) {
     if (verbose == 2) {
       std::printf("\n= round %2d. %*d tasks \e[0m(%2d %%)\e[0m, %*d filt. \e[0m(%2d %%)\e[0m, "
                   "%*d stein \e[0m(%2d %%) \e[32m(%d ms)\e[0m",
-                  level + 1, form[0], nb_eval, (int) (nb_eval * 100 / cur_elem),
-                  form[1], nb_tasks, (int) (nb_tasks * 100 / nb_eval),
-                  form[2], nb_steiner, (int) (nb_steiner * 100 / nb_nodes), timer::round(round));
+                  level + 1, form[0], nb.eval, (int) (nb.eval * 100 / nb_elems),
+                  form[1], nb.tasks, (int) (nb.tasks * 100 / nb.eval),
+                  form[2], nb.steiner, (int) (nb.steiner * 100 / nb_nodes), timer::round(time.iter));
       std::fflush(stdout);
     }
   }
 }
 
 /* --------------------------------------------------------------------------- */
-void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
+void Refine::recap(int* elap, int* stat, int* form, Stats* tot) {
 #pragma omp master
   {
-    int end = std::max(timer::elapsed_ms(start), 1);
+    int end = std::max(timer::elapsed_ms(time.start), 1);
     int span = 0;
 
     tot->eval += stat[0];
     tot->task += stat[1];
     tot->elap += end;
 
-    tot->step[0] += time[0] + time[1];  // filterElems
-    tot->step[1] += time[2];          // steiner
-    tot->step[2] += time[3];          // processFlips
-    tot->step[3] += time[4];          // repair
+    tot->step[0] += elap[0] + elap[1];  // filterElems
+    tot->step[1] += elap[2];          // steiner
+    tot->step[2] += elap[3];          // processFlips
+    tot->step[3] += elap[4];          // repair
 
     for (int i = 0; i < 5; ++i)
-      span = std::max(span, time[i]);
+      span = std::max(span, elap[i]);
     *form = tools::format(span);
 
     if (not verbose) {
@@ -439,20 +439,20 @@ void Refine::recap(int* time, int* stat, int* form, Stats* tot) {
     } else if (verbose == 1) {
       std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m [+%.1f %%]\n",
                   (int) std::floor(stat[1] / (end * 1e-3)), (float) end / 1e3,
-                  (float) (nb_elems - old_elem) * 100 / nb_elems);
+                  (float) (nb_elems - nb.old.elem) * 100 / nb_elems);
     } else if (verbose == 2) {
       std::printf("\n\n");
-      std::printf("= nodes: %d old, %d new \e[0m(+%.1f %%)\e[0m\n", old_node, nb_nodes,
-                  (float) (nb_nodes - old_node) * 100 / nb_nodes);
-      std::printf("= elems: %d old, %d new \e[0m(+%.1f %%)\e[0m\n", old_elem, nb_elems,
-                  (float) (nb_elems - old_elem) * 100 / nb_elems);
+      std::printf("= nodes: %d old, %d new \e[0m(+%.1f %%)\e[0m\n", nb.old.node, nb_nodes,
+                  (float) (nb_nodes - nb.old.node) * 100 / nb_nodes);
+      std::printf("= elems: %d old, %d new \e[0m(+%.1f %%)\e[0m\n", nb.old.elem, nb_elems,
+                  (float) (nb_elems - nb.old.elem) * 100 / nb_elems);
       std::printf("= rate : %d split/sec (%d tasks) \n", (int) std::floor(stat[1] / (end * 1e-3)), stat[1]);
       std::printf("= time per step\n");
-      std::printf("  %2d %% preproc \e[32m(%*d ms)\e[0m\n", (int) time[0] * 100 / end, *form, time[0]);
-      std::printf("  %2d %% filter  \e[32m(%*d ms)\e[0m\n", (int) time[1] * 100 / end, *form, time[1]);
-      std::printf("  %2d %% steiner \e[32m(%*d ms)\e[0m\n", (int) time[2] * 100 / end, *form, time[2]);
-      std::printf("  %2d %% kernel  \e[32m(%*d ms)\e[0m\n", (int) time[3] * 100 / end, *form, time[3]);
-      std::printf("  %2d %% fixes   \e[32m(%*d ms)\e[0m\n", (int) time[4] * 100 / end, *form, time[4]);
+      std::printf("  %2d %% preproc \e[32m(%*d ms)\e[0m\n", (int) elap[0] * 100 / end, *form, elap[0]);
+      std::printf("  %2d %% filter  \e[32m(%*d ms)\e[0m\n", (int) elap[1] * 100 / end, *form, elap[1]);
+      std::printf("  %2d %% steiner \e[32m(%*d ms)\e[0m\n", (int) elap[2] * 100 / end, *form, elap[2]);
+      std::printf("  %2d %% kernel  \e[32m(%*d ms)\e[0m\n", (int) elap[3] * 100 / end, *form, elap[3]);
+      std::printf("  %2d %% fixes   \e[32m(%*d ms)\e[0m\n", (int) elap[4] * 100 / end, *form, elap[4]);
       std::printf("done. \e[32m(%d ms)\e[0m\n", end);
       tools::separator();
     }

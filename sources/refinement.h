@@ -50,43 +50,51 @@ private:
   void processElems(int tid);
   void cutElem(int id, int* offset);
 
-  Mesh* mesh;               // input mesh
-  Hashtable<int> steiner;   // mapping: vi -> (vj,s)
+  // stats
+  void initialize();
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* elap, int* stat, int* form, Stats* tot);
 
-  int*  index;              // offset for elems insertion
-  int*  edges;              // tasklist for steiner point calc. step
-  int*  elems;              // tasklist for processFlips step
-  int*  off;                // offset for tasklist reduction
-  char* activ;              // active elems marking
-  char* pattern;            // pattern for each elem
+  Mesh* mesh;                 // input mesh
+  Hashtable<int> steiner;     // mapping: vi -> (vj,s)
 
-  // counters
-  int shift;
-  int nb_adds;
-  int nb_split;
-  int nb_eval;
-  int nb_tasks;
-  int nb_steiner;
-  //
+  struct {
+    int*  edges;              // tasklist for steiner point calc. step
+    int*  elems;              // tasklist for processFlips step
+    char* pattern;            // pattern for each elem
+    int   level;              // max refinement level
+  } task;
+
+  struct {
+    int   shift;
+    int*  index;              // offset for elems insertion
+    int*  off;                // offset for tasklist reduction
+    char* activ;              // active elems marking
+  } sync;
+
+  struct {
+    int adds;
+    int split;
+    int eval;
+    int tasks;
+    int steiner;
+    struct { int node, elem; } old;
+  } nb;
+
+  struct {
+    Time start;
+    Time iter;
+    Time tic;
+  } time;
+
+  // unpackable fields
   int& cores;
+  int& iter;
   int& nb_nodes;
   int& nb_elems;
   int& verbose;
-  int& iter;
   int& rounds;
-  int depth;                // max refinement level
-  int old_node;
-  int old_elem;
-  int cur_elem;
-  // timers and stats
-  Time start;
-  Time round;
-  Time tic;
-  //
-  void init();
-  void saveStat(int level, int* stat, int* form);
-  void showStat(int level, int* form);
-  void recap(int* time, int* stat, int* form, Stats* tot);
 };
+/* --------------------------------------------------------------------------- */
 } // namespace trinity
-
