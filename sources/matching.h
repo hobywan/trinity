@@ -43,7 +43,7 @@ public:
   ~Match();
 
 
-  void init(int capa, int* map, int* idx);
+  void init(size_t capa, int* map, int* idx);
   int* computeKarpSipser(const Graph& graph, int nb);
   int* computePothenFan(const Graph& graph, int nb);
   int  getRatio(const Graph& graph, int nb, int* count);

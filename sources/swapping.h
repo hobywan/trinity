@@ -18,7 +18,7 @@
  */
 
 #pragma once
-/* ------------------------------------*/
+/* --------------------------------------------------------------------------- */
 #include "mesh.h"
 #include "hashtable.h"
 #include "numeric.h"
@@ -48,43 +48,53 @@ private:
   void extractDualGraph();
   void processFlips();
 
-  //
+  // kernel
+  int swap(int k1, int k2, int idx);
+
+  // stats
+  void initialize();
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* elap, int* stat, int* form, Stats* tot);
+
   Mesh* mesh;
   Graph dual;
   Match heuris;
 
-  // tasklist
-  int* map;
-  int* tasks;
-  int* off;
-  char* fixes;
-  char* activ;
-  double* qualit;
+  struct {
+    int* match;
+    int* list;
+    int  depth;
+  } task;
 
-  // counters
+  struct {
+    int*  off;
+    char* fixes;
+    char* activ;
+  } sync;
+
+  struct {
+    int activ;
+    int tasks;
+    int commit;
+    int count;  // for profiling only
+  } nb;
+
+  struct { double* qualit; } geom;
+
+  struct {
+    Time start;
+    Time iter;
+    Time tic;
+  } time;
+
+  // unpackable
   int& cores;
   int& nb_nodes;
   int& nb_elems;
   int& verbose;
   int& iter;
   int& rounds;
-  int depth;
-  int nb_activ;
-  int nb_tasks;
-  int nb_comms;
-  int count;  // for profiling only
-
-  // processFlips
-  int swap(int k1, int k2, int idx);
-
-  // timers and stats
-  Time start;
-  Time round;
-  Time tic;
-  //
-  void init();
-  void saveStat(int level, int* stat, int* form);
-  void showStat(int level, int* form);
-  void recap(int* time, int* stat, int* form, Stats* tot);
 };
+/* --------------------------------------------------------------------------- */
 } // namespace trinity

@@ -35,7 +35,7 @@ Match::Match()
   tasks(nullptr) {}
 
 /* --------------------------------------------------------------------------- */
-void Match::init(int capa, int* map, int* idx) {
+void Match::init(size_t capa, int* map, int* idx) {
   size = capa;
   depth = 0;
   cores = omp_get_max_threads();
