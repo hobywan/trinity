@@ -16,12 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* ------------------------------------*/
+/* --------------------------------------------------------------------------- */
 #include "coarsening.h"
-#include "mesh.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------*/
+/* --------------------------------------------------------------------------- */
 Coarse::Coarse(Mesh* input, Partit* algo)
   : mesh    (input),
     cores   (mesh->nb.cores),
@@ -98,7 +97,7 @@ void Coarse::run(Stats* tot) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Coarse::identify(int i) {
+void Coarse::identifyTarget(int i) {
 
   const auto& vicin = mesh->topo.vicin[i];
   const auto stenc_beg = mesh->topo.stenc[i].begin();
@@ -136,7 +135,6 @@ void Coarse::identify(int i) {
 
     // simulate collapse (i->j)
     for (auto t = stenc_beg; not(skip) and t < stenc_end; ++t) {
-
       const int* n = mesh->getElem(*t);
 
       // a) skip surrounding elems of (i,*it)
@@ -153,13 +151,19 @@ void Coarse::identify(int i) {
       f[0] = (n[0] == i ? j : n[0]);
       f[1] = (n[1] == i ? j : n[1]);
       f[2] = (n[2] == i ? j : n[2]);
-      if (not (f[0] not_eq f[1] and f[1] not_eq f[2] and f[2] not_eq f[0])) {
-        std::printf("problem identify: v: %d, t: %d, f:[%d,%d,%d]\n", i, *t, f[0], f[1], f[2]);
-        tools::display(mesh->topo.stenc[i]);
-        if (mesh->isBoundary(i))
-          std::printf("boundary vertex %d\n", i);
-      }
 
+      #ifdef DEBUG
+        if (f[0] == f[1] or f[1] == f[2] or f[2] == f[0]) {
+          std::fprintf(stderr, "error: identify: v: %d, t: %d, f:[%d,%d,%d]\n",
+                        i, *t, f[0], f[1], f[2]);
+          tools::display(mesh->topo.stenc[i]);
+          if (mesh->isBoundary(i)) {
+            std::fprintf(stderr, "boundary vertex %d\n", i);
+          }
+          std::fflush(stderr);
+          std::exit(EXIT_FAILURE);
+        }
+      #endif
       assert(f[0] not_eq f[1] and f[1] not_eq f[2] and f[2] not_eq f[0]);
 
       if (mesh->isCounterclockwise(f)) {
@@ -177,7 +181,7 @@ void Coarse::identify(int i) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Coarse::collapse(int i, int j) {
+void Coarse::collapseEdge(int i, int j) {
 
 #ifdef DEFERRED_UPDATES
   int tid = omp_get_thread_num();
@@ -303,7 +307,7 @@ void Coarse::preProcess() {
     if (__builtin_expect(mesh->isCorner(i), 0))
       sync.activ[i] = -1;
     else
-      sync.activ[i] = static_cast<char>(mesh->topo.stenc[i].empty() ? 0 : 1);
+      sync.activ[i] = (char) (mesh->topo.stenc[i].empty() ? 0 : 1);
   }
 
 #pragma omp for nowait
@@ -330,7 +334,7 @@ void Coarse::filterPoints(std::vector<int>* heap) {
     if (__builtin_expect(sync.activ[i] > 0, 1)) {
       count++;
       sync.activ[i] = 0;
-      identify(i);
+      identifyTarget(i);
       if (task.target[i] > -1)
         heap->push_back(i);
     }
@@ -360,7 +364,7 @@ void Coarse::processPoints() {
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb_indep; ++i) {
     const int& k = task.indep[i];
-    collapse(k, task.target[k]);
+    collapseEdge(k, task.target[k]);
   }
 }
 

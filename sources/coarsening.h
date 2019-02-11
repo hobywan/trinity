@@ -48,8 +48,8 @@ private:
   void processPoints();
 
   // kernels
-  void identify(int id);
-  void collapse(int i, int j);
+  void identifyTarget(int id);
+  void collapseEdge(int i, int j);
 
   // stats
   void initialize();
