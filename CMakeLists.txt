@@ -47,7 +47,7 @@ endif()
 
 #
 include_directories(${CMAKE_SOURCE_DIR}/sources)
-link_directories   (${CMAKE_SOURCE_DIR}/libraries)
+#link_directories   (${CMAKE_SOURCE_DIR}/libraries)
 
 set(TRINITY_LIBRARIES)
 
