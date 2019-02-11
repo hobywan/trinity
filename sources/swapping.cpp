@@ -256,7 +256,8 @@ void Swap::extractDualGraph() {
     dual[i].reserve(4);
     dual[i].push_back(k);
 
-    for (auto t = stenc[*n].begin(); dual[i].size() < 3 and t < stenc[*n].begin() + deg[*n]; ++t) {
+    for (auto t = stenc[*n].begin();
+         dual[i].size() < 3 and t < stenc[*n].begin() + deg[*n]; ++t) {
       if (__builtin_expect(*t == k, 0))
         continue;
 
