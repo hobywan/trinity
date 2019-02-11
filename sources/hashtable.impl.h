@@ -86,7 +86,7 @@ type_t Hashtable<type_t, flag_t>::getValue(type_t v1, type_t v2, bool use_hash) 
 
   assert(stride == 2);
   type_t key  = (use_hash ? generateKey(v1,v2) : std::min(v1, v2));
-  type_t hint = std::min(v1, v2);
+  type_t hint = std::max(v1, v2);
 
   for (int k = 0; k < offset[key] - 1; k += 2) {
     if (bucket[key][k] == hint) {
