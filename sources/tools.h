@@ -79,7 +79,7 @@ inline std::string basename(const std::string& s) {
   }
 
   b.erase(i + 1, b.length() - i - 1);
-  i = b.find_last_of("/");
+  i = b.find_last_of('/');
   if (i not_eq std::string::npos) {
     b.erase(0, i + 1);
   }
@@ -96,7 +96,7 @@ inline void erase(type_t needle, std::vector<type_t>& list) {
 }
 
 /* --------------------------------------------------------------------------- */
-inline bool exists(std::string path) {
+inline bool exists(const std::string& path) {
 
   std::ifstream file(path, std::ios::in);
   bool ok = file.good();
@@ -108,19 +108,19 @@ inline bool exists(std::string path) {
 inline void abort(char option, const char* msg, const optparse::Parser& parser) {
   std::printf("\nError: \e[41moption -%c: %s\e[0m\n", option, msg);
   parser.print_help();
-  exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);
 }
 
 /* --------------------------------------------------------------------------- */
 inline bool equals(const char* s1, const char* s2) {
-  return !std::strcmp(s1, s2);
+  return not std::strcmp(s1, s2);
 }
 
 /* --------------------------------------------------------------------------- */
 inline std::string getExt(const char* path) {
   std::string file(path);
   // get index of the last dot in file name
-  size_t last_dot = file.find_last_of(".");
+  size_t last_dot = file.find_last_of('.');
   return (last_dot not_eq std::string::npos ? file.substr(last_dot + 1) : "");
 }
 
@@ -140,7 +140,7 @@ inline bool isDigit(const char* arg) {
 }
 
 /* --------------------------------------------------------------------------- */
-inline std::string rootOf(std::string& path) {
+inline std::string rootOf(const std::string& path) {
 
   std::string s = basename(path);
   auto last_dot = s.find_last_of('.');
@@ -149,10 +149,10 @@ inline std::string rootOf(std::string& path) {
 }
 
 /* --------------------------------------------------------------------------- */
-inline std::string replaceExt(std::string fname, std::string ext) {
+inline std::string replaceExt(const std::string& fname, const std::string& ext) {
 
   // remove file ext
-  size_t last_dot = fname.find_last_of(".");
+  size_t last_dot = fname.find_last_of('.');
   assert(last_dot not_eq std::string::npos);
   std::string root_ = fname.substr(0, last_dot);
   // add new ext

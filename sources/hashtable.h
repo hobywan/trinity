@@ -24,7 +24,7 @@
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */
-template<typename type_t = int>
+template<typename type_t>
 class Hashtable {
 
 public:
@@ -46,11 +46,11 @@ public:
 
 private:
 
-  type_t** bucket = nullptr;
-  int*     offset = nullptr;
+  type_t** bucket   = nullptr;
+  int*     offset   = nullptr;
   size_t   capacity = 0;
-  size_t   size = 0;
-  size_t   stride = 0;
+  size_t   size     = 0;
+  size_t   stride   = 0;
 
 };
 /* --------------------------------------------------------------------------- */

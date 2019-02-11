@@ -27,7 +27,7 @@ Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
   nb.nodes     = size[0];
   nb.elems     = size[1];
   nb.cores     = omp_get_max_threads();
-  capa.scale  = (depth - 1) * 3;
+  capa.scale   = (depth - 1) * 3;
   capa.bucket  = (size_t) bucket;
   param.depth  = depth;
   param.verb   = verbosity;
@@ -64,8 +64,8 @@ void Mesh::reallocMemory() {
 
 #pragma omp single
   {
-    assert(nb.nodes);   // expected nb of nodes
-    assert(nb.elems);   // expected nb of elems
+    assert(nb.nodes > 0);   // expected nb of nodes
+    assert(nb.elems > 0);   // expected nb of elems
     assert(capa.scale);
     capa.node = (size_t) nb.nodes * capa.scale;
     capa.elem = (size_t) nb.elems * capa.scale;
@@ -81,7 +81,7 @@ void Mesh::reallocMemory() {
   #pragma omp task
     geom.tensor.resize(capa.node * 3);
   #pragma omp task
-    geom.solut.resize(nb.nodes);  // only for metric calculation
+    geom.solut.resize((size_t) nb.nodes);  // only for metric calculation
   #pragma omp task
     geom.qualit.resize(capa.elem);
   #pragma omp task
@@ -120,12 +120,12 @@ void Mesh::reallocMemory() {
     memory_print += (1 * capa.node);                    // tags
     // 1 megabyte: 10^6, 1 mebibyte: 2^20=1048576
     if (param.verb) {
-      std::printf(
-        "%d MB \e[32m(%.2f s)\e[0m\n",
-        (int) std::ceil(memory_print / 1e6), (float) timer::elapsed_ms(sync.tic) / 1e3
-      );
-    } else
+      std::printf("%d MB \e[32m(%.2f s)\e[0m\n",
+                  (int) std::ceil(memory_print / 1e6),
+                  (float) timer::elapsed_ms(sync.tic) / 1e3);
+    } else {
       std::printf("\r= Preprocess ...  33 %% =");
+    }
     std::fflush(stdout);
   }
 }
@@ -249,32 +249,24 @@ bool Mesh::verifyTopology() const {
 
 #pragma omp for
   for (int i = 0; i < nb.elems; ++i) {
-    const int* n = getElem(i);
-    if (__builtin_expect(*n > -1, 1)) {
+    auto t = getElem(i);
+    if (__builtin_expect(t[0] > -1, 1)) {
 
-      if (std::find(topo.stenc[n[0]].begin(), topo.stenc[n[0]].end(), i) == topo.stenc[n[0]].end())
-#pragma omp critical
-      {
-        std::fprintf(stderr, "n: %d, t: %d [%d,%d,%d]", n[0], i, n[0], n[1], n[2]);
-        tools::display(topo.stenc[n[0]]);
+      for(int j = 0; j < 3; ++j){
+        #ifdef DEBUG
+          if (std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i) == topo.stenc[t[j]].end())
+          #pragma omp critical
+            {
+              std::fprintf(stderr, "n: %d, t: %d [%d,%d,%d]", t[0], i, t[0], t[1], t[2]);
+              tools::display(topo.stenc[t[j]]);
+              std::exit(EXIT_FAILURE);
+            }
+        #else
+          // abort immediately if an error occured
+          assert(t[0] not_eq t[1] and t[1] not_eq t[2] and t[2] not_eq t[0]);
+          assert(std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i) not_eq topo.stenc[t[j]].end());
+        #endif
       }
-      if (std::find(topo.stenc[n[1]].begin(), topo.stenc[n[1]].end(), i) == topo.stenc[n[1]].end())
-#pragma omp critical
-      {
-        std::fprintf(stderr, "n: %d, t: %d [%d,%d,%d]", n[1], i, n[0], n[1], n[2]);
-        tools::display(topo.stenc[n[1]]);
-      }
-      if (std::find(topo.stenc[n[2]].begin(), topo.stenc[n[2]].end(), i) == topo.stenc[n[2]].end())
-#pragma omp critical
-      {
-        std::fprintf(stderr, "n: %d, t: %d [%d,%d,%d]", n[2], i, n[0], n[1], n[2]);
-        tools::display(topo.stenc[n[2]]);
-      }
-      // abort immediately if an error occured
-      assert(n[0] not_eq n[1] and n[1] not_eq n[2] and n[2] not_eq n[0]);
-      assert(std::find(topo.stenc[n[0]].begin(), topo.stenc[n[0]].end(), i) not_eq topo.stenc[n[0]].end());
-      assert(std::find(topo.stenc[n[1]].begin(), topo.stenc[n[1]].end(), i) not_eq topo.stenc[n[1]].end());
-      assert(std::find(topo.stenc[n[2]].begin(), topo.stenc[n[2]].end(), i) not_eq topo.stenc[n[2]].end());
     }
   }
   return true;
@@ -294,8 +286,9 @@ void Mesh::extractPrimalGraph() {
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb.nodes; ++i) {
     if (__builtin_expect(sync.activ[i], 1)) {
+      auto size = (size_t) sync.deg[i] * 2;
       topo.vicin[i].clear();
-      topo.vicin[i].reserve(sync.deg[i] * 2);
+      topo.vicin[i].reserve(size);
 
       for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
         const int* n = getElem(*t);
@@ -303,17 +296,14 @@ void Mesh::extractPrimalGraph() {
         if (i == n[0]) {
           topo.vicin[i].push_back(n[1]);
           topo.vicin[i].push_back(n[2]);
-          continue;
         }
-        if (i == n[1]) {
+        else if (i == n[1]) {
           topo.vicin[i].push_back(n[2]);
           topo.vicin[i].push_back(n[0]);
-          continue;
         }
-        if (i == n[2]) {
+        else if (i == n[2]) {
           topo.vicin[i].push_back(n[0]);
           topo.vicin[i].push_back(n[1]);
-          continue;
         }
       }
       std::sort(topo.vicin[i].begin(), topo.vicin[i].end());
@@ -352,18 +342,25 @@ void Mesh::extractDualGraph(Graph* dual) const {
 }
 /* --------------------------------------------------------------------------- */
 const int* Mesh::getElem(int i) const { return topo.elems.data() + (i * 3); }
+
 /* --------------------------------------------------------------------------- */
-bool Mesh::isActiveNode(int i) const { return !topo.stenc[i].empty(); }
+bool Mesh::isActiveNode(int i) const { return not topo.stenc[i].empty(); }
+
 /* --------------------------------------------------------------------------- */
 bool Mesh::isActiveElem(int i) const { return topo.elems[i * 3] > -1; }
+
 /* --------------------------------------------------------------------------- */
 bool Mesh::isBoundary(int i) const { return (sync.tags[i] & mask::bound); }
+
 /* --------------------------------------------------------------------------- */
 bool Mesh::isCorner(int i) const { return (sync.tags[i] & mask::corner); }
+
 /* --------------------------------------------------------------------------- */
 int Mesh::getCapaNode() const { return static_cast<int>(capa.node); }
+
 /* --------------------------------------------------------------------------- */
 int Mesh::getCapaElem() const { return static_cast<int>(capa.elem); }
+
 /* --------------------------------------------------------------------------- */
 Patch Mesh::getVicinity(int id, int dist) const {
 
@@ -451,7 +448,7 @@ void Mesh::updateStencil(int i, int t) {
 void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
   int j = sync::fetchAndAdd(sync.deg + i, (int) t.size());
   if (topo.stenc[i].empty()) {
-    assert(topo.vicin[i].size() == 0);
+    assert(topo.vicin[i].empty());
     assert(topo.elems[i * 3] == -1);
   }
   //assert(stenc[i].size()>0);
@@ -694,15 +691,18 @@ void Mesh::fixTagged() {
       sync.fixes[i] = 0;
       k = 0;
       if (__builtin_expect(elem.size() < sync.deg[i], 0))
-        elem.resize(sync.deg[i]);
+        elem.resize((size_t) sync.deg[i]);
 
       for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
         const int* n = getElem(*t);
         if (__builtin_expect(i == n[0] or i == n[1] or i == n[2], 1))
           elem[k++] = *t;
       }
-      if (k >= elem.size())
-        std::printf("k: %d, elem.size: %lu\n", k, elem.size());
+      #ifdef DEBUG
+        if (k >= elem.size()) {
+          std::printf("k: %d, elem.size: %lu\n", k, elem.size());
+        }
+      #endif
       assert(k < elem.size());
       // remove duplicates and adjust count
       std::sort(elem.begin(), elem.begin() + k);
