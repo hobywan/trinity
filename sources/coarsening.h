@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-/* ------------------------------------*/
+/* --------------------------------------------------------------------------- */
 #include "mesh.h"
 #include "sync.h"
 #include "numeric.h"
@@ -47,20 +47,46 @@ private:
   void extractPrimalGraph();
   void processPoints();
 
+  // kernels
+  void identify(int id);
+  void collapse(int i, int j);
+
+  // stats
+  void initialize();
+  void saveStat(int level, int* stat, int* form);
+  void showStat(int level, int* form);
+  void recap(int* elap, int* stat, int* form, Stats* tot);
+
   //
-  Mesh* mesh;
-  Graph primal;
+  Mesh*   mesh;
+  Graph   primal;
   Partit* heuris;
 
-  // tasklists
-  int* target;
-  int* filter;
-  int* indep;
-  int* off;
-  char* fixes;
-  char* activ;
+  struct {
+    int* target;
+    int* filter;
+    int* indep;
+    int  depth;
+  } task;
 
-  // counters
+  struct {
+    int*  off;
+    char* fixes;
+    char* activ;
+  } sync;
+
+  struct {
+    int activ;
+    int tasks;
+  } nb;
+
+  struct {
+    Time start;
+    Time iter;
+    Time tic;
+  } time;
+
+  // unpackable fields
   int& cores;
   int& nb_nodes;
   int& nb_elems;
@@ -68,22 +94,6 @@ private:
   int& verbose;
   int& iter;
   int& rounds;
-  int depth;
-  int nb_activ;
-  int nb_tasks;
-
-  // kernels
-  void identify(int id);
-  void collapse(int i, int j);
-
-  // timers and stats
-  Time start;
-  Time round;
-  Time tic;
-  //
-  void init();
-  void saveStat(int level, int* stat, int* form);
-  void showStat(int level, int* form);
-  void recap(int* time, int* stat, int* form, Stats* tot);
 };
-}
+/* --------------------------------------------------------------------------- */
+} // namespace trinity
