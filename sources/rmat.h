@@ -21,7 +21,6 @@
 /* --------------------------------------------------------------------------- */
 #include "header.h"
 #include "timer.h"
-#include "tools.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */
@@ -43,19 +42,26 @@ public:
   void reset();
   void load(std::string path);
   void info(std::string name);
+
+private:
+
+  // utils
   void saveChrono();
   int elapsed();
 
-private:
   Graph graph;
-  int   nb_nodes;
-  int   nb_edges;
-  int   nb_rounds;
-  int   nb_error;
-  int   nb_color;
-  int   deg_max;
-  int   deg_avg;
-  float ratio;
-  Time  start;
+
+  struct {
+    int nodes;
+    int edges;
+    int rounds;
+    int error;
+    int color;
+  } nb;
+
+  struct { int max, avg; } deg;
+  struct { double ratio; } stat;
+  struct { Time start; }   time;
 };
+/* --------------------------------------------------------------------------- */
 } // namespace trinity

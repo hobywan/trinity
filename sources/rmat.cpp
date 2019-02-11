@@ -22,18 +22,21 @@
 namespace trinity {
 /* --------------------------------------------------------------------------- */
 RMAT::RMAT() { reset(); }
+
 /* --------------------------------------------------------------------------- */
 RMAT::~RMAT() { reset(); }
+
 /* --------------------------------------------------------------------------- */
 void RMAT::reset() {
-  start = timer::now();
-  nb_nodes = 0;
-  nb_edges = 0;
-  nb_rounds = 0;
-  nb_error = 0;
-  deg_max = std::numeric_limits<int>::max();
-  deg_avg = 0;
-  ratio = 0.;
+  time.start = timer::now();
+  nb.nodes   = 0;
+  nb.edges   = 0;
+  nb.rounds  = 0;
+  nb.error   = 0;
+  deg.max    = std::numeric_limits<int>::max();
+  deg.avg    = 0;
+  stat.ratio = 0.;
+  // reset graph
   graph.clear();
 }
 
@@ -51,21 +54,21 @@ void RMAT::load(const std::string path) {
   saveChrono();
 
   // init counters
-  file >> nb_nodes >> nb_edges;
-  assert(nb_nodes);
-  assert(nb_edges);
-  graph.resize(nb_nodes);
+  file >> nb.nodes >> nb.edges;
+  assert(nb.nodes);
+  assert(nb.edges);
+  graph.resize((size_t) nb.nodes);
 
   int k, u, v;
 
   // first-touch
 #pragma omp parallel for schedule(static)
-  for (int i = 0; i < nb_nodes; ++i) {
+  for (int i = 0; i < nb.nodes; ++i) {
     graph[i].reserve(200);
     graph[i].push_back(i);
   }
 
-  while (k < nb_edges and file >> u >> v) {
+  while (k < nb.edges and file >> u >> v) {
     graph[u].push_back(v);
     graph[v].push_back(u);
     ++k;
@@ -78,8 +81,9 @@ void RMAT::load(const std::string path) {
   {
     int deg_max_local = std::numeric_limits<int>::max();
     int deg_sum_local = 0;
+
 #pragma omp for schedule(static)
-    for (int i = 0; i < nb_nodes; ++i) {
+    for (int i = 0; i < nb.nodes; ++i) {
       graph[i].shrink_to_fit();
       int deg = (int) graph[i].size() - 1;
       deg_max_local = std::max(deg, deg_max_local);
@@ -88,17 +92,17 @@ void RMAT::load(const std::string path) {
 
 #pragma omp critical
     {
-      if (deg_max < deg_max_local) {
-        deg_max = deg_max_local;
+      if (deg.max < deg_max_local) {
+        deg.max = deg_max_local;
       }
-      deg_avg += deg_sum_local;
+      deg.avg += deg_sum_local;
     }
   }  // implicit barrier here
 
-  deg_avg /= nb_nodes;
+  deg.avg /= nb.nodes;
 
-  std::printf("|V|=%d, |E|=%d, deg_max=%d, deg_avg=%d \e[32m(%d ms)\e[0m\n",
-              nb_nodes, nb_edges, deg_max, deg_avg, elapsed());
+  std::printf("|V|=%d, |E|=%d, deg.max=%d, deg.avg=%d \e[32m(%d ms)\e[0m\n",
+              nb.nodes, nb.edges, deg.max, deg.avg, elapsed());
 
 }
 
@@ -106,16 +110,16 @@ void RMAT::load(const std::string path) {
 void RMAT::info(const std::string testcase) {
 
   std::printf("|V|=%d, |E|=%d, rounds=%d, errors=%d, colors=%d, "
-              "deg_max=%d, deg_avg=%d, ratio=%.3f, %s "
+              "deg.max=%d, deg.avg=%d, ratio=%.3f, %s "
               "[%2d threads] \e[32m(%d ms)\e[0m\n",
-              nb_nodes,
-              nb_edges,
-              nb_rounds,
-              nb_error,
-              nb_color,
-              deg_max,
-              deg_avg,
-              ratio,
+              nb.nodes,
+              nb.edges,
+              nb.rounds,
+              nb.error,
+              nb.color,
+              deg.max,
+              deg.avg,
+              stat.ratio,
               testcase.data(),
               omp_get_num_threads(),
               elapsed());
@@ -123,11 +127,12 @@ void RMAT::info(const std::string testcase) {
 
 /* --------------------------------------------------------------------------- */
 void RMAT::saveChrono() {
-  start = timer::now();
+  time.start = timer::now();
 }
 
 /* --------------------------------------------------------------------------- */
 int RMAT::elapsed() {
-  return timer::elapsed_ms(start);
+  return timer::elapsed_ms(time.start);
 }
+/* --------------------------------------------------------------------------- */
 } // namespace trinity
