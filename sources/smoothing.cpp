@@ -199,10 +199,10 @@ void Smooth::movePoints() {
 #pragma omp single
   nb.tasks = nb.commit = 0;
 
-  for (int i = 0; i < heuris->parts; ++i) {
+  for (int i = 0; i < heuris->nb.parts; ++i) {
 #pragma omp for schedule(guided)
-    for (int j = 0; j < heuris->card[i]; ++j) {
-      const int& k = heuris->subset[i][j];
+    for (int j = 0; j < heuris->task.cardin[i]; ++j) {
+      const int& k = heuris->task.subset[i][j];
       if (sync.activ[k]) {
         success += moveSmartLaplacian(k);
         total++;

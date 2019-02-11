@@ -30,16 +30,16 @@ Coarse::Coarse(Mesh* input, Partit* algo)
     iter    (mesh->param.iter),
     rounds  (mesh->param.rounds),
     heuris  (algo),
-    nb_indep(algo->card[0])
+    nb_indep(algo->task.cardin[0])
 {
   sync.off   = mesh->sync.off;
   sync.activ = mesh->sync.activ;
   sync.fixes = mesh->sync.fixes;
 
   task.depth  = 20;
-  task.indep  = heuris->subset[0];
-  task.target = heuris->subset[3];
-  task.filter = heuris->subset[4];
+  task.indep  = heuris->task.subset[0];
+  task.target = heuris->task.subset[3];
+  task.filter = heuris->task.subset[4];
   primal.resize(input->capa.node);
 }
 

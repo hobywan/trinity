@@ -177,17 +177,21 @@ int Swap::swap(int k1, int k2, int index) {
   sync::compareAndSwap(sync.fixes + f1[1], 0, 1);
   sync::compareAndSwap(sync.fixes + f1[2], 0, 1);
   sync::compareAndSwap(sync.fixes + f2[2], 0, 1);
+
   // update cached qualit
   geom.qualit[k1] = q[0];
   geom.qualit[k2] = q[1];
 
   // propagate
-  for (const int& t : dual[index])
+  for (const int& t : dual[index]) {
     sync::compareAndSwap(sync.activ + t, 0, 1);
+  }
 
-  if (task.match[k2] > -1)
-    for (const int& t : dual[task.match[k2]])
+  if (task.match[k2] > -1) {
+    for (const int& t : dual[task.match[k2]]) {
       sync::compareAndSwap(sync.activ + t, 0, 1);
+    }
+  }
 
   return 2;
 }
