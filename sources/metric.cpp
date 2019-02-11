@@ -54,16 +54,13 @@ Metrics::~Metrics() {}
 
 /* --------------------------------------------------------------------------- */
 void Metrics::computeTensorField(Stats* tot) {
-
 #pragma omp parallel
   {
     initialize();
-
     recoverHessianField();
     normalizeLocally();
     computeComplexity();
     normalizeGlobally();
-
     recap(tot);
   }
 }
@@ -265,11 +262,11 @@ void Metrics::initialize() {
   }
 
   int rank = omp_get_thread_num();
-  int off = rank * param.chunk;
+  int off  = rank * param.chunk;
 
   // first-touch
   std::memset(field.gradient + (off * 2), 0, (param.chunk * 2) * sizeof(double));
-  std::memset( field.tensor + (off * 3), 0, (param.chunk * 3) * sizeof(double));
+  std::memset(field.tensor   + (off * 3), 0, (param.chunk * 3) * sizeof(double));
 }
 
 /* --------------------------------------------------------------------------- */
