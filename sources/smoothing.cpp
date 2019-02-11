@@ -170,7 +170,7 @@ void Smooth::preProcess() {
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
     if (not mesh->topo.stenc[i].empty()) {
-      sync.activ[i] = static_cast<char>(__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
+      sync.activ[i] = (char) (__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
     }
 
   mesh->extractPrimalGraph();
@@ -193,8 +193,8 @@ void Smooth::cacheQuality() {
 /* --------------------------------------------------------------------------- */
 void Smooth::movePoints() {
 
-  int succ = 0;
-  int tota = 0;
+  int success = 0;
+  int total = 0;
 
 #pragma omp single
   nb.tasks = nb.commit = 0;
@@ -204,13 +204,13 @@ void Smooth::movePoints() {
     for (int j = 0; j < heuris->card[i]; ++j) {
       const int& k = heuris->subset[i][j];
       if (sync.activ[k]) {
-        succ += moveSmartLaplacian(k);
-        tota++;
+        success += moveSmartLaplacian(k);
+        total++;
       }
     }
   }
-  sync::fetchAndAdd(&nb.commit, succ);
-  sync::fetchAndAdd(&nb.tasks, tota);
+  sync::fetchAndAdd(&nb.commit, success);
+  sync::fetchAndAdd(&nb.tasks, total);
 #pragma omp barrier
 }
 
