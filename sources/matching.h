@@ -44,8 +44,8 @@ public:
 
 
   void initialize(size_t capa, int* mapping, int* index);
-  int* computeKarpSipser(const Graph& graph, int nb);
-  int* computePothenFan(const Graph& graph, int nb);
+  int* computeGreedyMatching(const Graph& graph, int nb);
+  int* localSearchBipartite(const Graph& graph, int nb);
   int  getRatio(const Graph& graph, int nb, int* count);
 
 private:

@@ -78,7 +78,7 @@ void Swap::run(Stats* tot) {
       extractDualGraph();
       timer::save(time.tic, elap + 2);
 
-      heuris.computeKarpSipser(dual, nb.tasks);
+      heuris.computeGreedyMatching(dual, nb.tasks);
       heuris.getRatio(dual, nb.tasks, &nb.count);
       timer::save(time.tic, elap + 3);
 

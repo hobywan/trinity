@@ -80,7 +80,7 @@ void Match::reset() {
 }
 
 /* --------------------------------------------------------------------------- */
-int* Match::computeKarpSipser(const Graph& graph, int nb) {
+int* Match::computeGreedyMatching(const Graph& graph, int nb) {
 
   reset();
 
@@ -165,12 +165,12 @@ int Match::getRatio(const Graph& graph, int nb, int* count) {
 }
 
 /* --------------------------------------------------------------------------- */
-int* Match::computePothenFan(const Graph& graph, int nb) {
+int* Match::localSearchBipartite(const Graph& graph, int nb) {
 
   auto tic = timer::now();
 
   // retrieve a greedy matching using karp-sipser heuristic
-  computeKarpSipser(graph, nb);
+  computeGreedyMatching(graph, nb);
 
   //
   int* look_ahead = task.lists[0]; // reuse array
