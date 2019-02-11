@@ -103,3 +103,4 @@ int kernelPrefixSum(int* begin, int* end, size_t grain_size) {
 } // namespace trinity::sync::anonymous
 /* --------------------------------------------------------------------------- */
 }} // namespace trinity::sync
+
