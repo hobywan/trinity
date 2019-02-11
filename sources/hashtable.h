@@ -35,7 +35,7 @@ public:
   Hashtable& operator=(Hashtable other) = delete;
   Hashtable(Hashtable&& other) noexcept = delete;
   Hashtable& operator=(Hashtable&& other) noexcept = delete;
-  Hashtable(size_t size, size_t bucket, size_t stride);
+  Hashtable(size_t table_size, size_t bucket_size, size_t access_stride);
   ~Hashtable();
 
   int generateKey(int i, int j, int scale, int nb_cores) const;

@@ -22,17 +22,21 @@
 namespace trinity {
 /* --------------------------------------------------------------------------- */
 template<typename type_t>
-Hashtable<type_t>::Hashtable(size_t size, size_t bucket, size_t stride) {
+Hashtable<type_t>::Hashtable(size_t table_size, size_t bucket_size, size_t access_stride) {
 
-  this->size     = size;
-  this->capacity = bucket;
-  this->stride   = stride;
-  this->offset   = new int[size];
-  this->bucket   = new type_t* [size];
+  assert(table_size);
+  assert(bucket_size);
+  assert(access_stride);
+
+  size     = table_size;
+  capacity = bucket_size;
+  stride   = access_stride;
+  offset   = new int[table_size];
+  bucket   = new type_t* [table_size];
 
 #pragma omp parallel for
-  for (int i = 0; i < size; ++i){
-    this->bucket[i] = new type_t[capacity];
+  for (int i = 0; i < table_size; ++i){
+    bucket[i] = new type_t[capacity];
   }
 }
 
