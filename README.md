@@ -35,7 +35,7 @@ Just compile it afterwards.
 host:~$ git clone https://github.com/hobywan/trinity.git .  # SSH: git@github.com:hobywan/trinity.git
 host:~$ mkdir build                                          
 host:~$ cd build
-host:~$ cmake -DCMAKE_BUILD_TYPE=TYPE ..                    # choose between [BENCHMARK|DEBUG|RELEASE]
+host:~$ cmake -DCMAKE_BUILD_TYPE=TYPE ..                    # choose between [BENCHMARK|DEBUG]
 host:~$ make -j4                                            # use 4 jobs for compilation
 ```
 >💡 **trinity** supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine (cores, caches, [numa](https://en.wikipedia.org/wiki/Non-uniform_memory_access)).  
@@ -85,8 +85,8 @@ For that, it uses five kernels:
 A basic usage would be:
 
 ``` c++  
-  mesh.loadFrom(input, solut);                  // load mesh and solution field in memory
-  metric.computeTensorField();                  // define a metric tensor for each point
+  mesh.load(input, solut);                      // load mesh and solution field in memory
+  metric.run();                                 // compute a metric tensor for each point
 
   for (int i = 0; i < nb_rounds; ++i) {
     refine.run();                               // split long edges in metric space
@@ -94,7 +94,7 @@ A basic usage would be:
       swap.run();                               // flip edges of bad cells in metric space
     smooth.run();                               // relocate vertices of bad cells in metric space
   }
-  mesh.storeTo(result);                         // save resulting mesh on disk
+  mesh.store(result);                           // save resulting mesh on disk
 ```
 >💡 To enable profiling, you can pass a [`Stats`](sources/header.h) instance pointer as argument of each `run`.  
 
