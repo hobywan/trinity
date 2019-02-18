@@ -74,7 +74,7 @@ void Coarse::run(Stats* tot) {
       if (!nb.tasks)
         break;
 
-      extractPrimalGraph();
+      extractSubGraph();
       timer::save(time.tic, elap + 2);
 
       heuris->extractIndepSet(primal, nb.tasks);
@@ -345,7 +345,7 @@ void Coarse::filterPoints(std::vector<int>* heap) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Coarse::extractPrimalGraph() {
+void Coarse::extractSubGraph() {
 #pragma omp barrier
 
 #pragma omp for

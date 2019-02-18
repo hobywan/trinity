@@ -1,5 +1,5 @@
 /*
- *                          'coarsening.h'
+ *                        'coarsening.h'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
  *               Copyright (c) 2016 Hoby Rakotoarivelo.
@@ -44,7 +44,7 @@ private:
   // steps
   void preProcess();
   void filterPoints(std::vector<int>* heap);
-  void extractPrimalGraph();
+  void extractSubGraph();
   void processPoints();
 
   // kernels
