@@ -33,16 +33,16 @@ Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_m
     rounds  (mesh->param.rounds)
 {
   param.chunk      = mesh->nb.nodes / mesh->nb.cores;
-  param.target     = (int) std::floor(mesh->nb.cores * target_factor);
+  param.target     = (int) std::floor(mesh->nb.nodes * target_factor);
   param.norm       = Lp_norm;
   param.h_min      = h_min;
   param.h_max      = h_max;
-  param.scale.fact = 0.;
-  param.scale.exp  = Lp_norm ? -1. / (2 * Lp_norm + 2) : 1.;
-  param.eigen.min = 1. / (h_min * h_min);
-  param.eigen.max = 1. / (h_max * h_max);
+  param.scale.fact = 0;
+  param.scale.exp  = Lp_norm ? -1. / (2 * Lp_norm + 2) : 0.5;
+  param.eigen.min  = 1 / std::pow(h_min, 2);
+  param.eigen.max  = 1 / std::pow(h_max, 2);
 
-  field.complexity = 0.;
+  field.complexity = 0;
   field.solut      = mesh->geom.solut.data();
   field.tensor     = mesh->geom.tensor.data();
   field.stencil    = new Patch[nb_nodes];
@@ -125,7 +125,7 @@ void Metrics::normalizeLocally() {
 
     // compute local scale factor w.r.t to L^p, and normalize eigenvalues
     det = val[0] * val[1];
-    scale_loc = (param.norm > 0 ? pow(det, param.scale.exp) : 1.);
+    scale_loc = std::pow(det, param.scale.exp);
     val[0] *= scale_loc;
     val[1] *= scale_loc;
 
