@@ -311,17 +311,15 @@ int main(int argc, char* argv[]) {
 
   mesh.loadFrom(_input, _solut);
   metric.run(stat);
-  metric.clear();
 
   for (int iter = 0; iter < _rounds; ++iter) {
     refine.run(stat + 1);
     coarse.run(stat + 2);
-    swap.run(stat + 3);
+      swap.run(stat + 3);
     smooth.run(stat + 4);
   }
 
   recap(stat);
   expor(stat);
-
   mesh.storeTo(_result);
 }

@@ -63,6 +63,7 @@ void Metrics::run(Stats* total) {
     normalizeGlobally();
     recap(total);
   }
+  clear();
 }
 
 /* --------------------------------------------------------------------------- */

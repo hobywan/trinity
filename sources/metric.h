@@ -39,7 +39,6 @@ public:
   ~Metrics();
 
   void run(Stats* total = nullptr);
-  void clear();
 
 private:
 
@@ -56,6 +55,7 @@ private:
   // stats
   void initialize();
   void recap(Stats* total);
+  void clear();
 
   Mesh* mesh;
 
