@@ -52,9 +52,9 @@ Usage: trinity [options]
 Options:
   -h, --help            show this help message and exit
   -m CHOICE             select mode [release|benchmark|debug]
-  -a CHOICE             cpu architecture [hsw|skl|knl]
-  -i STRING             initial .mesh file
-  -o STRING             result  .mesh file
+  -a CHOICE             cpu architecture [skl|knl|kbl]
+  -i STRING             initial mesh file
+  -o STRING             result mesh file
   -s STRING             solution field .bb file
   -c INT                number of threads
   -b INT                vertex bucket capacity [64-256]
@@ -63,7 +63,7 @@ Options:
   -r INT                remeshing rounds [1-5]
   -d INT                max refinement/smoothing depth [1-3]
   -v INT                verbosity level [0-2]
-  -P CHOICE             enable profiling [cache|cycles|tlb|branch]
+  -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
 All output files are stored in [data](./data) subfolder by default.  
 For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.  
