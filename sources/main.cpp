@@ -84,10 +84,10 @@ void parse(int argc, char* argv[]) {
   targ_.set_default(1.0).type("float");
   norm_.set_default(2).type("int");
   depth.set_default(3).type("int");
-  round.set_default(2).type("int");
+  round.set_default(8).type("int");
   verb_.set_default(1).type("int");
-  input.set_default("GRID5");
-  solut.set_default("solut/shock5");
+  input.set_default("GRID4");
+  solut.set_default("solut/shock4");
   rsult.set_default("tests/adap");
   mode_.set_default(mode[0]).choices(mode, mode + 3);
   papi_.set_default(papi[0]).choices(papi, papi + 4);
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
   for (int iter = 0; iter < _rounds; ++iter) {
     refine.run(stat + 1);
     coarse.run(stat + 2);
-      swap.run(stat + 3);
+    swap.run(stat + 3);
     smooth.run(stat + 4);
   }
 
