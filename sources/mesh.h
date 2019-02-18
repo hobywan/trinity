@@ -62,8 +62,8 @@ public:
   bool verifyTopology() const;
 
   // I/O
-  void loadFrom(const std::string& path, const std::string& solu);
-  void storeTo(const std::string& path) const;
+  void load(const std::string& path, const std::string& solu);
+  void store(const std::string& path) const;
   void storePrimalGraph(const std::string& path) const;
 
   // topological queries

@@ -49,7 +49,7 @@ int io::find(const std::string key, std::ifstream& file) {
 
 
 /* --------------------------------------------------------------------------- */
-void Mesh::loadFrom(const std::string& path, const std::string& solu) {
+void Mesh::load(const std::string& path, const std::string& solu) {
 
   if (param.verb) {
     std::printf("Parsing mesh/solu ... ");
@@ -138,7 +138,7 @@ void Mesh::loadFrom(const std::string& path, const std::string& solu) {
     if (isBoundary(i))
       nb_bounds++;
 
-  int form[] = {tools::format(nb.elems), tools::format(capa.elem)};
+  const int form[] = {tools::format(nb.elems), tools::format((int) capa.elem)};
 
   if (param.verb == 1)
     std::printf("\n");
@@ -153,7 +153,7 @@ void Mesh::loadFrom(const std::string& path, const std::string& solu) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Mesh::storeTo(const std::string& path) const {
+void Mesh::store(const std::string& path) const {
 
   if (param.verb) {
     std::printf("Exporting ... ");
@@ -195,14 +195,11 @@ void Mesh::storeTo(const std::string& path) const {
   std::memset(index, -1, nb.nodes * sizeof(int));
 
   std::vector<int> required;
-  required.reserve(nb.nodes / 4);
+  required.reserve((size_t) nb.nodes / 4);
 
   for (int i = 0; i < nb.nodes; ++i) {
     if (__builtin_expect(isActiveNode(i), 1)) {
       std::sprintf(buffer, "%.8f\t%.8f\t0\n", geom.points[i * 2], geom.points[i * 2 + 1]);
-      //const double& x = points[i*2];
-      //const double& y = points[i*2+1];
-      //std::sprintf(buffer, "%.8f\t%.8f\t%.8f\t0\n", x, y, std::exp((-10.)*(x*x + y*y)));
       file << buffer;
       index[i] = ++k;
       if (__builtin_expect(isBoundary(i), 0))

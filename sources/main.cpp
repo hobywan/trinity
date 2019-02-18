@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
   trinity::Smooth  smooth(&mesh, &heuris, _depth);
   trinity::Stats   stat[5];
 
-  mesh.loadFrom(_input, _solut);
+  mesh.load(_input, _solut);
   metric.run(stat);
 
   for (int iter = 0; iter < _rounds; ++iter) {
@@ -321,5 +321,5 @@ int main(int argc, char* argv[]) {
 
   recap(stat);
   expor(stat);
-  mesh.storeTo(_result);
+  mesh.store(_result);
 }
