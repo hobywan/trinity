@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
-set (CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 14)
 
 project(trinity)
-set(TRINITY_VERSION_MAJOR 0)
-set(TRINITY_VERSION_MINOR 3)
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 3)
 
 enable_language(CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/modules)
@@ -18,54 +18,54 @@ set(PERF_FLAGS "-O3 -funroll-loops -g -D_REENTRANT")
 # Mandatory C++11 support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=gnu++14" COMPILER_SUPPORTS_CXX14)
-if(COMPILER_SUPPORTS_CXX14)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
-else()
-  message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support.
-  Please use a different C++ compiler.")
-endif()
+if (COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+else ()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support.
+                        Please use a different C++ compiler.")
+endif ()
 
 # Build type dependent flags
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-  set(CMAKE_CXX_FLAGS_DEBUG "${OpenMP_CXX_FLAGS} ${WARN_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
-  set(CMAKE_VERBOSE_MAKEFILE ON)
-else()
-  set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${PERF_FLAGS} ${CMAKE_CXX_FLAGS}")
-  if(CMAKE_BUILD_TYPE MATCHES BENCHMARK)
-    add_definitions(-DBENCHMARK)
-  endif()
-endif()
+if (CMAKE_BUILD_TYPE MATCHES DEBUG)
+    set(CMAKE_CXX_FLAGS_DEBUG "${OpenMP_CXX_FLAGS} ${WARN_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+else ()
+    set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${PERF_FLAGS} ${CMAKE_CXX_FLAGS}")
+    if (CMAKE_BUILD_TYPE MATCHES BENCHMARK)
+        add_definitions(-DBENCHMARK)
+    endif ()
+endif ()
 
 # OS dependent flags
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  add_definitions( -DDARWIN )
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  add_definitions( -DLINUX )
-else()
-  message(FATAL_ERROR "Windows not supported.")
-endif()
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_definitions(-DDARWIN)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_definitions(-DLINUX)
+else ()
+    message(FATAL_ERROR "Windows not supported.")
+endif ()
 
 
 set(TRINITY_LIBRARIES)
 
 # Dependencies
 find_package(PAPI)
-if(PAPI_FOUND)
-  include_directories(${PAPI_INCLUDE_DIR})
-  set(TRINITY_LIBRARIES ${PAPI_LIBRARIES} ${TRINITY_LIBRARIES})
-endif()
+if (PAPI_FOUND)
+    include_directories(${PAPI_INCLUDE_DIR})
+    set(TRINITY_LIBRARIES ${PAPI_LIBRARIES} ${TRINITY_LIBRARIES})
+endif ()
 
 find_package(Hwloc)
-if(HWLOC_FOUND)
-  include_directories(${HWLOC_INCLUDE_DIR})
-  set(TRINITY_LIBRARIES ${HWLOC_LIBRARIES} ${TRINITY_LIBRARIES})
-endif()
+if (HWLOC_FOUND)
+    include_directories(${HWLOC_INCLUDE_DIR})
+    set(TRINITY_LIBRARIES ${HWLOC_LIBRARIES} ${TRINITY_LIBRARIES})
+endif ()
 
 # add definitions
 OPTION(DEFER_FIXES "Use deferred updates mechanism" OFF)
 if (DEFER_FIXES)
-  add_definitions(-DDEFERRED_UPDATES)
-endif()
+    add_definitions(-DDEFERRED_UPDATES)
+endif ()
 
 # Build files
 #file(
@@ -80,8 +80,7 @@ include_directories(${CMAKE_SOURCE_DIR}/sources)
 #link_directories   (${CMAKE_SOURCE_DIR}/libraries)
 
 # create binary and link libs
-set(BINARY "trinity")
-add_executable(trinity
+set(TRINITY_SOURCES
         sources/coarsening.cpp
         sources/coarsening.h
         sources/hashtable.h
@@ -120,5 +119,5 @@ add_executable(trinity
         sources/tools.cpp
         sources/tools.h)
 
+add_executable(trinity ${TRINITY_SOURCES})
 target_link_libraries(trinity ${TRINITY_LIBRARIES})
-
