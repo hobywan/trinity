@@ -45,9 +45,6 @@ else()
   message(FATAL_ERROR "Windows not supported.")
 endif()
 
-#
-include_directories(${CMAKE_SOURCE_DIR}/sources)
-#link_directories   (${CMAKE_SOURCE_DIR}/libraries)
 
 set(TRINITY_LIBRARIES)
 
@@ -65,28 +62,63 @@ if(HWLOC_FOUND)
 endif()
 
 # add definitions
-#add_definitions(-DDEFERRED_UPDATES)
+OPTION(DEFER_FIXES "Use deferred updates mechanism" OFF)
+if (DEFER_FIXES)
+  add_definitions(-DDEFERRED_UPDATES)
+endif()
 
 # Build files
-file(
-  GLOB_RECURSE
-  source_files
-  sources/*.h*
-  sources/*.c*
-)
+#file(
+#  GLOB_RECURSE
+#  source_files
+#  sources/*.h*
+#  sources/*.c*
+#)
 
-# Binary file
-#set(BINARY)
-#if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-#  set(BINARY "trinity_intel")
-#elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-#  set(BINARY "trinity_llvm")
-#else()
-#  set(BINARY "trinity_gnu")
-#endif()
+# set header and libs directories
+include_directories(${CMAKE_SOURCE_DIR}/sources)
+#link_directories   (${CMAKE_SOURCE_DIR}/libraries)
 
 # create binary and link libs
 set(BINARY "trinity")
-add_executable(${BINARY} ${source_files})
-target_link_libraries(${BINARY} ${TRINITY_LIBRARIES})
+add_executable(trinity
+        sources/coarsening.cpp
+        sources/coarsening.h
+        sources/hashtable.h
+        sources/hashtable.impl.h
+        sources/header.h
+        sources/hessian.cpp
+        sources/hessian.h
+        sources/hwcount.cpp
+        sources/hwcount.h
+        sources/io.cpp
+        sources/io.h
+        sources/main.cpp
+        sources/matching.cpp
+        sources/matching.h
+        sources/mesh.cpp
+        sources/mesh.h
+        sources/metric.cpp
+        sources/metric.h
+        sources/numeric.cpp
+        sources/numeric.h
+        sources/optparse.h
+        sources/partition.cpp
+        sources/partition.h
+        sources/random_engine.h
+        sources/refinement.cpp
+        sources/refinement.h
+        sources/rmat.cpp
+        sources/rmat.h
+        sources/smoothing.cpp
+        sources/smoothing.h
+        sources/swapping.cpp
+        sources/swapping.h
+        sources/sync.cpp
+        sources/sync.h
+        sources/timer.h
+        sources/tools.cpp
+        sources/tools.h)
+
+target_link_libraries(trinity ${TRINITY_LIBRARIES})
 
