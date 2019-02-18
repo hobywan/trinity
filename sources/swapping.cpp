@@ -51,7 +51,7 @@ Swap::~Swap() {
 }
 
 /* --------------------------------------------------------------------------- */
-void Swap::run(Stats* tot) {
+void Swap::run(Stats* total) {
 
   initialize();
 
@@ -93,7 +93,7 @@ void Swap::run(Stats* tot) {
 
     } while (nb.commit);
 
-    recap(elap, stat, form, tot);
+    recap(elap, stat, form, total);
     mesh->verifyTopology();
   }
 }
@@ -362,28 +362,29 @@ void Swap::showStat(int level, int* form) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Swap::recap(int* elap, int* stat, int* form, Stats* tot) {
+void Swap::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
 
-    tot->eval += stat[0];
-    tot->task += stat[1];
-    tot->elap += end;
-
-    // manually unrolled
-    tot->step[0] += elap[0] + elap[1];  // qualit + filterElems
-    tot->step[1] += elap[2];          // dual
-    tot->step[2] += elap[3];          // match
-    tot->step[3] += elap[4];          // processFlips
-    tot->step[4] += elap[5];          // repair
+    if (total not_eq nullptr) {
+      total->eval += stat[0];
+      total->task += stat[1];
+      total->elap += end;
+      // manually unrolled
+      total->step[0] += elap[0] + elap[1];  // qualit + filtering
+      total->step[1] += elap[2];            // dual
+      total->step[2] += elap[3];            // match
+      total->step[3] += elap[4];            // kernel
+      total->step[4] += elap[5];            // repair
+    }
 
     int span = 0;
     for (int i = 0; i < 6; ++i)
       span = std::max(span, elap[i]);
     *form = tools::format(span);
 
-    if (!verbose)
+    if (not verbose)
       std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
 
     else if (verbose == 1) {

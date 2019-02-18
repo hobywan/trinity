@@ -39,7 +39,7 @@ public:
   Refine(Mesh* input, int level);
   ~Refine();
 
-  void run(Stats* tot);
+  void run(Stats* total = nullptr);
 
 private:
 
@@ -54,7 +54,7 @@ private:
   void initialize();
   void saveStat(int level, int* stat, int* form);
   void showStat(int level, int* form);
-  void recap(int* elap, int* stat, int* form, Stats* tot);
+  void recap(int* elap, int* stat, int* form, Stats* total);
 
   Mesh* mesh;                 // input mesh
   Hashtable<int> steiner;     // mapping: vi -> (vj,s)

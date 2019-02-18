@@ -53,7 +53,7 @@ Refine::~Refine() {
 }
 
 /* --------------------------------------------------------------------------- */
-void Refine::run(Stats* tot) {
+void Refine::run(Stats* total) {
 
   initialize();
 
@@ -98,7 +98,7 @@ void Refine::run(Stats* tot) {
     timer::save(time.tic, elap + 4);
 #endif
 
-    recap(elap, stat, form, tot);
+    recap(elap, stat, form, total);
     mesh->verifyTopology();
   }
 }
@@ -415,20 +415,22 @@ void Refine::showStat(int level, int* form) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Refine::recap(int* elap, int* stat, int* form, Stats* tot) {
+void Refine::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
     int span = 0;
 
-    tot->eval += stat[0];
-    tot->task += stat[1];
-    tot->elap += end;
+    if (total not_eq nullptr) {
+      total->eval += stat[0];
+      total->task += stat[1];
+      total->elap += end;
 
-    tot->step[0] += elap[0] + elap[1];  // filterElems
-    tot->step[1] += elap[2];          // steiner
-    tot->step[2] += elap[3];          // processFlips
-    tot->step[3] += elap[4];          // repair
+      total->step[0] += elap[0] + elap[1];  // filterElems
+      total->step[1] += elap[2];          // steiner
+      total->step[2] += elap[3];          // processFlips
+      total->step[3] += elap[4];          // repair
+    }
 
     for (int i = 0; i < 5; ++i)
       span = std::max(span, elap[i]);

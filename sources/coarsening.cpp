@@ -47,7 +47,7 @@ Coarse::Coarse(Mesh* input, Partit* algo)
 Coarse::~Coarse() {}
 
 /* --------------------------------------------------------------------------- */
-void Coarse::run(Stats* tot) {
+void Coarse::run(Stats* total) {
 
   initialize();
 
@@ -91,7 +91,7 @@ void Coarse::run(Stats* tot) {
 
     } while (nb_indep);
 
-    recap(elap, stat, form, tot);
+    recap(elap, stat, form, total);
     mesh->verifyTopology();
   }
 }
@@ -414,23 +414,24 @@ void Coarse::showStat(int level, int* form) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Coarse::recap(int* elap, int* stat, int* form, Stats* tot) {
+void Coarse::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
     int span = 0;
 
-    // reduction
-    tot->eval += stat[1];
-    tot->task += stat[2];
-    tot->elap += end;
+    if (total not_eq nullptr) {
+      // reduction
+      total->eval += stat[1];
+      total->task += stat[2];
+      total->elap += end;
 
-    tot->step[0] += elap[1];          // filterElems
-    tot->step[1] += elap[0] + elap[2];  // vicin + primal
-    tot->step[2] += elap[3];          // indep
-    tot->step[3] += elap[4];          // processFlips
-    tot->step[4] += elap[5];          // repair
-
+      total->step[0] += elap[1];            // filtering
+      total->step[1] += elap[0] + elap[2];  // vicin + primal
+      total->step[2] += elap[3];            // indep
+      total->step[3] += elap[4];            // kernel
+      total->step[4] += elap[5];            // repair
+    }
 
     for (int i = 0; i < 6; ++i)
       span = std::max(span, elap[i]);

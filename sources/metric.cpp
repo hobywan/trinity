@@ -53,7 +53,7 @@ Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_m
 Metrics::~Metrics() {}
 
 /* --------------------------------------------------------------------------- */
-void Metrics::run(Stats* tot) {
+void Metrics::run(Stats* total) {
 #pragma omp parallel
   {
     initialize();
@@ -61,7 +61,7 @@ void Metrics::run(Stats* tot) {
     normalizeLocally();
     computeComplexity();
     normalizeGlobally();
-    recap(tot);
+    recap(total);
   }
 }
 
@@ -270,16 +270,18 @@ void Metrics::initialize() {
 }
 
 /* --------------------------------------------------------------------------- */
-void Metrics::recap(Stats* tot) {
+void Metrics::recap(Stats* total) {
 #pragma omp master
   {
     int end = timer::elapsed_ms(time.start);
 
-    tot->eval += nb_nodes;
-    tot->task += nb_nodes;
-    tot->elap += end;
+    if (total not_eq nullptr) {
+      total->eval += nb_nodes;
+      total->task += nb_nodes;
+      total->elap += end;
+    }
 
-    if (!verbose)
+    if (not verbose)
       std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
 
     else if (verbose == 1) {

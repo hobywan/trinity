@@ -40,7 +40,7 @@ Smooth::Smooth(Mesh* input, Partit* algo, int level)
 Smooth::~Smooth() {}
 
 /* --------------------------------------------------------------------------- */
-void Smooth::run(Stats* tot) {
+void Smooth::run(Stats* total) {
 
   initialize();
 
@@ -66,7 +66,7 @@ void Smooth::run(Stats* tot) {
     }
     timer::save(time.tic, elap + 3);
     // finalize
-    recap(elap, stat, form, tot);
+    recap(elap, stat, form, total);
   }
 }
 
@@ -257,16 +257,18 @@ void Smooth::showStat(int level, int* form) {
 }
 
 /* --------------------------------------------------------------------------- */
-void Smooth::recap(int* elap, int* stat, int* form, Stats* tot) {
+void Smooth::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
 
-    tot->eval += stat[0];
-    tot->task += stat[1];
-    tot->elap += end;
-    for (int i = 0; i < 4; ++i)
-      tot->step[i] += elap[i];
+    if (total not_eq nullptr) {
+      total->eval += stat[0];
+      total->task += stat[1];
+      total->elap += end;
+      for (int i = 0; i < 4; ++i)
+        total->step[i] += elap[i];
+    }
 
     *form = tools::format(elap[3]);
     if (not verbose) {

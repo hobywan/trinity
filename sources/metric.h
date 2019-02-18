@@ -38,7 +38,7 @@ public:
   Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_min, double h_max);
   ~Metrics();
 
-  void run(Stats* tot);
+  void run(Stats* total = nullptr);
   void clear();
 
 private:
@@ -55,7 +55,7 @@ private:
 
   // stats
   void initialize();
-  void recap(Stats* tot);
+  void recap(Stats* total);
 
   Mesh* mesh;
 
