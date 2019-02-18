@@ -85,9 +85,9 @@ void parse(int argc, char* argv[]) {
   depth.set_default(3).type("int");
   round.set_default(8).type("int");
   verb_.set_default(1).type("int");
-  input.set_default("data/GRID4.mesh");
-  solut.set_default("data/solut/shock4.bb");
-  rsult.set_default("data/tests/adap.mesh");
+  input.set_default("../data/GRID4.mesh");
+  solut.set_default("../data/solut/shock4.bb");
+  rsult.set_default("../data/tests/adap.mesh");
   mode_.set_default(mode[0]).choices(mode, mode + 3);
   papi_.set_default(papi[0]).choices(papi, papi + 4);
   arch_.set_default("kbl");
