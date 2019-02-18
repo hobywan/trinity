@@ -53,7 +53,7 @@ Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_m
 Metrics::~Metrics() {}
 
 /* --------------------------------------------------------------------------- */
-void Metrics::computeTensorField(Stats* tot) {
+void Metrics::run(Stats* tot) {
 #pragma omp parallel
   {
     initialize();
