@@ -19,7 +19,7 @@ if(HWLOC_INCLUDE_DIR)
     message(STATUS "Hwloc found at ${HWLOC_INCLUDE_DIR}")
   endif(HWLOC_LIBRARY)
 else()
-  message(FATAL_ERROR "Metis not found")
+  message(FATAL_ERROR "Hwloc not found")
 endif()
 
 mark_as_advanced( HWLOC_INCLUDE_DIR HWLOC_LIBRARY )
