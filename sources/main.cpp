@@ -61,23 +61,22 @@ void parse(int argc, char* argv[]) {
 
   optparse::Parser parser;
   std::string const mode[] = {"normal", "benchmark", "debug"};
-  std::string const arch[] = {"neh", "hsw", "knl", "mac"};
   std::string const papi[] = {"cache", "cycles", "tlb", "branch"};
 
   // add options
-  auto& mode_ = parser.add_option("-m").dest("mode").help("select mode [normal|benchmark|debug]");
-  auto& arch_ = parser.add_option("-a").dest("arch").help("cpu architecture [neh|hsw|knl]");
-  auto& input = parser.add_option("-i").dest("in").help("initial mesh file (eg. GRID5)");
-  auto& rsult = parser.add_option("-o").dest("out").help("result  mesh file (eg. RESUL)");
-  auto& solut = parser.add_option("-s").dest("solut").help("solut. field file (eg. SHOCK)");
-  auto& cores = parser.add_option("-c").dest("cores").help("number of threads (<= cores)");
-  auto& buck_ = parser.add_option("-b").dest("buck").help("vertex bucket capacity [64-256]");
-  auto& targ_ = parser.add_option("-t").dest("targ").help("metric field target coef [0.5-1.0]");
-  auto& norm_ = parser.add_option("-p").dest("norm").help("metric field L^p norm [0-4]");
+  auto& mode_ = parser.add_option("-m").dest("mode") .help("select mode [normal|benchmark|debug]");
+  auto& arch_ = parser.add_option("-a").dest("arch") .help("cpu architecture [skl|knl|kbl]");
+  auto& input = parser.add_option("-i").dest("in")   .help("initial mesh file");
+  auto& rsult = parser.add_option("-o").dest("out")  .help("result  mesh file");
+  auto& solut = parser.add_option("-s").dest("solut").help("solution field .bb file");
+  auto& cores = parser.add_option("-c").dest("cores").help("number of threads");
+  auto& buck_ = parser.add_option("-b").dest("buck") .help("vertex bucket capacity [64-256]");
+  auto& targ_ = parser.add_option("-t").dest("targ") .help("target resolution factor [0.5-1.0]");
+  auto& norm_ = parser.add_option("-p").dest("norm") .help("metric field L^p norm [0-4]");
   auto& round = parser.add_option("-r").dest("round").help("remeshing rounds [1-5]");
   auto& depth = parser.add_option("-d").dest("depth").help("max refinement/smoothing depth [1-3]");
-  auto& verb_ = parser.add_option("-v").dest("verb").help("verbosity level [0-2]");
-  auto& papi_ = parser.add_option("-P").dest("papi").help("profile [cache|cycles|tlb|branch]");
+  auto& verb_ = parser.add_option("-v").dest("verb") .help("verbosity level [0-2]");
+  auto& papi_ = parser.add_option("-P").dest("papi") .help("enable papi [cache|cycles|tlb|branch]");
 
   cores.set_default(4).type("int");
   buck_.set_default(64).type("int");
@@ -86,12 +85,12 @@ void parse(int argc, char* argv[]) {
   depth.set_default(3).type("int");
   round.set_default(8).type("int");
   verb_.set_default(1).type("int");
-  input.set_default("GRID4");
-  solut.set_default("solut/shock4");
-  rsult.set_default("tests/adap");
+  input.set_default("data/GRID4.mesh");
+  solut.set_default("data/solut/shock4.bb");
+  rsult.set_default("data/tests/adap.mesh");
   mode_.set_default(mode[0]).choices(mode, mode + 3);
   papi_.set_default(papi[0]).choices(papi, papi + 4);
-  arch_.set_default(arch[1]).choices(arch, arch + 4);
+  arch_.set_default("kbl");
 
   // read stdin
   const optparse::Values& param = parser.parse_args(argc, argv);
@@ -106,9 +105,9 @@ void parse(int argc, char* argv[]) {
   _target  = std::max(std::min(std::atof(param["targ"]), 1.), 0.5);   // 0.5*1e4
   _norm    = std::max(std::min(std::atoi(param["norm"]), 4), 0);
   _verb    = std::max(std::min(std::atoi(param["verb"]), 2), 0);
-  _input   = "data/" + std::string(param["in"]) + ".mesh";
-  _result  = "data/" + std::string(param["out"]) + ".mesh";
-  _solut   = "data/" + std::string(param["solut"]) + ".bb";
+  _input   = std::string(param["in"]);
+  _result  = std::string(param["out"]);
+  _solut   = std::string(param["solut"]);
   _h_min   = EPSILON;
   _h_max   = 0.4;
 
@@ -168,7 +167,7 @@ void showDesc() {
   char const symbol = static_cast<char>(1 == _threads ? '\0' : 's');
 
   std::printf("\n\t= trinity =\n\t");
-  std::printf("(c) 2015 H. Rakotoarivelo\n\t");
+  std::printf("(c) 2016 H. Rakotoarivelo\n\t");
   std::printf("compiled with %s (%s) on %s, %s\n\t", compil.data(), __VERSION__, __DATE__, __TIME__);
   std::printf("using %d thread%c on %d core%c (%s)\n\n", _threads, symbol, std::min(_hw_cores, _threads),
               symbol, _threads > _hw_cores ? "hyperthreading" : "native");
@@ -311,7 +310,7 @@ int main(int argc, char* argv[]) {
   trinity::Stats   stat[5];
 
   mesh.loadFrom(_input, _solut);
-  metric.computeTensorField(stat);
+  metric.run(stat);
   metric.clear();
 
   for (int iter = 0; iter < _rounds; ++iter) {
