@@ -7,7 +7,7 @@ set(PROJECT_VERSION_MINOR 3)
 
 # set language and paths
 enable_language(CXX)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/modules)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_PATH .)
 
 # create binary
