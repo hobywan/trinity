@@ -26,16 +26,13 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 ###### Build
 **trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
-It requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).   
-First you have to clone the repository using [Git](https://git-scm.com).  
-Then you can build it while specifying the build type.  
-Just compile it afterwards.
+It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).   
 
 ``` console
-host:~$ git clone https://github.com/hobywan/trinity.git .  # SSH: git@github.com:hobywan/trinity.git
+host:~$ git clone git@github.com:hobywan/trinity.git .      # or just download it
 host:~$ mkdir build                                          
 host:~$ cd build
-host:~$ cmake -DCMAKE_BUILD_TYPE=TYPE ..                    # choose between [BENCHMARK|DEBUG]
+host:~$ cmake ..                                            # -DCMAKE_BUILD_TYPE=[Release|Debug]
 host:~$ make -j4                                            # use 4 jobs for compilation
 ```
 >💡 **trinity** supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine (cores, caches, [numa](https://en.wikipedia.org/wiki/Non-uniform_memory_access)).  
