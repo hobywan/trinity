@@ -5,82 +5,15 @@ project(trinity)
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 3)
 
+# set language and paths
 enable_language(CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 set(EXECUTABLE_OUTPUT_PATH .)
 
-# CXX_FLAGS
-find_package(OpenMP REQUIRED)
-set(WARN_FLAGS "-Wall -Wshadow -Wdeprecated -Wunsafe-loop-optimizations -Wcast-align -g -O2")
-set(PERF_FLAGS "-O3 -funroll-loops -g -D_REENTRANT")
-#set(PERF_FLAGS "-fopt-info-vec -Wpacked -Wpadded ${PERF_FLAGS})
+# create binary
+add_executable(trinity)
 
-# Mandatory C++11 support
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=gnu++14" COMPILER_SUPPORTS_CXX14)
-if (COMPILER_SUPPORTS_CXX14)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
-else ()
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support.
-                        Please use a different C++ compiler.")
-endif ()
-
-# Build type dependent flags
-if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-    set(CMAKE_CXX_FLAGS_DEBUG "${OpenMP_CXX_FLAGS} ${WARN_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-else ()
-    set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${PERF_FLAGS} ${CMAKE_CXX_FLAGS}")
-    if (CMAKE_BUILD_TYPE MATCHES BENCHMARK)
-        add_definitions(-DBENCHMARK)
-    endif ()
-endif ()
-
-# OS dependent flags
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_definitions(-DDARWIN)
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_definitions(-DLINUX)
-else ()
-    message(FATAL_ERROR "Windows not supported.")
-endif ()
-
-
-set(TRINITY_LIBRARIES)
-
-# Dependencies
-find_package(PAPI)
-if (PAPI_FOUND)
-    include_directories(${PAPI_INCLUDE_DIR})
-    set(TRINITY_LIBRARIES ${PAPI_LIBRARIES} ${TRINITY_LIBRARIES})
-endif ()
-
-find_package(Hwloc)
-if (HWLOC_FOUND)
-    include_directories(${HWLOC_INCLUDE_DIR})
-    set(TRINITY_LIBRARIES ${HWLOC_LIBRARIES} ${TRINITY_LIBRARIES})
-endif ()
-
-# add definitions
-OPTION(DEFER_FIXES "Use deferred updates mechanism" OFF)
-if (DEFER_FIXES)
-    add_definitions(-DDEFERRED_UPDATES)
-endif ()
-
-# Build files
-#file(
-#  GLOB_RECURSE
-#  source_files
-#  sources/*.h*
-#  sources/*.c*
-#)
-
-# set header and libs directories
-include_directories(${CMAKE_SOURCE_DIR}/sources)
-#link_directories   (${CMAKE_SOURCE_DIR}/libraries)
-
-# create binary and link libs
-set(TRINITY_SOURCES
+target_sources(trinity PRIVATE
         sources/coarsening.cpp
         sources/coarsening.h
         sources/hashtable.h
@@ -119,5 +52,54 @@ set(TRINITY_SOURCES
         sources/tools.cpp
         sources/tools.h)
 
-add_executable(trinity ${TRINITY_SOURCES})
-target_link_libraries(trinity ${TRINITY_LIBRARIES})
+# headers
+target_include_directories(trinity PRIVATE ${CMAKE_SOURCE_DIR}/sources)
+
+# Dependencies
+find_package(OpenMP REQUIRED)
+find_package(PAPI)
+find_package(Hwloc)
+
+target_link_libraries(trinity PRIVATE "${OpenMP_CXX_FLAGS}")
+target_compile_options(trinity PRIVATE "${OpenMP_CXX_FLAGS}")
+
+if (PAPI_FOUND)
+    target_include_directories(trinity PUBLIC ${PAPI_INCLUDE_DIR})
+    target_link_libraries(trinity PUBLIC ${PAPI_LIBRARIES})
+endif ()
+
+if (HWLOC_FOUND)
+    target_include_directories(trinity PUBLIC ${HWLOC_INCLUDE_DIR})
+    target_link_libraries(trinity PUBLIC ${HWLOC_LIBRARIES})
+endif ()
+
+# Compilation options
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+    target_compile_options(trinity PRIVATE -Wall)
+    target_compile_options(trinity PRIVATE -Wextra)
+else ()
+    target_compile_options(trinity PRIVATE -O3)
+    target_compile_options(trinity PRIVATE -funroll-loops)
+    target_compile_options(trinity PRIVATE -fopt-info-vec)
+    target_compile_options(trinity PRIVATE -march=native)
+    target_compile_options(trinity PRIVATE -D_REENTRANT)
+    target_compile_options(trinity PRIVATE -Wunsafe-loop-optimizations)
+    target_compile_options(trinity PRIVATE -Wcast-align)
+    target_compile_options(trinity PRIVATE -Wpacked)
+    target_compile_options(trinity PRIVATE -g)
+
+    if (CMAKE_BUILD_TYPE MATCHES Benchmark)
+        target_compile_definitions(trinity PRIVATE Benchmark=1)
+    endif ()
+endif ()
+
+# deferred topology updates
+OPTION(DEFER "Use deferred updates mechanism" OFF)
+if (DEFER)
+    target_compile_definitions(trinity PRIVATE DEFERRED_UPDATES)
+endif ()
