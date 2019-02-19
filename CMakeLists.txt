@@ -1,6 +1,21 @@
 cmake_minimum_required(VERSION 3.4)
 
+# must be done before call to 'project'
+get_cmake_property(vars CACHE_VARIABLES)
+foreach (var ${vars})
+    get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
+    if ("${currentHelpString}" MATCHES "No help, variable specified on the command line." OR "${currentHelpString}" STREQUAL "")
+        # message("${var} = [${${var}}]  --  ${currentHelpString}") # uncomment to see the variables being processed
+        list(APPEND CL_ARGS "-D${var}=${${var}}")
+    endif ()
+endforeach ()
+
+# set project infos
 project(trinity VERSION 1.0.3)
+
+# program compile-time options
+option(Build_Medit "Build medit viewer" ON)
+option(Deferred "Use deferred updates mechanism" OFF)
 
 # define project infos
 enable_language(CXX)
@@ -63,8 +78,10 @@ set_target_properties(trinity
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
         CXX_EXTENSIONS ON)
 
+
 # Dependencies
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 find_package(OpenMP REQUIRED)
 find_package(PAPI)
 find_package(Hwloc)
@@ -105,8 +122,22 @@ else ()
     target_compile_options(trinity PRIVATE -Wpacked)
 endif ()
 
-# program compile-time options
-OPTION(DEFER "Use deferred updates mechanism" OFF)
-if (DEFER)
+# enable deferred updates by Rokos et al.
+if (Deferred)
     target_compile_definitions(trinity PRIVATE DEFERRED_UPDATES)
+endif ()
+
+# build medit if necessary
+if (Build_Medit)
+    include(ExternalProject)
+    ExternalProject_Add(medit
+            GIT_REPOSITORY https://github.com/ISCDtoolbox/Medit.git
+            GIT_TAG master
+            SOURCE_DIR medit/src
+            BINARY_DIR medit/build
+            INSTALL_DIR medit/install
+            INSTALL_COMMAND ""
+            CMAKE_ARGS ${CL_ARGS})
+
+    add_dependencies(trinity medit)
 endif ()

@@ -26,17 +26,17 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 ###### Build
 **trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
-It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).   
+It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
+It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional.  
 
 ``` console
 host:~$ git clone git@github.com:hobywan/trinity.git .      # or just download it
 host:~$ mkdir build                                          
 host:~$ cd build
-host:~$ cmake ..                                            # -DCMAKE_BUILD_TYPE=[Release|Debug]
+host:~$ cmake ..                                            # -DBuild_Medit=[ON|OFF]
 host:~$ make -j4                                            # use 4 jobs for compilation
 ```
 >💡 **trinity** supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine (cores, caches, [numa](https://en.wikipedia.org/wiki/Non-uniform_memory_access)).  
-
 
 
 ###### Use the command-line tool
@@ -62,9 +62,7 @@ Options:
   -v INT                verbosity level [0-2]
   -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
-All output files are stored in [data](./data) subfolder by default.  
-For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.  
-I use the latter to render meshes. It can be built from [here](https://github.com/ISCDtoolbox/Medit).
+>⚠️ For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ----
 ### Features and algorithms
@@ -73,7 +71,7 @@ I use the latter to render meshes. It can be built from [here](https://github.co
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
-- [metric field computation](sources/metric.h): encode the point distribution according to the error of **_u_**.
+- [metric recover](sources/metric.h): compute a metric tensor field which encodes desired point density.
 - [refinement](sources/refinement.h): add points on areas where the error of **_u_** is large.
 - [coarsening](sources/coarsening.h): remove points on areas where the error of **_u_** is small.
 - [swapping](sources/swapping.h): flip edges to locally improve cell quality.
@@ -126,8 +124,8 @@ A stage consists of local computation, a [reduction](https://en.wikipedia.org/wi
   <tr><td><img src="figures/algo_structure.png" alt="algo_structure" width="600"></td></tr>
 </table>  
 
->⚠️ It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.  
->👉 It does **not** rely on [task parallelism](https://en.wikipedia.org/wiki/Task_parallelism) and runtime capabilities such as [Cilk](http://supertech.csail.mit.edu/papers/PPoPP95.pdf), [TBB](https://software.intel.com/en-us/intel-tbb) or [StarPU](http://starpu.gforge.inria.fr) neither.  
+>It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.  
+>It does **not** rely on [task parallelism](https://en.wikipedia.org/wiki/Task_parallelism) and runtime capabilities such as [Cilk](http://supertech.csail.mit.edu/papers/PPoPP95.pdf), [TBB](https://software.intel.com/en-us/intel-tbb) or [StarPU](http://starpu.gforge.inria.fr) neither.  
 
 In fact [manycore](https://en.wikipedia.org/wiki/Manycore_processor) machines have plenty of slow cores with small caches.  
 To scale up, one needs plenty of very thin and local tasks to keep them busy.  
