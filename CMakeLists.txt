@@ -1,14 +1,9 @@
-cmake_minimum_required(VERSION 3.0)
-set(CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 3.4)
 
-project(trinity)
-set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 3)
+project(trinity VERSION 1.0.3)
 
-# set language and paths
+# define project infos
 enable_language(CXX)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(EXECUTABLE_OUTPUT_PATH .)
 
 # create binary
 add_executable(trinity)
@@ -55,7 +50,21 @@ target_sources(trinity PRIVATE
 # headers
 target_include_directories(trinity PRIVATE ${CMAKE_SOURCE_DIR}/sources)
 
+# check supported OS
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    message(FATAL_ERROR "Sorry, Windows is not supported.")
+endif ()
+
+# target options
+set_target_properties(trinity
+        PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+        CXX_EXTENSIONS ON)
+
 # Dependencies
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(OpenMP REQUIRED)
 find_package(PAPI)
 find_package(Hwloc)
@@ -74,11 +83,15 @@ if (HWLOC_FOUND)
 endif ()
 
 # Compilation options
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+target_compile_features(trinity PUBLIC cxx_std_14)
 
-if (CMAKE_BUILD_TYPE MATCHES Debug)
+# set default build type
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+endif ()
+
+# set compil flags according to build type
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_VERBOSE_MAKEFILE ON)
     target_compile_options(trinity PRIVATE -Wall)
     target_compile_options(trinity PRIVATE -Wextra)
@@ -90,13 +103,9 @@ else ()
     target_compile_options(trinity PRIVATE -Wunsafe-loop-optimizations)
     target_compile_options(trinity PRIVATE -Wcast-align)
     target_compile_options(trinity PRIVATE -Wpacked)
-
-    if (CMAKE_BUILD_TYPE MATCHES Benchmark)
-        target_compile_definitions(trinity PRIVATE Benchmark=1)
-    endif ()
 endif ()
 
-# deferred topology updates
+# program compile-time options
 OPTION(DEFER "Use deferred updates mechanism" OFF)
 if (DEFER)
     target_compile_definitions(trinity PRIVATE DEFERRED_UPDATES)
