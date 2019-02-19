@@ -190,7 +190,7 @@ papi::finalize(count);                                     // report counters va
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩   
-I included some python [scripts](scripts/) to help setting it up on a node.  
+I included some python [scripts](benchmark/) to help setting it up on a node.  
 They enable to:
 
 - compute a synthetic solution field.

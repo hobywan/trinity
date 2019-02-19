@@ -4,6 +4,7 @@ __license__   = 'GPL v3'
 __version__   = '1.0'
 __copyright__ = 'Copyright 2016, The trinity project'
 
+import os
 
 def generate_gnuplot_script(param):
 
@@ -97,7 +98,8 @@ def generate_gnuplot_script(param):
     print('>> cd results/benchs')
     os.chdir('results/benchs')
     print('>> gnuplot '+script)
-    subprocess.call(['gnuplot', script])
+    os.system('gnuplpot '+script)
+    #subprocess.call(['gnuplot', script])
 
     print('>> results/'+testcase+'_runtime.eps')
     print('>> results/'+testcase+'_speedup.eps')

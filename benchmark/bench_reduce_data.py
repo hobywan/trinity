@@ -9,7 +9,7 @@ import sys
 import time
 import optparse
 import subprocess
-import bench_export_gnuplot
+from .bench_export_gnuplot import *
 
 #
 def compact_benchmark_data(param):

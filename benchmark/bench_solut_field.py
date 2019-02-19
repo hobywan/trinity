@@ -4,11 +4,10 @@ __license__   = 'GPL v3'
 __version__   = '1.0'
 __copyright__ = 'Copyright 2016, The trinity project'
 
-import os
 import optparse
-import subprocess
 import math
-import bench_parse_mesh
+
+from .bench_parse_mesh import *
 
 #
 def convert_3D_to_2D(param):
@@ -91,7 +90,7 @@ def compute_solution_field(param):
 
     print(">> Computing solution field ... ")
     #
-    mesh = _parse.parse_medit(param.mesh)
+    mesh = parse_medit(param.mesh)
     nb_nodes = len(mesh['nodes'])
     assert(nb_nodes > 0)
 

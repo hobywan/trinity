@@ -7,11 +7,10 @@ __copyright__ = 'Copyright 2016, The trinity project'
 import os
 import sys
 import optparse
-import math
 import subprocess
 import shlex
-import bench_solut_field
-import bench_parse_mesh
+from .bench_solut_field import *
+from .bench_parse_mesh import *
 
 #
 def compile_sources(param):
@@ -59,11 +58,11 @@ def compile_sources(param):
 
     assert(param.target > 0);
 
-    os.chdir("..")
+    os.chdir("../build")
 
     # generate makefile (using cmake)
-    subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE="+param.mode.upper(), "."])
-   
+    subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE="+param.mode.upper(), ".."])
+
     # process compilation
     proc = subprocess.Popen(shlex.split("make -j4"))
     proc.communicate()
@@ -187,8 +186,8 @@ if __name__ == '__main__':
     cores = param.cores
 
     # compile source
-    compile_sources(param)
+    #compile_sources(param)
 
     # process
-    process_benchmark(param) if param.bench else adaptive_loop(param,cores)
+    #process_benchmark(param) if param.bench else adaptive_loop(param,cores)
 
