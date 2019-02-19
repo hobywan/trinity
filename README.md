@@ -27,7 +27,7 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 **trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
 It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
-It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional.  
+It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional though.  
 
 ``` console
 host:~$ git clone git@github.com:hobywan/trinity.git .      # or just download it
@@ -71,7 +71,7 @@ Options:
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
-- [metric recover](sources/metric.h): compute a metric tensor field which encodes desired point density.
+- [metric recover](sources/metric.h): compute a tensor field which encodes desired point density.
 - [refinement](sources/refinement.h): add points on areas where the error of **_u_** is large.
 - [coarsening](sources/coarsening.h): remove points on areas where the error of **_u_** is small.
 - [swapping](sources/swapping.h): flip edges to locally improve cell quality.
@@ -154,17 +154,15 @@ In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
 
 ----
 ### Benchmark
-###### Code instrumentation  
+###### Profiling  
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  
-Here is an example:
 
 <img src="figures/screenshot.png" alt="screenshot" width="650">
 
 >💡 Stats are exported within the [data](data/) subfolder by default.  
  👉 They can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org) scripts.
 
-###### Profiling
 **trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.   
 They can be used to compute the arithmetic intensity of each kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
 Here is an example of use:
@@ -190,9 +188,9 @@ papi::finalize(count);                                     // report counters va
 ```
 >💡 You can profile either CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) performances. 
 
-###### Deployment
-Preparing a benchmark campaign can be tedious.  
-I included some python [scripts](scripts/) to help setting it up on a cluster node.  
+###### Deployment on a cluster
+Preparing a benchmark campaign can be tedious 😩   
+I included some python [scripts](scripts/) to help setting it up on a node.  
 They enable to:
 
 - compute a synthetic solution field.
@@ -206,6 +204,7 @@ They enable to:
 
 ----
 ### License and contributions
+###### Copyright (c) 2016 Hoby Rakotoarivelo
 
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="figures/logo.png" alt="logo" width="90"></a> <a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="figures/logo_osi.png" alt="logo_osi" width="70"></a>
 
@@ -216,3 +215,5 @@ To get involved, you can:
 
 - report bugs or request features by submitting an [issue](https://github.com/hobywan/trinity/issues).
 - submit code contributions using feature branches and [pull requests](https://github.com/hobywan/trinity/pulls).
+
+Enjoy! 😉
