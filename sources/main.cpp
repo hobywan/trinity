@@ -249,17 +249,14 @@ void recap(trinity::Stats* stat) {
               "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
               "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
               "%6s%-15s |\n\n",
-              "", "N/A",
+              "", "",
               stat[2].step[4] * 100 / stat[2].elap, form[1], (float) stat[2].step[4] / 1e3,
               stat[3].step[4] * 100 / stat[3].elap, form[2], (float) stat[3].step[4] / 1e3,
-              "", "N/A");
+              "", "");
 }
 
 /* --------------------------------------------------------------------------- */
 void expor(trinity::Stats* stat) {
-
-  _name.pop_back();
-  std::string path;
 
 #ifdef DEFERRED_UPDATES
   std::string const suffix = "def_"+_arch+"_"+_name+".dat";
@@ -267,8 +264,10 @@ void expor(trinity::Stats* stat) {
   std::string const suffix = "perf_" + _arch + "_" + _name + ".dat";
 #endif
 
+  std::string path;
+
   for (int i = 1; i < 5; ++i) {
-    path = "profile/_" + std::to_string(i) + "/" + suffix;
+    path = "../profile/_" + std::to_string(i) + "/" + suffix;
 
     std::FILE* file = std::fopen(path.data(), "a");
     std::fprintf(file, "%2d \t%d \t%d \t%d \t%3.2f \t%8d \t%8d \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f\n",
