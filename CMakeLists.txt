@@ -21,9 +21,7 @@ option(Deferred "Use deferred updates mechanism" OFF)
 enable_language(CXX)
 
 # create binary
-add_executable(trinity)
-
-target_sources(trinity PRIVATE
+add_library(trinity SHARED
         sources/coarsening.cpp
         sources/coarsening.h
         sources/hashtable.h
@@ -86,8 +84,9 @@ find_package(OpenMP REQUIRED)
 find_package(PAPI)
 find_package(Hwloc)
 
-target_link_libraries(trinity PRIVATE "${OpenMP_CXX_FLAGS}")
-target_compile_options(trinity PRIVATE "${OpenMP_CXX_FLAGS}")
+target_link_libraries(trinity PUBLIC "${OpenMP_CXX_FLAGS}")
+target_compile_options(trinity PUBLIC "${OpenMP_CXX_FLAGS}")
+
 
 if (PAPI_FOUND)
     target_include_directories(trinity PUBLIC ${PAPI_INCLUDE_DIR})
@@ -141,3 +140,8 @@ if (Build_Medit)
 
     add_dependencies(trinity medit)
 endif ()
+
+# create an executable for trinity
+add_executable(trinity_run)
+target_sources(trinity_run PRIVATE sources/main.cpp)
+target_link_libraries(trinity_run PUBLIC trinity)
