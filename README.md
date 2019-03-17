@@ -34,17 +34,17 @@ git clone https://github.com/hobywan/trinity.git .      # or through SSH
 mkdir build                                             # out-of-source build recommended
 cd build                                                #
 cmake ..                                                # can toggle -DBuild_Medit=[ON|OFF]
-make -j4                                                # use 4 jobs for compilation
+make -j4                                                # use multiple jobs for compilation
 make install                                            # optional, can use a prefix
 ```
 
 ###### Use the library
-If installed, **trinity** is exported as a package.  
-To use it in your project, just update your CMakeLists.txt with:
+**trinity** is exported as a package.  
+To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
-find_package(trinity REQUIRED)
-target_link_libraries(${target} PUBLIC trinity)
+find_package(trinity REQUIRED)                          # works for both build/install trees
+target_link_libraries(${target} PUBLIC trinity)         # replace 'target' with your library/binary
 ```
 And then include `trinity/core.h` in your application.  
 Please take a look at the example folder for basic usage.

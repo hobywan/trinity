@@ -20,45 +20,48 @@ option(Deferred    "Use deferred topology updates scheme" OFF)
 # define project infos
 enable_language(CXX)
 
-# create binary
-add_library(trinity SHARED
-        sources/coarsening.cpp
-        sources/coarsening.h
-        sources/hashtable.h
-        sources/hashtable.impl.h
-        sources/header.h
-        sources/hessian.cpp
-        sources/hessian.h
-        sources/hwcount.cpp
-        sources/hwcount.h
-        sources/io.cpp
-        sources/io.h
-        sources/main.cpp
-        sources/matching.cpp
-        sources/matching.h
-        sources/mesh.cpp
-        sources/mesh.h
-        sources/metric.cpp
-        sources/metric.h
-        sources/numeric.cpp
-        sources/numeric.h
-        sources/optparse.h
-        sources/partition.cpp
-        sources/partition.h
-        sources/random_engine.h
-        sources/refinement.cpp
-        sources/refinement.h
-        sources/rmat.cpp
-        sources/rmat.h
-        sources/smoothing.cpp
-        sources/smoothing.h
-        sources/swapping.cpp
-        sources/swapping.h
-        sources/sync.cpp
-        sources/sync.h
-        sources/timer.h
-        sources/tools.cpp
-        sources/tools.h)
+set(HEADERS sources/coarsening.h
+            sources/core.h
+            sources/hashtable.h
+            sources/hashtable.impl.h
+            sources/header.h
+            sources/hessian.h
+            sources/hwcount.h
+            sources/io.h
+            sources/matching.h
+            sources/mesh.h
+            sources/metric.h
+            sources/numeric.h
+            sources/optparse.h
+            sources/partition.h
+            sources/random_engine.h
+            sources/refinement.h
+            sources/rmat.h
+            sources/smoothing.h
+            sources/swapping.h
+            sources/sync.h
+            sources/timer.h
+            sources/tools.h)
+
+set(SOURCES sources/coarsening.cpp
+            sources/hessian.cpp
+            sources/hwcount.cpp
+            sources/io.cpp
+            sources/main.cpp
+            sources/matching.cpp
+            sources/mesh.cpp
+            sources/metric.cpp
+            sources/numeric.cpp
+            sources/partition.cpp
+            sources/refinement.cpp
+            sources/rmat.cpp
+            sources/smoothing.cpp
+            sources/swapping.cpp
+            sources/sync.cpp
+            sources/tools.cpp)
+
+# create library
+add_library(trinity SHARED ${HEADERS} ${SOURCES})
 
 # headers
 target_include_directories(trinity PUBLIC
@@ -72,7 +75,6 @@ endif ()
 
 
 # target options
-file(GLOB HEADERS ${CMAKE_SOURCE_DIR}/sources/*.h)
 set_target_properties(trinity PROPERTIES
         PUBLIC_HEADER "${HEADERS}"
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -152,7 +154,9 @@ if (Build_Medit)
 endif ()
 
 
-# export package
+# export target from build/install trees
+export(TARGETS trinity FILE trinity-targets.cmake)
+
 install(TARGETS trinity
         EXPORT trinity-targets
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/trinity
@@ -167,9 +171,9 @@ install(EXPORT trinity-targets
 
 # create the command-line tool
 add_executable(main)
-target_sources(main PRIVATE sources/main.cpp)
 set_target_properties(main
         PROPERTIES
         OUTPUT_NAME "trinity"
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+target_sources(main PRIVATE sources/main.cpp)
 target_link_libraries(main PUBLIC trinity)
