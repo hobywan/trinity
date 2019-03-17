@@ -18,7 +18,7 @@
 #include <vector>
 
 
-namespace optparse {
+namespace trinity { namespace optparse {
 
 class Callback;
 class Option;
@@ -301,7 +301,7 @@ static Values &parse_args_helper(Parser &parser,
 
 
 static std::string format_help_helper(const Parser &parser);
-}
+} // namespace trinity::optparse::detail
 
 
 class Callback {
@@ -1101,5 +1101,7 @@ static std::string format_help_helper(const Parser &parser) {
 
   return ss.str();
 }
-}}
+} // namespace trinity::optparse::detail
+
+}} // namespace trinity::optparse
 
