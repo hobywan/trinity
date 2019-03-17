@@ -6,9 +6,8 @@
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
 It is intended to be involved within a [numerical simulation](https://en.wikipedia.org/wiki/Computational_fluid_dynamics) loop.  
-<table>
-  <tr><td><img src="figures/adaptive_loop.png" alt="adaptive-loop" width="390"></td></tr>
-</table>
+
+<img src="figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar**  
 domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
@@ -28,22 +27,33 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
 It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
 It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional though.  
+It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.  
 
-``` console
-host:~$ git clone git@github.com:hobywan/trinity.git .      # or just download it
-host:~$ mkdir build                                          
-host:~$ cd build
-host:~$ cmake ..                                            # -DBuild_Medit=[ON|OFF]
-host:~$ make -j4                                            # use 4 jobs for compilation
+``` bash
+git clone https://github.com/hobywan/trinity.git .      # or just download it
+mkdir build                                          
+cd build
+cmake ..                                                # -DBuild_Medit=[ON|OFF]
+make -j4                                                # use 4 jobs for compilation
+make install                                            # optional
 ```
->💡 **trinity** supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine (cores, caches, [numa](https://en.wikipedia.org/wiki/Non-uniform_memory_access)).  
 
+###### Use the library
+**trinity** is exported as a package.  
+To use it in your project, just update your CMakeLists.txt with:
+
+``` cmake
+find_package(trinity REQUIRED)
+target_link_libraries(${target} PUBLIC trinity)
+```
+And then include [`trinity/core.h`](sources/core.h) in your C++ application.
 
 ###### Use the command-line tool
-The list of command arguments is given by the `-h` option.
+The list of command arguments is given by the `-h` option.  
+For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ``` console
-host:~$ ./trinity -h
+host:~$ bin/trinity -h
 Usage: trinity [options]
 
 Options:
@@ -62,7 +72,6 @@ Options:
   -v INT                verbosity level [0-2]
   -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
->⚠️ For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ----
 ### Features and algorithms
@@ -157,6 +166,7 @@ In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
 ###### Profiling  
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  
+Here is an output example with `v=1`
 
 <img src="figures/screenshot.png" alt="screenshot" width="650">
 
