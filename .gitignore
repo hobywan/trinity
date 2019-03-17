@@ -1,0 +1,7 @@
+# these files will be ignored by git
+
+.git
+.idea
+build
+venv
+profile/_?/*.dat
