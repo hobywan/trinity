@@ -18,7 +18,7 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 <img src="figures/principle.png" alt="principle" width="820">
 
 
-###### Motivations
+<!--###### Motivations-->
 
 ----
 ### Build and use
@@ -30,27 +30,27 @@ It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf
 It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.  
 
 ``` bash
-git clone https://github.com/hobywan/trinity.git .      # or just download it
-mkdir build                                          
-cd build
-cmake ..                                                # -DBuild_Medit=[ON|OFF]
+git clone https://github.com/hobywan/trinity.git .      # or through SSH
+mkdir build                                             # out-of-source build recommended
+cd build                                                #
+cmake ..                                                # can toggle -DBuild_Medit=[ON|OFF]
 make -j4                                                # use 4 jobs for compilation
-make install                                            # optional
+make install                                            # optional, can use a prefix
 ```
 
 ###### Use the library
-**trinity** is exported as a package.  
+If installed, **trinity** is exported as a package.  
 To use it in your project, just update your CMakeLists.txt with:
 
 ``` cmake
 find_package(trinity REQUIRED)
 target_link_libraries(${target} PUBLIC trinity)
 ```
-And then include [`trinity/core.h`](sources/core.h) in your C++ application.
+And then include `trinity/core.h` in your application.  
+Please take a look at the example folder for basic usage.
 
-###### Use the command-line tool
+###### Use the tool
 The list of command arguments is given by the `-h` option.  
-For now, only `.mesh` files used in [Medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ``` console
 host:~$ bin/trinity -h
@@ -72,6 +72,7 @@ Options:
   -v INT                verbosity level [0-2]
   -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
+For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ----
 ### Features and algorithms
@@ -86,7 +87,7 @@ For that, it uses five kernels:
 - [swapping](sources/swapping.h): flip edges to locally improve cell quality.
 - [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
 
-A basic usage would be:
+<!--A basic usage would be:
 
 ``` c++  
   mesh.load(input, solut);                      // load mesh and solution field in memory
@@ -100,7 +101,7 @@ A basic usage would be:
   }
   mesh.store(result);                           // save resulting mesh on disk
 ```
->💡 To enable profiling, you can pass a [`Stats`](sources/header.h) instance pointer as argument of each `run`.  
+>💡 To enable profiling, you can pass a [`Stats`](sources/header.h) instance pointer as argument of each `run`.  -->
 
 ###### Error estimate
 **trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.   
@@ -166,7 +167,7 @@ In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
 ###### Profiling  
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  
-Here is an output example with `v=1`
+Here is an output example with the medium level.
 
 <img src="figures/screenshot.png" alt="screenshot" width="650">
 
@@ -178,20 +179,20 @@ They can be used to compute the arithmetic intensity of each kernel for a [roofl
 Here is an example of use:
 
 ``` c++
-#if HAVE_PAPI                                              // avoid compilation errors
+#ifdef HAVE_PAPI                                           // avoid compilation errors
 using namespace trinity;
+int const nb_kernels = 4;
 int const nb_threads = omp_get_max_threads();              // thread-core affinity should be set
 int const papi_mode  = PAPI_mode_cache;                    // choose to profile cache performance
-papi::Cache count[2];                                      // cache counters per thread
+papi::Cache count[nb_kernels];                             // cache counters per thread
 
 papi::init(nb_threads, papi_mode, count);                  // initialize all counters
 
-papi::start(count[0]);                                     // let's go
-obj.foo();                                                 // a thing you wanna profile
-papi::stop(count[0]);                                      // stop 
-papi::start(count[1]);                                     // let's go again
-obj.bar();                                                 // another thing you wanna profile
-papi::stop(count[1]);                                      // stop
+for (int i = 0; i < nb_kernels; ++i) { 
+  papi::start(count[i]);                                   // start profile
+  kernel[i].run();                                         // a kernel you wanna profile
+  papi::stop(count[i]);                                    // stop 
+}
 
 papi::finalize(count);                                     // report counters values and clean-up
 #endif
