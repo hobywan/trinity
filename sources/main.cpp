@@ -18,17 +18,7 @@
  */
 
 /* --------------------------------------------------------------------------- */
-#include "optparse.h"
-#include "tools.h"
-#include "mesh.h"
-#include "io.h"
-#include "metric.h"
-#include "refinement.h"
-#include "coarsening.h"
-#include "smoothing.h"
-#include "swapping.h"
-#include "matching.h"
-#include "random_engine.h"
+#include "core.h"
 #include <hwloc.h>
 /* --------------------------------------------------------------------------- */
 // accessible only in this file
@@ -59,7 +49,7 @@ std::string _solut;
 /* --------------------------------------------------------------------------- */
 void parse(int argc, char* argv[]) {
 
-  optparse::Parser parser;
+  trinity::optparse::Parser parser;
   std::string const mode[] = {"normal", "benchmark", "debug"};
   std::string const papi[] = {"cache", "cycles", "tlb", "branch"};
 
@@ -93,7 +83,7 @@ void parse(int argc, char* argv[]) {
   arch_.set_default("kbl");
 
   // read stdin
-  const optparse::Values& param = parser.parse_args(argc, argv);
+  const trinity::optparse::Values& param = parser.parse_args(argc, argv);
 
   _cores   = std::thread::hardware_concurrency();  // C+11
   _threads = std::max(std::atoi(param["cores"]), 1);
