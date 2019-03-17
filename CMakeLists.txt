@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.9)
 
 # must be done before call to 'project'
 get_cmake_property(vars CACHE_VARIABLES)
@@ -9,6 +9,11 @@ foreach (var ${vars})
         list(APPEND CL_ARGS "-D${var}=${${var}}")
     endif ()
 endforeach ()
+
+# check supported OS
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    message(FATAL_ERROR "Sorry, Windows is not supported.")
+endif ()
 
 # set project infos
 project(trinity VERSION 1.0.3)
@@ -63,18 +68,10 @@ set(SOURCES sources/coarsening.cpp
 # create library
 add_library(trinity SHARED ${HEADERS} ${SOURCES})
 
-# headers
 target_include_directories(trinity PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/sources>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>)
 
-        # check supported OS
-if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    message(FATAL_ERROR "Sorry, Windows is not supported.")
-endif ()
-
-
-# target options
 set_target_properties(trinity PROPERTIES
         PUBLIC_HEADER "${HEADERS}"
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -83,16 +80,16 @@ set_target_properties(trinity PROPERTIES
         CXX_EXTENSIONS ON)
 
 
-# Dependencies
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# manage dependencies
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(OpenMP REQUIRED)
 find_package(PAPI)
 find_package(Hwloc)
 
-target_link_libraries(trinity PUBLIC "${OpenMP_CXX_FLAGS}")
-target_compile_options(trinity PUBLIC "${OpenMP_CXX_FLAGS}")
-
+if (OpenMP_CXX_FOUND)
+    target_link_libraries(trinity PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 if (PAPI_FOUND)
     target_include_directories(trinity PUBLIC ${PAPI_INCLUDE_DIR})
@@ -104,15 +101,15 @@ if (HWLOC_FOUND)
     target_link_libraries(trinity PUBLIC ${HWLOC_LIBRARIES})
 endif ()
 
-# Compilation options
+
+# manage compilation options
 target_compile_features(trinity PUBLIC cxx_std_14)
 
-# set default build type
+# set build-type dependent options
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 endif ()
 
-# set compil flags according to build type
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_VERBOSE_MAKEFILE ON)
     target_compile_options(trinity PRIVATE -Wall)
@@ -126,7 +123,6 @@ else ()
     target_compile_options(trinity PRIVATE -Wcast-align)
     target_compile_options(trinity PRIVATE -Wpacked)
 endif ()
-
 
 # enable deferred updates by Rokos et al.
 if (Deferred)
@@ -144,18 +140,15 @@ if (Build_Medit)
             CMAKE_ARGS ${CL_ARGS})
 
     add_dependencies(trinity medit)
-
-    # copy 'medit' binary after building 'trinity'
-    set(ORIG ${CMAKE_BINARY_DIR}/aux/src/medit-build/medit)
-    set(DEST ${CMAKE_BINARY_DIR}/bin/medit)
     add_custom_command(
             TARGET trinity POST_BUILD
-            COMMAND cmake -E copy_if_different ${ORIG} ${DEST})
+            COMMAND cmake -E copy_if_different aux/src/medit-build/medit bin/medit)
 endif ()
 
 
 # export target from build/install trees
-export(TARGETS trinity FILE trinity-targets.cmake)
+export(TARGETS trinity FILE trinity-config.cmake)
+export(PACKAGE trinity)
 
 install(TARGETS trinity
         EXPORT trinity-targets
@@ -175,5 +168,6 @@ set_target_properties(main
         PROPERTIES
         OUTPUT_NAME "trinity"
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 target_sources(main PRIVATE sources/main.cpp)
 target_link_libraries(main PUBLIC trinity)
