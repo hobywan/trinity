@@ -45,6 +45,7 @@ target_sources(trinity PRIVATE
         src/metric.cpp
         src/numeric.cpp
         src/partition.cpp
+        src/parser.cpp
         src/refinement.cpp
         src/rmat.cpp
         src/smoothing.cpp

@@ -24,6 +24,7 @@
 #include "trinity/timer.h"
 #include "trinity/sync.h"
 #include "trinity/hwcount.h"
+#include "trinity/parser.h"
 #include "trinity/hashtable.h"
 #include "trinity/rmat.h"
 #include "trinity/io.h"
