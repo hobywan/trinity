@@ -1,13 +1,11 @@
 # trinity
 [![License: GPL v3](https://img.shields.io/badge/License-GPL-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Initial development has started, but there has not yet been a stable, usable release; work has been stopped for the time being but the author(s) intend on resuming work.](http://www.repostatus.org/badges/latest/suspended.svg)](http://www.repostatus.org/#suspended)
 
-###### Description
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
-It is intended to be involved within a [numerical simulation](https://en.wikipedia.org/wiki/Computational_fluid_dynamics) loop.  
+It is intended to be involved within a numerical simulation loop.  
 
-<img src="figures/adaptive_loop.png" alt="adaptive-loop" width="390">
+<img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar**  
 domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
@@ -15,7 +13,7 @@ Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the 
 It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
 
-<img src="figures/principle.png" alt="principle" width="820">
+<img src="docs/figures/principle.png" alt="principle" width="820">
 
 
 <!--###### Motivations-->
@@ -106,7 +104,7 @@ The latter rely on the computation of the variations of the gradient of **_u_**.
 It is given by its local [hessian matrices](https://en.wikipedia.org/wiki/Hessian_matrix).  
 It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002/nme.2036).  
 
-<img src="figures/multiscale_meshes.png" alt="multiscale_meshes.png" width="790">
+<img src="docs/figures/multiscale_meshes.png" alt="multiscale_meshes.png" width="790">
 
 ###### Fine-grained parallelism
 **trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).  
@@ -115,7 +113,7 @@ All kernels are structured into [bulk-synchronous](https://doi.org/10.1016/j.jcs
 A stage consists of local computation, a [reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern)) in shared-memory, and a [barrier](https://en.wikipedia.org/wiki/Barrier_(computer_science)).  
 
 <table>
-  <tr><td><img src="figures/algo_structure.png" alt="algo_structure" width="600"></td></tr>
+  <tr><td><img src="docs/figures/algo_structure.png" alt="algo_structure" width="600"></td></tr>
 </table>  
 
 >It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.  
@@ -130,14 +128,14 @@ Runnable tasks are then extracted using multithreaded heuristics:
 - maximal [matching](https://en.wikipedia.org/wiki/Matching_(graph_theory)) for swapping
 - maximal [coloring](https://en.wikipedia.org/wiki/Graph_coloring) for smoothing
 
-<img src="figures/graph_matching.png" alt="graph_matching.png" width="450">
+<img src="docs/figures/graph_matching.png" alt="graph_matching.png" width="450">
 
  **trinity** fixes incidence data only at the end of a round of any kernel.  
 It uses an explicit synchronization scheme to fix them.  
 It relies on the use of low-level [atomic primitives](https://fr.cppreference.com/w/cpp/atomic).  
 It was designed to minimize data movement penalties, especially on [NUMA](https://en.wikipedia.org/wiki/Non-uniform_memory_access) cases. 
 
-<img src="figures/topology_fixes.png" alt="topology_fixes.png" width="600">
+<img src="docs/figures/topology_fixes.png" alt="topology_fixes.png" width="600">
 
 For further details, please take a look at:
 
@@ -153,7 +151,7 @@ In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
 It prints the runtime stats with three verbosity level.  
 Here is an output example with the medium level.
 
-<img src="figures/screenshot.png" alt="screenshot" width="650">
+<img src="docs/figures/screenshot.png" alt="screenshot" width="650">
 
 >💡 Stats are exported within the [data](data/) subfolder by default.  
  👉 They can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org) scripts.
@@ -200,7 +198,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 ### License and contributions
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
-<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="figures/logo_osi.png" alt="logo_osi" width="70"></a>
+<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="docs/figures/logo_osi.png" alt="logo_osi" width="70"></a>
 
 **trinity** is free and open-source.  
 It was intended for research purposes and released under the [GPL](https://www.gnu.org/licenses/gpl-3.0) license.  
