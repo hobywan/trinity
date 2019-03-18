@@ -47,7 +47,122 @@ int io::find(const std::string key, std::ifstream& file) {
   return count;
 }
 
+/* --------------------------------------------------------------------------- */
+void io::recap(Stats* stat, Parser& parser) {
 
+  int rate[] = {0, 0, 0, 0, 0};
+  int form[] = {0, 0, 0, 0};
+
+  for (int i = 0; i < 5; ++i) {
+    parser.param.makespan += stat[i].elap;
+    rate[i] = (int) std::floor(stat[i].task / (stat[i].elap * 1e-3));
+    form[0] = std::max(form[0], tools::format(stat[i].elap));  // float
+    form[1] = std::max(form[1], tools::format(rate[i]));
+    form[2] = std::max(form[2], tools::format(stat[i].task));
+  }
+
+  std::printf("\n\n= recap: %d rounds, %d threads (%.1f sec)\n",
+              parser.param.rounds, parser.param.threads, (float) parser.param.makespan / 1e3);
+  std::printf("=  %2d %% metric (%*.2f s), %*d  calc/sec (%*d done)\n",
+              (int) std::floor(stat[0].elap * 100 / parser.param.makespan), form[0], (float) stat[0].elap / 1e3,
+              form[1], rate[0], form[2], stat[0].task);
+  std::printf("=  %2d %% refine (%*.2f s), %*d split/sec (%*d done)\n",
+              (int) std::floor(stat[1].elap * 100 / parser.param.makespan), form[0], (float) stat[1].elap / 1e3,
+              form[1], rate[1], form[2], stat[1].task);
+  std::printf("=  %2d %% coarse (%*.2f s), %*d merge/sec (%*d done)\n",
+              (int) std::floor(stat[2].elap * 100 / parser.param.makespan), form[0], (float) stat[2].elap / 1e3,
+              form[1], rate[2], form[2], stat[2].task);
+  std::printf("=  %2d %% swap   (%*.2f s), %*d  flip/sec (%*d done)\n",
+              (int) std::floor(stat[3].elap * 100 / parser.param.makespan), form[0], (float) stat[3].elap / 1e3,
+              form[1], rate[3], form[2], stat[3].task);
+  std::printf("=  %2d %% smooth (%*.2f s), %*d  move/sec (%*d done)\n\n",
+              (int) std::floor(stat[4].elap * 100 / parser.param.makespan), form[0], (float) stat[4].elap / 1e3,
+              form[1], rate[4], form[2], stat[4].task);
+
+  std::memset(form, 0, sizeof(int) * 4);
+  for (int i = 0; i < 4; ++i)
+    for (int j : stat[i].step)
+      form[i] = std::max(form[i], tools::format(j));
+
+  std::printf("|%6s%-15s | %5s%-15s | %5s%-15s | %5s%-15s |\n",
+              "", "refinement", "", "contraction", "", "swapping", "", "smoothing");
+
+  std::printf("|%3d %% filter \e[0m(%*.2f s)\e[0m |"
+              "%3d %% filter \e[0m(%*.2f s)\e[0m |"
+              "%3d %% qualit \e[0m(%*.2f s)\e[0m |"
+              "%3d %% primal \e[0m(%*.2f s)\e[0m |\n",
+              stat[1].step[0] * 100 / stat[1].elap, form[0], (float) stat[1].step[0] / 1e3,
+              stat[2].step[0] * 100 / stat[2].elap, form[1], (float) stat[2].step[0] / 1e3,
+              stat[3].step[0] * 100 / stat[3].elap, form[2], (float) stat[3].step[0] / 1e3,
+              stat[4].step[0] * 100 / stat[4].elap, form[3], (float) stat[4].step[0] / 1e3);
+  std::printf("|%3d %% stein  \e[0m(%*.2f s)\e[0m |"
+              "%3d %% primal \e[0m(%*.2f s)\e[0m |"
+              "%3d %% dual   \e[0m(%*.2f s)\e[0m |"
+              "%3d %% color  \e[0m(%*.2f s)\e[0m |\n",
+              stat[1].step[1] * 100 / stat[1].elap, form[0], (float) stat[1].step[1] / 1e3,
+              stat[2].step[1] * 100 / stat[2].elap, form[1], (float) stat[2].step[1] / 1e3,
+              stat[3].step[1] * 100 / stat[3].elap, form[2], (float) stat[3].step[1] / 1e3,
+              stat[4].step[1] * 100 / stat[4].elap, form[3], (float) stat[4].step[1] / 1e3);
+  std::printf("|%3d %% kernel \e[0m(%*.2f s)\e[0m |"
+              "%3d %% indep  \e[0m(%*.2f s)\e[0m |"
+              "%3d %% match  \e[0m(%*.2f s)\e[0m |"
+              "%3d %% qualit \e[0m(%*.2f s)\e[0m |\n",
+              stat[1].step[2] * 100 / stat[1].elap, form[0], (float) stat[1].step[2] / 1e3,
+              stat[2].step[2] * 100 / stat[2].elap, form[1], (float) stat[2].step[2] / 1e3,
+              stat[3].step[2] * 100 / stat[3].elap, form[2], (float) stat[3].step[2] / 1e3,
+              stat[4].step[2] * 100 / stat[4].elap, form[3], (float) stat[4].step[2] / 1e3);
+  std::printf("|%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
+              "%3d %% kernel \e[0m(%*.2f s)\e[0m |"
+              "%3d %% kernel \e[0m(%*.2f s)\e[0m |"
+              "%3d %% kernel \e[0m(%*.2f s)\e[0m |\n",
+              stat[1].step[3] * 100 / stat[1].elap, form[0], (float) stat[1].step[3] / 1e3,
+              stat[2].step[3] * 100 / stat[2].elap, form[1], (float) stat[2].step[3] / 1e3,
+              stat[3].step[3] * 100 / stat[3].elap, form[2], (float) stat[3].step[3] / 1e3,
+              stat[4].step[3] * 100 / stat[4].elap, form[3], (float) stat[4].step[3] / 1e3);
+  std::printf("|%6s%-15s |"
+              "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
+              "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
+              "%6s%-15s |\n\n",
+              "", "",
+              stat[2].step[4] * 100 / stat[2].elap, form[1], (float) stat[2].step[4] / 1e3,
+              stat[3].step[4] * 100 / stat[3].elap, form[2], (float) stat[3].step[4] / 1e3,
+              "", "");
+}
+
+/* --------------------------------------------------------------------------- */
+void io::dump(Stats* stat, Parser const& parser) {
+
+#ifdef DEFERRED_UPDATES
+  std::string const suffix = "def_"+_arch+"_"+_name+".dat";
+#else
+  std::string const suffix = "perf_" + parser.param.arch + "_" + parser.param.name + ".dat";
+#endif
+
+  std::string path;
+
+  for (int i = 1; i < 5; ++i) {
+    path = "../profile/_" + std::to_string(i) + "/" + suffix;
+
+    std::FILE* file = std::fopen(path.data(), "a");
+    std::fprintf(file, "%2d \t%d \t%d \t%d \t%3.2f \t%8d \t%8d \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f\n",
+                 parser.param.threads,
+                 parser.param.rounds,
+                 parser.param.size[0],
+                 parser.param.size[1],
+                 parser.param.target,
+                 stat[i].task,
+                 stat[i].eval,
+                 (float) parser.param.makespan / 1e3,
+                 (float) stat[i].elap / 1e3,
+                 (float) stat[i].step[0] / 1e3,
+                 (float) stat[i].step[1] / 1e3,
+                 (float) stat[i].step[2] / 1e3,
+                 (float) stat[i].step[3] / 1e3,
+                 (float) stat[i].step[4] / 1e3);
+    std::fclose(file);
+  }
+  std::printf("= '%s' exported\n", suffix.data());
+}
 /* --------------------------------------------------------------------------- */
 void Mesh::load(const std::string& path, const std::string& solu) {
 

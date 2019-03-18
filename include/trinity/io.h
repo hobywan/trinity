@@ -19,11 +19,15 @@
 
 #pragma once
 /* ------------------------------------*/
-#include "tools.h"
+#include "parser.h"
 #include "mesh.h"
 /* ------------------------------------*/
 
 namespace trinity { namespace io {
+
 int find(std::string key, std::ifstream& file);
+void recap(Stats* stat, Parser& parser);
+void dump(Stats* stat, Parser const& parser);
+
 }}
 
