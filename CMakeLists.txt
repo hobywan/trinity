@@ -1,23 +1,25 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0048 NEW)
-
-# must be done before call to 'project'
-get_cmake_property(vars CACHE_VARIABLES)
-foreach (var ${vars})
-    get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
-    if ("${currentHelpString}" MATCHES "No help, variable specified on the command line." OR "${currentHelpString}" STREQUAL "")
-        # message("${var} = [${${var}}]  --  ${currentHelpString}") # uncomment to see the variables being processed
-        list(APPEND CL_ARGS "-D${var}=${${var}}")
-    endif ()
-endforeach ()
-
-# set project infos
-project(trinity VERSION 1.0.3)
 
 # check supported OS
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     message(FATAL_ERROR "Sorry, Windows is not supported.")
 endif ()
+
+# use same build configuration for external dependencies
+# need to be called before 'project'
+get_cmake_property(vars CACHE_VARIABLES)
+set(EXTERN_ARGS "-Wno-dev")
+foreach (var ${vars})
+    get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
+    if ("${currentHelpString}" MATCHES "No help, variable specified on the command line." OR "${currentHelpString}" STREQUAL "")
+        # message(STATUS "${var} = [${${var}}]  --  ${currentHelpString}")
+        list(APPEND EXTERN_ARGS "-D${var}=${${var}}")
+    endif ()
+endforeach ()
+
+# set project infos
+project(trinity VERSION 1.0.3 LANGUAGES CXX)
 
 # program compile-time options
 option(Build_Medit    "Build medit viewer" ON)
@@ -25,9 +27,6 @@ option(Build_GTest    "Build googletest" ON)
 option(Build_Main     "Build command-line tool" ON)
 option(Build_Examples "Build examples sources" ON)
 option(Use_Deferred   "Use deferred topology updates scheme" OFF)
-
-# define project infos
-enable_language(CXX)
 
 # create library
 add_library(trinity SHARED)
@@ -124,7 +123,7 @@ if (Build_Medit)
             GIT_TAG master
             PREFIX ${CMAKE_BINARY_DIR}/extern
             INSTALL_COMMAND ""
-            CMAKE_ARGS ${CL_ARGS})
+            CMAKE_ARGS ${EXTERN_ARGS})
 
     ExternalProject_Get_Property(medit binary_dir)
     add_dependencies(trinity medit)
@@ -140,7 +139,7 @@ if (Build_GTest)
             GIT_TAG master
             PREFIX ${CMAKE_BINARY_DIR}/extern
             INSTALL_COMMAND ""
-            CMAKE_ARGS ${CL_ARGS})
+            CMAKE_ARGS ${EXTERN_ARGS})
 
     ExternalProject_Get_Property(googletest binary_dir)
     add_library(gtest UNKNOWN IMPORTED)
@@ -173,7 +172,7 @@ if (Build_Main)
     # build examples
     if (Build_Examples)
         # build all embedded examples
-        list(APPEND EXAMPLES examples/adap.cpp)
+        set(EXAMPLES examples/adap.cpp)
 
         foreach(path ${EXAMPLES})
             string(REPLACE ".cpp" "" trimmed ${path})
@@ -188,12 +187,10 @@ if (Build_Main)
         endforeach()
 
         # copy examples input files
-        set(INPUT_ORIG ${CMAKE_SOURCE_DIR}/examples)
-        set(INPUT_DEST ${CMAKE_BINARY_DIR}/examples)
         add_custom_command(
                 TARGET main POST_BUILD
-                COMMAND cmake -E copy_directory ${INPUT_ORIG}/mesh  ${INPUT_DEST}/mesh
-                COMMAND cmake -E copy_directory ${INPUT_ORIG}/solut ${INPUT_DEST}/solut)
+                COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/examples/mesh  ${CMAKE_BINARY_DIR}/examples/mesh
+                COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/examples/solut ${CMAKE_BINARY_DIR}/examples/solut)
     endif()
 endif()
 
