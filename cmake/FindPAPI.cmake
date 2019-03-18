@@ -1,25 +1,8 @@
-find_path(PAPI_INCLUDE_DIR papi.h
-  /usr/include
-  /usr/local/include
-  $ENV{PAPI_DIR}/include
-)
+include(FindPackageHandleStandardArgs)
 
-find_library(PAPI_LIBRARY papi
-  /usr/lib64
-  /usr/local/lib
-  /usr/lib
-  $ENV{PAPI_DIR}/lib
-)
+find_path(PAPI_INCLUDE_DIR papi.h)
+find_library(PAPI_LIBRARY  papi)
+find_package_handle_standard_args(PAPI DEFAULT_MSG PAPI_INCLUDE_DIR PAPI_LIBRARY)
 
-if(PAPI_INCLUDE_DIR)
-  add_definitions(-DHAVE_PAPI)
-  if(PAPI_LIBRARY)
-    set( PAPI_LIBRARIES ${PAPI_LIBRARY})
-    set( PAPI_FOUND "YES" )
-    message(STATUS "PAPI found at ${PAPI_INCLUDE_DIR}")
-  endif(PAPI_LIBRARY)
-else()
-  message(STATUS "PAPI counters not found")
-endif()
+mark_as_advanced(PAPI_INCLUDE_DIR PAPI_LIBRARY)
 
-mark_as_advanced( PAPI_INCLUDE_DIR PAPI_LIBRARY )

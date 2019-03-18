@@ -73,18 +73,21 @@ if (OpenMP_CXX_FOUND)
 endif()
 
 if (PAPI_FOUND)
+    target_compile_definitions(trinity PUBLIC HAVE_PAPI)
     target_include_directories(trinity PUBLIC ${PAPI_INCLUDE_DIR})
-    target_link_libraries(trinity PUBLIC ${PAPI_LIBRARIES})
+    target_link_libraries(trinity PUBLIC ${PAPI_LIBRARY})
 endif ()
 
 if (HWLOC_FOUND)
+    target_compile_definitions(trinity PUBLIC HAVE_HWLOC)
     target_include_directories(trinity PUBLIC ${HWLOC_INCLUDE_DIR})
-    target_link_libraries(trinity PUBLIC ${HWLOC_LIBRARIES})
+    target_link_libraries(trinity PUBLIC ${HWLOC_LIBRARY})
 endif ()
 
 
 # manage compilation options
 target_compile_features(trinity PUBLIC cxx_std_14)
+
 
 # set build-type dependent options
 set(DEFAULT_BUILD_TYPE "Release")
