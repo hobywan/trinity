@@ -153,12 +153,13 @@ Here is an output example with the medium level.
 
 <img src="docs/figures/screenshot.png" alt="screenshot" width="650">
 
->💡 Stats are exported within the [data](data/) subfolder by default.  
- 👉 They can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org) scripts.
+>💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).
 
 **trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.   
-They can be used to compute the arithmetic intensity of each kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
-Here is an example of use:
+They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
+Please take a look at the [examples](examples/) folder for basic usage.  
+
+<!--Here is an example of use:
 
 ``` c++
 #ifdef HAVE_PAPI                                           // avoid compilation errors
@@ -178,18 +179,19 @@ for (int i = 0; i < nb_kernels; ++i) {
 
 papi::finalize(count);                                     // report counters values and clean-up
 #endif
-```
+```-->
 >💡 You can profile either CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) performances. 
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩   
 I included some python scripts to help setting it up on a node, enabling to:  
+<!--(https://blogs.cisco.com/performance/process-and-memory-affinity-why-do-you-care)--> 
 
 - compute a synthetic solution field.
-- rebuild sources and set [thread-core affinity](https://en.wikipedia.org/wiki/Processor_affinity).
-- set [memory affinity](https://blogs.cisco.com/performance/process-and-memory-affinity-why-do-you-care) through [`numactl`](https://linux.die.net/man/8/numactl), which is useful on a [Intel KNL](https://colfaxresearch.com/knl-numa/) node.
-- compact profiling data and generate [gnuplot](http://www.gnuplot.info) script for plots.
-- profile [memory bandwith](https://en.wikipedia.org/wiki/Memory_bandwidth) of the host machine using [STREAM](https://www.cs.virginia.edu/stream/).  
+- rebuild sources and set thread-core affinity.  
+- set memory affinity through [`numactl`](https://linux.die.net/man/8/numactl), which is useful on a [Intel KNL](https://colfaxresearch.com/knl-numa/) node.  
+- compact profiling data and generate [gnuplot](http://www.gnuplot.info) script for plots.  
+- profile memory bandwith of the host machine using [STREAM](https://www.cs.virginia.edu/stream/).  
 - plot sparsity pattern of mesh incidence graph.
 
 >⚠️ They are somewhat outdated, so adapt them to your needs.
