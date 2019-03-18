@@ -145,18 +145,19 @@ if (Build_GTest)
             CMAKE_ARGS ${EXTERN_BUILD_ARGS})
 
     ExternalProject_Get_Property(googletest binary_dir)
-    add_library(gtest UNKNOWN IMPORTED)
-    add_library(gtest_main UNKNOWN IMPORTED)
+    add_library(gtest STATIC IMPORTED)
+    add_library(gtest_main STATIC IMPORTED)
     set_target_properties(gtest
             PROPERTIES
             IMPORTED_LOCATION ${binary_dir}/lib/libgtest.a)
     set_target_properties(gtest_main
             PROPERTIES
             IMPORTED_LOCATION ${binary_dir}/lib/libgtest_main.a)
+
     add_dependencies(gtest googletest)
     add_dependencies(gtest_main googletest)
-
     add_dependencies(trinity gtest)
+
     target_link_libraries(trinity PRIVATE gtest gtest_main)
     #add_test(NAME example_test COMMAND example)
 endif ()
