@@ -40,8 +40,10 @@ public:
   Partit& operator=(Partit other) = delete;
   Partit(Partit&& other) noexcept = delete;
   Partit& operator=(Partit&& other) noexcept = delete;
-  Partit(int max_graph_size, int max_part_size);
   ~Partit();
+
+  Partit(int max_graph_size, int max_part_size);
+  Partit(Mesh const* mesh, int max_part_size);
 
   void extractIndepSet(const Graph& graph, int nb);
   void extractColoring(const Mesh* mesh);

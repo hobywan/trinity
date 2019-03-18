@@ -42,7 +42,10 @@ Partit::Partit(int max_graph_size, int max_part_size) {
 #pragma omp parallel
   reset();
 }
-
+/* --------------------------------------------------------------------------- */
+Partit::Partit(Mesh const* mesh, int max_part_size)
+  : Partit(mesh->getCapaNode(), max_part_size)
+{}
 /* --------------------------------------------------------------------------- */
 Partit::~Partit() {
 

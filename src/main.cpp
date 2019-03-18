@@ -38,11 +38,11 @@ int main(int argc, char* argv[]) {
   auto solut  = parser.param.solut;
   auto result = parser.param.result;
 
-  trinity::Mesh    mesh(size, bucket, depth, verb, rounds);
+  trinity::Mesh    mesh  (size, bucket, depth, verb, rounds);
   trinity::Metrics metric(&mesh, target, norm, h_min, h_max);
-  trinity::Partit  heuris(mesh.getCapaNode(), 8);
+  trinity::Partit  heuris(&mesh, 8);
   trinity::Refine  refine(&mesh, depth);
-  trinity::Swap    swap(&mesh);
+  trinity::Swap    swap  (&mesh);
   trinity::Coarse  coarse(&mesh, &heuris);
   trinity::Smooth  smooth(&mesh, &heuris, depth);
   trinity::Stats   stat[5];
