@@ -42,7 +42,7 @@ To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
 find_package(trinity REQUIRED)                          # works for both build/install trees
-target_link_libraries(target PUBLIC trinity)            # replace 'target' with your library/binary
+target_link_libraries(target PRIVATE trinity)           # replace 'target' with your library/binary
 ```
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
@@ -108,8 +108,8 @@ It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002
 
 ###### Fine-grained parallelism
 **trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).  
-It relies on a [fork-join](https://en.wikipedia.org/wiki/Fork–join_model) model through [OpenMP](https://www.openmp.org).  
-All kernels are structured into [bulk-synchronous](https://doi.org/10.1016/j.jcss.2010.06.012) stages.  
+It relies on a [fork-join](https://en.wikipedia.org/wiki/Fork–join_model) model through OpenMP.  
+All kernels are structured into synchronous stages.  
 A stage consists of local computation, a [reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern)) in shared-memory, and a [barrier](https://en.wikipedia.org/wiki/Barrier_(computer_science)).  
 
 <table>
@@ -172,7 +172,7 @@ papi::init(nb_threads, papi_mode, count);                  // initialize all cou
 
 for (int i = 0; i < nb_kernels; ++i) { 
   papi::start(count[i]);                                   // start profile
-  kernel[i].run();                                         // a kernel you wanna profile
+  kernel[i].run();                                         // a thing you wanna profile
   papi::stop(count[i]);                                    // stop 
 }
 
@@ -190,7 +190,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 - set [memory affinity](https://blogs.cisco.com/performance/process-and-memory-affinity-why-do-you-care) through [`numactl`](https://linux.die.net/man/8/numactl), which is useful on a [Intel KNL](https://colfaxresearch.com/knl-numa/) node.
 - compact profiling data and generate [gnuplot](http://www.gnuplot.info) script for plots.
 - profile [memory bandwith](https://en.wikipedia.org/wiki/Memory_bandwidth) of the host machine using [STREAM](https://www.cs.virginia.edu/stream/).  
-- plot sparsity pattern of mesh incidence graph using [matplotlib](https://matplotlib.org).
+- plot sparsity pattern of mesh incidence graph.
 
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
