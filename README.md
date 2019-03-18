@@ -47,7 +47,7 @@ find_package(trinity REQUIRED)                          # works for both build/i
 target_link_libraries(target PUBLIC trinity)            # replace 'target' with your library/binary
 ```
 And then include `trinity.h` in your application.  
-Please take a look at the example folder for basic usage.
+Please take a look at the [examples](examples/) folder for basic usage.
 
 ###### Use the tool
 The list of command arguments is given by the `-h` option.  
@@ -87,22 +87,6 @@ For that, it uses five kernels:
 - [swapping](sources/swapping.h): flip edges to locally improve cell quality.
 - [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
 
-<!--A basic usage would be:
-
-``` c++  
-  mesh.load(input, solut);                      // load mesh and solution field in memory
-  metric.run();                                 // compute a metric tensor for each point
-
-  for (int i = 0; i < nb_rounds; ++i) {
-    refine.run();                               // split long edges in metric space
-    coarse.run();                               // collapse short edges in metric space
-      swap.run();                               // flip edges of bad cells in metric space
-    smooth.run();                               // relocate vertices of bad cells in metric space
-  }
-  mesh.store(result);                           // save resulting mesh on disk
-```
->💡 To enable profiling, you can pass a [`Stats`](sources/header.h) instance pointer as argument of each `run`.  -->
-
 ###### Error estimate
 **trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.   
 A tensor encodes the desired edge length incident to a point, which may be [direction-dependent](https://en.wikipedia.org/wiki/Anisotropy).  
@@ -113,7 +97,7 @@ For that, it provides a multi-scale estimate in [**L^_p_** norm](https://en.wiki
 - a large **_p_** will distribute points mainly on large variation areas (shocks).
 
 It actually implements the [continuous metric](https://link.springer.com/chapter/10.1007/978-3-540-34958-7_12) defined in:
->📄 Fréderic Alauzet, Adrien Loseille, Alain Dervieux and Pascal Frey (2006).  
+>[📄](https://link.springer.com/chapter/10.1007/978-3-540-34958-7_12) Fréderic Alauzet, Adrien Loseille, Alain Dervieux and Pascal Frey (2006).  
 "Multi-Dimensional Continuous Metric for Mesh Adaptation".  
 In _proceedings of the 15th International Meshing Roundtable_, pp 191-214, Springer Berlin.
 
@@ -155,9 +139,9 @@ It was designed to minimize data movement penalties, especially on [NUMA](https:
 
 <img src="figures/topology_fixes.png" alt="topology_fixes.png" width="600">
 
-For further details, please take a look [at](https://doi.org/10.1007/978-3-319-64203-1_43):
+For further details, please take a look at:
 
->📄 Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
+>[📄](https://doi.org/10.1007/978-3-319-64203-1_43) Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
 "Scalable fine-grained metric-based remeshing algorithm for manycore/NUMA architectures".  
 In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
 
@@ -201,8 +185,7 @@ papi::finalize(count);                                     // report counters va
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩   
-I included some python [scripts](scripts/) to help setting it up on a node.  
-They enable to:
+I included some python scripts to help setting it up on a node, enabling to:  
 
 - compute a synthetic solution field.
 - rebuild sources and set [thread-core affinity](https://en.wikipedia.org/wiki/Processor_affinity).
@@ -217,7 +200,7 @@ They enable to:
 ### License and contributions
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
-<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="figures/logo.png" alt="logo" width="90"></a> <a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="figures/logo_osi.png" alt="logo_osi" width="70"></a>
+<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="figures/logo_osi.png" alt="logo_osi" width="70"></a>
 
 **trinity** is free and open-source.  
 It was intended for research purposes and released under the [GPL](https://www.gnu.org/licenses/gpl-3.0) license.  
