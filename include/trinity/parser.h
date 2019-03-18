@@ -53,6 +53,10 @@ public:
    Parser(int argc, char* argv[]);
   ~Parser() = default;
 
+  void recap(Stats* stat);
+  void dump(Stats* stat);
+
+private:
   void showDesc();
 };
 /* ------------------------------------*/

@@ -24,8 +24,6 @@
 int main(int argc, char* argv[]) {
 
   trinity::Parser parser(argc, argv);
-  parser.showDesc();
-  // -----
 
   auto size   = parser.param.size;
   auto bucket = parser.param.bucket;
@@ -59,7 +57,7 @@ int main(int argc, char* argv[]) {
     smooth.run(stat + 4);
   }
 
-  trinity::io::recap(stat,parser);
-  trinity::io::dump(stat,parser);
+  parser.recap(stat);
+  parser.dump(stat);
   mesh.store(result);
 }
