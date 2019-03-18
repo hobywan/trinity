@@ -80,14 +80,18 @@ Parser::Parser(int argc, char* argv[]) {
 
   if (param.threads <= param.cores) {
     param.hw_cores = 0;
-    hwloc_topology_t topology;
-
-    if (hwloc_topology_init(&topology) == 0 and hwloc_topology_load(topology) == 0) {
-      param.hw_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
-      hwloc_topology_destroy(topology);
-      omp_set_num_threads(param.threads);
-    } else
-      tools::abort('c', "unable to retrieve the number of physical cores", parser);
+    #if HAVE_HWLOC
+      hwloc_topology_t topology;
+      if (not hwloc_topology_init(&topology) and not hwloc_topology_load(topology)) {
+        param.hw_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+        hwloc_topology_destroy(topology);
+        omp_set_num_threads(param.threads);
+      } else {
+        tools::abort('c', "unable to retrieve the number of physical cores", parser);
+      }
+    #else
+      param.hw_cores = param.cores;
+    #endif
   } else
     tools::abort('c', "not enough available logical cores", parser);
 
