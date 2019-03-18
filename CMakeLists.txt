@@ -169,30 +169,32 @@ if (Build_Main)
 
     target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PUBLIC trinity)
-endif()
 
-# build examples
-if (Build_Examples)
-    list(APPEND EXAMPLES examples/adap.cpp)
+    # build examples
+    if (Build_Examples)
+        # build all embedded examples
+        list(APPEND EXAMPLES examples/adap.cpp)
 
-    foreach(path ${EXAMPLES})
-        string(REPLACE ".cpp" "" trimmed ${path})
-        get_filename_component(example ${trimmed} NAME)
-        add_executable(${example})
-        set_target_properties(${example}
-                PROPERTIES
-                OUTPUT_NAME ${example}
-                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
-        target_sources(${example} PUBLIC ${path})
-        target_link_libraries(${example} PUBLIC trinity)
+        foreach(path ${EXAMPLES})
+            string(REPLACE ".cpp" "" trimmed ${path})
+            get_filename_component(example ${trimmed} NAME)
+            add_executable(${example})
+            set_target_properties(${example}
+                    PROPERTIES
+                    OUTPUT_NAME ${example}
+                    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
+            target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
+            target_link_libraries(${example} PUBLIC trinity)
+        endforeach()
 
-        set(ORIG ${CMAKE_SOURCE_DIR}/examples)
-        set(DEST ${CMAKE_BINARY_DIR}/examples)
+        # copy examples input files
+        set(INPUT_ORIG ${CMAKE_SOURCE_DIR}/examples)
+        set(INPUT_DEST ${CMAKE_BINARY_DIR}/examples)
         add_custom_command(
-                TARGET ${example} POST_BUILD
-                COMMAND cmake -E copy_directory ${ORIG}/mesh  ${DEST}/mesh
-                COMMAND cmake -E copy_directory ${ORIG}/solut ${DEST}/solut)
-    endforeach()
+                TARGET main POST_BUILD
+                COMMAND cmake -E copy_directory ${INPUT_ORIG}/mesh  ${INPUT_DEST}/mesh
+                COMMAND cmake -E copy_directory ${INPUT_ORIG}/solut ${INPUT_DEST}/solut)
+    endif()
 endif()
 
 # export target from build/install trees
