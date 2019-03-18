@@ -87,6 +87,8 @@ endif ()
 
 # manage compilation options
 target_compile_features(trinity PUBLIC cxx_std_14)
+target_compile_definitions(trinity PRIVATE DEFAULT_INPUT_DIR="${CMAKE_SOURCE_DIR}/examples")
+target_compile_definitions(trinity PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
 # set build-type dependent options
 set(DEFAULT_BUILD_TYPE "Release")
@@ -126,11 +128,11 @@ if (Build_Medit)
             INSTALL_COMMAND ""
             CMAKE_ARGS ${EXTERN_BUILD_ARGS})
 
-    ExternalProject_Get_Property(medit binary_dir)
+    ExternalProject_Get_Property(medit BINARY_DIR)
     add_dependencies(trinity medit)
     add_custom_command(
             TARGET trinity POST_BUILD
-            COMMAND cmake -E copy_if_different ${binary_dir}/medit bin/medit)
+            COMMAND cmake -E copy_if_different ${BINARY_DIR}/medit bin/medit)
 endif ()
 
 if (Build_GTest)
@@ -142,43 +144,43 @@ if (Build_GTest)
             INSTALL_COMMAND ""
             CMAKE_ARGS ${EXTERN_BUILD_ARGS})
 
-    ExternalProject_Get_Property(googletest binary_dir)
+    ExternalProject_Get_Property(googletest BINARY_DIR)
     add_library(gtest STATIC IMPORTED)
     add_library(gtest_main STATIC IMPORTED)
     set_target_properties(gtest
             PROPERTIES
-            IMPORTED_LOCATION ${binary_dir}/lib/libgtest.a)
+            IMPORTED_LOCATION ${BINARY_DIR}/lib/libgtest.a)
     set_target_properties(gtest_main
             PROPERTIES
-            IMPORTED_LOCATION ${binary_dir}/lib/libgtest_main.a)
+            IMPORTED_LOCATION ${BINARY_DIR}/lib/libgtest_main.a)
 
     add_dependencies(gtest googletest)
     add_dependencies(gtest_main googletest)
     add_dependencies(trinity gtest)
-
     target_link_libraries(trinity PRIVATE gtest gtest_main)
     #add_test(NAME example_test COMMAND example)
 endif ()
 
 if (Build_Examples)
-    set(EXAMPLES examples/adap.cpp)
+    set(EXAMPLES examples/adapt.cpp)
 
     foreach(path ${EXAMPLES})
         string(REPLACE ".cpp" "" trimmed ${path})
-        get_filename_component(example ${trimmed} NAME)
-        add_executable(${example})
-        set_target_properties(${example}
+        get_filename_component(current ${trimmed} NAME)
+
+        add_executable(${current})
+        set_target_properties(${current}
                 PROPERTIES
-                OUTPUT_NAME ${example}
-                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
-        target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
-        target_link_libraries(${example} PRIVATE trinity)
-        # avoid relative paths issues for input/solut files
-        target_compile_definitions(${example} PRIVATE SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-        target_compile_definitions(${example} PRIVATE BUILD_DIR="${CMAKE_BINARY_DIR}")
+                OUTPUT_NAME "example_${current}"
+                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+        target_sources(${current} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
+        target_link_libraries(${current} PRIVATE trinity)
+        target_compile_definitions(${current} PRIVATE DEFAULT_INPUT_DIR="${CMAKE_SOURCE_DIR}/examples")
+        target_compile_definitions(${current} PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR}")
     endforeach()
 endif()
 
+# build the command-line tool
 if (Build_Main)
     add_executable(main)
     set_target_properties(main
@@ -188,6 +190,8 @@ if (Build_Main)
 
     target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PRIVATE trinity)
+    # create a directory for output data
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data)
 endif()
 
 # export target from build/install trees

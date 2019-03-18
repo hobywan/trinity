@@ -52,9 +52,9 @@ Parser::Parser(int argc, char* argv[]) {
   depth.set_default(3).type("int");
   round.set_default(8).type("int");
   verb .set_default(1).type("int");
-  input.set_default("../examples/mesh/GRID4.mesh");
-  solut.set_default("../examples/solut/shock4.bb");
-  rsult.set_default("../examples/mesh/adap.mesh");
+  input.set_default(std::string(DEFAULT_INPUT_DIR) + "/mesh/GRID4.mesh");
+  solut.set_default(std::string(DEFAULT_INPUT_DIR) + "/solut/shock4.bb");
+  rsult.set_default(std::string(DEFAULT_BUILD_DIR) + "/data/adapted.mesh");
   modes.set_default(mode[0]).choices(mode, mode + 3);
   papis.set_default(papi[0]).choices(papi, papi + 4);
   arch .set_default("kbl");
@@ -82,7 +82,8 @@ Parser::Parser(int argc, char* argv[]) {
     param.hw_cores = 0;
     #if HAVE_HWLOC
       hwloc_topology_t topology;
-      if (not hwloc_topology_init(&topology) and not hwloc_topology_load(topology)) {
+      int const ok = 0;
+      if (hwloc_topology_init(&topology) == ok and hwloc_topology_load(topology) == ok) {
         param.hw_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
         hwloc_topology_destroy(topology);
         omp_set_num_threads(param.threads);
