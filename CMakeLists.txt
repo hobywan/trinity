@@ -20,10 +20,11 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif ()
 
 # program compile-time options
-option(Build_Medit  "Build medit viewer" ON)
-option(Build_GTest  "Build googletest" ON)
-option(Build_Main   "Build command-line tool" ON)
-option(Use_Deferred "Use deferred topology updates scheme" OFF)
+option(Build_Medit    "Build medit viewer" ON)
+option(Build_GTest    "Build googletest" ON)
+option(Build_Main     "Build command-line tool" ON)
+option(Build_Examples "Build examples sources" ON)
+option(Use_Deferred   "Use deferred topology updates scheme" OFF)
 
 # define project infos
 enable_language(CXX)
@@ -36,22 +37,22 @@ target_include_directories(trinity PUBLIC
         $<INSTALL_INTERFACE:include>)
 
 target_sources(trinity PRIVATE
-        sources/coarsening.cpp
-        sources/hessian.cpp
-        sources/hwcount.cpp
-        sources/io.cpp
-        sources/main.cpp
-        sources/matching.cpp
-        sources/mesh.cpp
-        sources/metric.cpp
-        sources/numeric.cpp
-        sources/partition.cpp
-        sources/refinement.cpp
-        sources/rmat.cpp
-        sources/smoothing.cpp
-        sources/swapping.cpp
-        sources/sync.cpp
-        sources/tools.cpp)
+        src/coarsening.cpp
+        src/hessian.cpp
+        src/hwcount.cpp
+        src/io.cpp
+        src/main.cpp
+        src/matching.cpp
+        src/mesh.cpp
+        src/metric.cpp
+        src/numeric.cpp
+        src/partition.cpp
+        src/refinement.cpp
+        src/rmat.cpp
+        src/smoothing.cpp
+        src/swapping.cpp
+        src/sync.cpp
+        src/tools.cpp)
 
 set_target_properties(trinity PROPERTIES
         PUBLIC_HEADER include/trinity.h
@@ -166,8 +167,32 @@ if (Build_Main)
             OUTPUT_NAME "trinity"
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-    target_sources(main PRIVATE sources/main.cpp)
+    target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PUBLIC trinity)
+endif()
+
+# build examples
+if (Build_Examples)
+    list(APPEND EXAMPLES examples/adap.cpp)
+
+    foreach(path ${EXAMPLES})
+        string(REPLACE ".cpp" "" trimmed ${path})
+        get_filename_component(example ${trimmed} NAME)
+        add_executable(${example})
+        set_target_properties(${example}
+                PROPERTIES
+                OUTPUT_NAME ${example}
+                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
+        target_sources(${example} PUBLIC ${path})
+        target_link_libraries(${example} PUBLIC trinity)
+
+        set(ORIG ${CMAKE_SOURCE_DIR}/examples)
+        set(DEST ${CMAKE_BINARY_DIR}/examples)
+        add_custom_command(
+                TARGET ${example} POST_BUILD
+                COMMAND cmake -E copy_directory ${ORIG}/mesh  ${DEST}/mesh
+                COMMAND cmake -E copy_directory ${ORIG}/solut ${DEST}/solut)
+    endforeach()
 endif()
 
 # export target from build/install trees
