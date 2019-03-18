@@ -4,4 +4,4 @@
 .idea
 build
 venv
-profile/_?/*.dat
+profile
