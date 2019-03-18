@@ -8,13 +8,12 @@ endif ()
 
 # use same build configuration for external dependencies
 # need to be called before 'project'
-get_cmake_property(vars CACHE_VARIABLES)
-set(EXTERN_ARGS "-Wno-dev")
-foreach (var ${vars})
-    get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
-    if ("${currentHelpString}" MATCHES "No help, variable specified on the command line." OR "${currentHelpString}" STREQUAL "")
-        # message(STATUS "${var} = [${${var}}]  --  ${currentHelpString}")
-        list(APPEND EXTERN_ARGS "-D${var}=${${var}}")
+get_cmake_property(Build_Options CACHE_VARIABLES)
+set(EXTERN_BUILD_ARGS "-Wno-dev")
+foreach (cached ${Build_Options})
+    get_property(helper CACHE "${cached}" PROPERTY HELPSTRING)
+    if ("${helper}" MATCHES "No help, variable specified on the command line." OR "${helper}" STREQUAL "")
+        list(APPEND EXTERN_BUILD_ARGS "-D${cached}=${${cached}}")
     endif ()
 endforeach ()
 
@@ -123,7 +122,7 @@ if (Build_Medit)
             GIT_TAG master
             PREFIX ${CMAKE_BINARY_DIR}/extern
             INSTALL_COMMAND ""
-            CMAKE_ARGS ${EXTERN_ARGS})
+            CMAKE_ARGS ${EXTERN_BUILD_ARGS})
 
     ExternalProject_Get_Property(medit binary_dir)
     add_dependencies(trinity medit)
@@ -139,7 +138,7 @@ if (Build_GTest)
             GIT_TAG master
             PREFIX ${CMAKE_BINARY_DIR}/extern
             INSTALL_COMMAND ""
-            CMAKE_ARGS ${EXTERN_ARGS})
+            CMAKE_ARGS ${EXTERN_BUILD_ARGS})
 
     ExternalProject_Get_Property(googletest binary_dir)
     add_library(gtest UNKNOWN IMPORTED)
@@ -167,7 +166,7 @@ if (Build_Main)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
     target_sources(main PRIVATE src/main.cpp)
-    target_link_libraries(main PUBLIC trinity)
+    target_link_libraries(main PRIVATE trinity)
 
     # build examples
     if (Build_Examples)
@@ -183,7 +182,7 @@ if (Build_Main)
                     OUTPUT_NAME ${example}
                     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
             target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
-            target_link_libraries(${example} PUBLIC trinity)
+            target_link_libraries(${example} PRIVATE trinity)
         endforeach()
 
         # copy examples input files
