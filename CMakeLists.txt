@@ -162,6 +162,7 @@ endif ()
 
 if (Build_Examples)
     set(EXAMPLES examples/adap.cpp)
+
     foreach(path ${EXAMPLES})
         string(REPLACE ".cpp" "" trimmed ${path})
         get_filename_component(example ${trimmed} NAME)
@@ -172,12 +173,10 @@ if (Build_Examples)
                 RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
         target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
         target_link_libraries(${example} PRIVATE trinity)
+        # avoid relative paths issues for input/solut files
+        target_compile_definitions(${example} PRIVATE SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+        target_compile_definitions(${example} PRIVATE BUILD_DIR="${CMAKE_BINARY_DIR}")
     endforeach()
-
-    # define mesh/solut files for each example
-    target_compile_definitions(adap PRIVATE Adap_Input="${CMAKE_SOURCE_DIR}/examples/mesh/GRID4.mesh")
-    target_compile_definitions(adap PRIVATE Adap_Solut="${CMAKE_SOURCE_DIR}/examples/solut/shock4.bb")
-    target_compile_definitions(adap PRIVATE Adap_Output="${CMAKE_BINARY_DIR}/examples/adapted.mesh")
 endif()
 
 if (Build_Main)
