@@ -21,37 +21,36 @@
 
 int main(int argc, char* argv[]) {
 
-  int size[2];
   int const threads = std::thread::hardware_concurrency();
+  int const verbose = 1;
   int const bucket  = 64;
   int const depth   = 3;
   int const rounds  = 8;
-  int const verbose = 1;
-  int const norm    = 2;
   int const max_col = 8;
 
-  double const target = 1.0;
-  double const h_min  = 1.E-9;
-  double const h_max  = 0.4;
+  auto const norm   = 2;
+  auto const target = 1.0;
+  auto const h_min  = 1.E-9;
+  auto const h_max  = 0.4;
 
-  std::string const input  = Adap_Input;  // "mesh/GRID4.mesh"
-  std::string const solut  = Adap_Solut;  // "solut/shock4.mesh"
-  std::string const result = Adap_Output; // "mesh/adapted.mesh"
+  auto const input  = std::string(SOURCE_DIR) + "/examples/mesh/GRID4.mesh";
+  auto const solut  = std::string(SOURCE_DIR) + "/examples/solut/shock4.mesh";
+  auto const result = std::string( BUILD_DIR) + "/examples/adapted.mesh";
 
   assert(trinity::tools::exists(input));
   assert(trinity::tools::exists(solut));
 
   std::ifstream file(input, std::ios::in);
   assert(file.good());
-  size[0] = trinity::io::find("Vertices",  file);
-  size[1] = trinity::io::find("Triangles", file);
+  int size[] = {
+    trinity::io::find("Vertices",  file),
+    trinity::io::find("Triangles", file)
+  };
   file.close();
-
-  omp_set_num_threads(threads);
 
   trinity::Mesh    mesh   (size, bucket, depth, verbose, rounds);
   trinity::Metrics metric (&mesh, target, norm, h_min, h_max);
-  trinity::Partit  heuris (mesh.getCapaNode(), max_col);
+  trinity::Partit  heuris (&mesh, max_col);
   trinity::Refine  refine (&mesh, depth);
   trinity::Swap    swap   (&mesh);
   trinity::Coarse  coarse (&mesh, &heuris);
