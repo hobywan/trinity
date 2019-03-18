@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "partition.h"
+#include "trinity/partition.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */

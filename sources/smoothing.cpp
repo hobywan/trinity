@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "smoothing.h"
+#include "trinity/smoothing.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */

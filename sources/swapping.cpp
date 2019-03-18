@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "swapping.h"
+#include "trinity/swapping.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity {
 /* --------------------------------------------------------------------------- */

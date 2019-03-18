@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <numeric.h>
-#include <tools.h>
+#include "trinity/numeric.h"
+#include "trinity/tools.h"
 
 namespace trinity {
 /* --------------------------------------------------------------------------- */

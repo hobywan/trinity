@@ -18,7 +18,7 @@
  */
 
 /* --------------------------------------------------------------------------- */
-#include "core.h"
+#include "trinity.h"
 #include <hwloc.h>
 /* --------------------------------------------------------------------------- */
 // accessible only in this file
@@ -75,9 +75,9 @@ void parse(int argc, char* argv[]) {
   depth.set_default(3).type("int");
   round.set_default(8).type("int");
   verb_.set_default(1).type("int");
-  input.set_default("../data/GRID4.mesh");
-  solut.set_default("../data/solut/shock4.bb");
-  rsult.set_default("../data/tests/adap.mesh");
+  input.set_default("../examples/mesh/GRID4.mesh");
+  solut.set_default("../examples/solut/shock4.bb");
+  rsult.set_default("../examples/mesh/adap.mesh");
   mode_.set_default(mode[0]).choices(mode, mode + 3);
   papi_.set_default(papi[0]).choices(papi, papi + 4);
   arch_.set_default("kbl");
@@ -121,8 +121,11 @@ void parse(int argc, char* argv[]) {
     _size[0] = trinity::io::find("Vertices", file);
     _size[1] = trinity::io::find("Triangles", file);
     file.close();
-  } else
+  } else {
+    std::printf("input mesh file: %s\n", _input.data());
     trinity::tools::abort('i', "invalid mesh file", parser);
+  }
+
 
   if (trinity::tools::exists(_solut)) {
     std::ifstream file(_solut, std::ios::in);

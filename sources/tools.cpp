@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tools.h"
+#include "trinity/tools.h"
 /* --------------------------------------------------------------------------- */
 namespace trinity { namespace tools {
 /* --------------------------------------------------------------------------- */

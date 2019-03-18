@@ -19,7 +19,7 @@
  */
 
 #ifdef HAVE_PAPI
-#include "hwcount.h"
+#include "trinity/hwcount.h"
 
 /* --------------------------------------------------------------------------- */
 void PAPI::start(std::vector<PAPI*>& counter_array) {
