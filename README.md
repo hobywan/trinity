@@ -44,9 +44,9 @@ To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
 find_package(trinity REQUIRED)                          # works for both build/install trees
-target_link_libraries(${target} PUBLIC trinity)         # replace 'target' with your library/binary
+target_link_libraries(target PUBLIC trinity)            # replace 'target' with your library/binary
 ```
-And then include `trinity/core.h` in your application.  
+And then include `trinity.h` in your application.  
 Please take a look at the example folder for basic usage.
 
 ###### Use the tool
