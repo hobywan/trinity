@@ -45,7 +45,7 @@
  * worth running \c papi_avail and \c papi_native_avail to determine which
  * hardware counters are available on the machine that you are using.
  */
-#ifdef HAVE_PAPI
+#if HAVE_PAPI
 
 #include <header.h>
 #include <papi.h>
