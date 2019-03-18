@@ -88,7 +88,6 @@ endif ()
 # manage compilation options
 target_compile_features(trinity PUBLIC cxx_std_14)
 
-
 # set build-type dependent options
 set(DEFAULT_BUILD_TYPE "Release")
 
@@ -118,7 +117,6 @@ if (Use_Deferred)
     target_compile_definitions(trinity PRIVATE DEFERRED_UPDATES)
 endif ()
 
-# build medit if necessary
 if (Build_Medit)
     include(ExternalProject)
     ExternalProject_Add(medit
@@ -162,7 +160,26 @@ if (Build_GTest)
     #add_test(NAME example_test COMMAND example)
 endif ()
 
-# create the command-line tool
+if (Build_Examples)
+    set(EXAMPLES examples/adap.cpp)
+    foreach(path ${EXAMPLES})
+        string(REPLACE ".cpp" "" trimmed ${path})
+        get_filename_component(example ${trimmed} NAME)
+        add_executable(${example})
+        set_target_properties(${example}
+                PROPERTIES
+                OUTPUT_NAME ${example}
+                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
+        target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
+        target_link_libraries(${example} PRIVATE trinity)
+    endforeach()
+
+    # define mesh/solut files for each example
+    target_compile_definitions(adap PRIVATE Adap_Input="${CMAKE_SOURCE_DIR}/examples/mesh/GRID4.mesh")
+    target_compile_definitions(adap PRIVATE Adap_Solut="${CMAKE_SOURCE_DIR}/examples/solut/shock4.bb")
+    target_compile_definitions(adap PRIVATE Adap_Output="${CMAKE_BINARY_DIR}/examples/adapted.mesh")
+endif()
+
 if (Build_Main)
     add_executable(main)
     set_target_properties(main
@@ -172,38 +189,14 @@ if (Build_Main)
 
     target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PRIVATE trinity)
-
-    # build examples
-    if (Build_Examples)
-        # build all embedded examples
-        set(EXAMPLES examples/adap.cpp)
-
-        foreach(path ${EXAMPLES})
-            string(REPLACE ".cpp" "" trimmed ${path})
-            get_filename_component(example ${trimmed} NAME)
-            add_executable(${example})
-            set_target_properties(${example}
-                    PROPERTIES
-                    OUTPUT_NAME ${example}
-                    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples)
-            target_sources(${example} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
-            target_link_libraries(${example} PRIVATE trinity)
-        endforeach()
-
-        # copy examples input files
-        add_custom_command(
-                TARGET main POST_BUILD
-                COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/examples/mesh  ${CMAKE_BINARY_DIR}/examples/mesh
-                COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/examples/solut ${CMAKE_BINARY_DIR}/examples/solut)
-    endif()
 endif()
 
 # export target from build/install trees
 export(TARGETS trinity FILE trinity-config.cmake)
 export(PACKAGE trinity)
 
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/trinity" # source directory
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/include" # target directory
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/trinity"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
         FILES_MATCHING PATTERN "*.h")
 
 install(TARGETS trinity

@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
   double const h_min  = 1.E-9;
   double const h_max  = 0.4;
 
-  std::string const input  = "examples/mesh/GRID4.mesh";
-  std::string const solut  = "examples/solut/shock4.mesh";
-  std::string const result = "examples/mesh/adapted.mesh";
+  std::string const input  = Adap_Input;  // "mesh/GRID4.mesh"
+  std::string const solut  = Adap_Solut;  // "solut/shock4.mesh"
+  std::string const result = Adap_Output; // "mesh/adapted.mesh"
 
   assert(trinity::tools::exists(input));
   assert(trinity::tools::exists(solut));
