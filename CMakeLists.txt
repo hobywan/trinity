@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
+cmake_policy(SET CMP0048 NEW)
 
 # must be done before call to 'project'
 get_cmake_property(vars CACHE_VARIABLES)
@@ -10,13 +11,13 @@ foreach (var ${vars})
     endif ()
 endforeach ()
 
+# set project infos
+project(trinity VERSION 1.0.3)
+
 # check supported OS
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     message(FATAL_ERROR "Sorry, Windows is not supported.")
 endif ()
-
-# set project infos
-project(trinity VERSION 1.0.3)
 
 # program compile-time options
 option(Build_Medit  "Build medit viewer" ON)
