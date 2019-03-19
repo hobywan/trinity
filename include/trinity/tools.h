@@ -61,6 +61,9 @@ bool isDigit(const char* arg);
 // get file name without extension
 std::string rootOf(const std::string& path);
 
+// get testcase name from path
+std::string testcase(const std::string& path);
+
 // replace a file extension by another
 std::string replaceExt(const std::string& fname, const std::string& ext);
 

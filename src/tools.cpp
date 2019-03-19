@@ -115,9 +115,16 @@ bool isDigit(const char* arg) {
 std::string rootOf(const std::string& path) {
 
   std::string s = basename(path);
-  auto last_dot = s.find_last_of('.');
-  s.substr(0, last_dot);
-  return s;
+  size_t const last_dot = s.find_last_of('.');
+//  printf("last_dot: %d\n", last_dot);
+  return s.substr(0, last_dot);
+}
+/* --------------------------------------------------------------------------- */
+std::string testcase(const std::string& path) {
+
+  std::string s = basename(path);
+  size_t const last_dot = s.find_last_of('.');
+  return s.substr(0, last_dot-1);
 }
 
 /* --------------------------------------------------------------------------- */
