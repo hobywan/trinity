@@ -70,7 +70,7 @@ find_package(Hwloc)
 
 if (OpenMP_CXX_FOUND)
     target_link_libraries(trinity PUBLIC OpenMP::OpenMP_CXX)
-endif()
+endif ()
 
 if (PAPI_FOUND)
     target_compile_definitions(trinity PUBLIC HAVE_PAPI)
@@ -93,12 +93,12 @@ target_compile_definitions(trinity PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR
 # set build-type dependent options
 set(DEFAULT_BUILD_TYPE "Release")
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
     set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
     # Set the possible values of build type for cmake-gui
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
+endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -130,8 +130,8 @@ if (Build_Medit)
 
     ExternalProject_Get_Property(medit BINARY_DIR)
     add_dependencies(trinity medit)
-    add_custom_command(
-            TARGET trinity POST_BUILD
+    add_custom_command(TARGET trinity
+            POST_BUILD
             COMMAND cmake -E copy_if_different ${BINARY_DIR}/medit bin/medit)
 endif ()
 
@@ -164,7 +164,7 @@ endif ()
 if (Build_Examples)
     set(EXAMPLES examples/adapt.cpp)
 
-    foreach(path ${EXAMPLES})
+    foreach (path ${EXAMPLES})
         string(REPLACE ".cpp" "" trimmed ${path})
         get_filename_component(current ${trimmed} NAME)
 
@@ -173,12 +173,13 @@ if (Build_Examples)
                 PROPERTIES
                 OUTPUT_NAME "example_${current}"
                 RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
         target_sources(${current} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
         target_link_libraries(${current} PRIVATE trinity)
         target_compile_definitions(${current} PRIVATE DEFAULT_INPUT_DIR="${CMAKE_SOURCE_DIR}/examples")
         target_compile_definitions(${current} PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR}")
-    endforeach()
-endif()
+    endforeach ()
+endif ()
 
 # build the command-line tool
 if (Build_Main)
@@ -190,9 +191,10 @@ if (Build_Main)
 
     target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PRIVATE trinity)
-    # create a directory for output data
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data)
-endif()
+    add_custom_command(TARGET main
+            POST_BUILD
+            COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/data)
+endif ()
 
 # export target from build/install trees
 export(TARGETS trinity FILE trinity-config.cmake)

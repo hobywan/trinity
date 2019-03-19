@@ -234,10 +234,12 @@ void Mesh::store(const std::string& path) const {
   delete[] index;
 
   if (param.verb)
-    std::printf("'%s' \e[32m(%.2f s)\e[0m\n",
-                tools::basename(path).data(), (float) timer::elapsed_ms(start) / 1e3);
+    std::printf("%s \e[32m(%.2f s)\e[0m\n",
+                ("data/" + tools::basename(path)).data(),
+                (float) timer::elapsed_ms(start) / 1e3);
   else
-    std::printf("= '%s' exported\n", tools::basename(path).data());
+    std::printf("= %s exported\n",
+                ("data/" + tools::basename(path)).data());
 }
 
 /* --------------------------------------------------------------------------- */
