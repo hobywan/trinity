@@ -33,9 +33,9 @@ int main(int argc, char* argv[]) {
   auto const h_min  = 1.E-9;
   auto const h_max  = 0.4;
 
-  auto const input  = std::string(DEFAULT_INPUT_DIR) + "/mesh/GRID4.mesh";
-  auto const solut  = std::string(DEFAULT_INPUT_DIR) + "/solut/shock4.bb";
-  auto const result = std::string(DEFAULT_BUILD_DIR) + "/data/adapted.mesh";
+  auto const input  = std::string(TRINITY_EXAMP_DIR) + "/mesh/GRID4.mesh";
+  auto const solut  = std::string(TRINITY_EXAMP_DIR) + "/solut/shock4.bb";
+  auto const result = std::string(TRINITY_BUILD_DIR) + "/data/adapted.mesh";
 
   assert(trinity::tools::exists(input));
   assert(trinity::tools::exists(solut));

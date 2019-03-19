@@ -52,9 +52,9 @@ Parser::Parser(int argc, char* argv[]) {
   depth.set_default(3).type("int");
   round.set_default(8).type("int");
   verb .set_default(1).type("int");
-  input.set_default(std::string(DEFAULT_INPUT_DIR) + "/mesh/GRID4.mesh");
-  solut.set_default(std::string(DEFAULT_INPUT_DIR) + "/solut/shock4.bb");
-  rsult.set_default(std::string(DEFAULT_BUILD_DIR) + "/data/adapted.mesh");
+  input.set_default(std::string(TRINITY_EXAMP_DIR) + "/mesh/GRID4.mesh");
+  solut.set_default(std::string(TRINITY_EXAMP_DIR) + "/solut/shock4.bb");
+  rsult.set_default(std::string(TRINITY_BUILD_DIR) + "/data/adapted.mesh");
   modes.set_default(mode[0]).choices(mode, mode + 3);
   papis.set_default(papi[0]).choices(papi, papi + 4);
   arch .set_default("kbl");
@@ -220,7 +220,7 @@ void Parser::dump(Stats* stat) {
       }
 
       auto start  = timer::now();
-      auto prefix = std::string(DEFAULT_BUILD_DIR);
+      auto prefix = std::string(TRINITY_BUILD_DIR);
       auto suffix = tools::rootOf(param.name) + "_" + param.arch + "_" + kernel + ".dat";
       auto path   = prefix + "/data/" + suffix;
       auto file   = std::fopen(path.data(), "a");

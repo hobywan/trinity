@@ -87,8 +87,8 @@ endif ()
 
 # manage compilation options
 target_compile_features(trinity PUBLIC cxx_std_14)
-target_compile_definitions(trinity PRIVATE DEFAULT_INPUT_DIR="${CMAKE_SOURCE_DIR}/examples")
-target_compile_definitions(trinity PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR}")
+target_compile_definitions(trinity PRIVATE TRINITY_EXAMP_DIR="${CMAKE_SOURCE_DIR}/examples")
+target_compile_definitions(trinity PRIVATE TRINITY_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
 # set build-type dependent options
 set(DEFAULT_BUILD_TYPE "Release")
@@ -176,8 +176,8 @@ if (Build_Examples)
 
         target_sources(${current} PUBLIC ${CMAKE_SOURCE_DIR}/${path})
         target_link_libraries(${current} PRIVATE trinity)
-        target_compile_definitions(${current} PRIVATE DEFAULT_INPUT_DIR="${CMAKE_SOURCE_DIR}/examples")
-        target_compile_definitions(${current} PRIVATE DEFAULT_BUILD_DIR="${CMAKE_BINARY_DIR}")
+        target_compile_definitions(${current} PRIVATE TRINITY_EXAMP_DIR="${CMAKE_SOURCE_DIR}/examples")
+        target_compile_definitions(${current} PRIVATE TRINITY_BUILD_DIR="${CMAKE_BINARY_DIR}")
     endforeach ()
 endif ()
 
@@ -191,9 +191,7 @@ if (Build_Main)
 
     target_sources(main PRIVATE src/main.cpp)
     target_link_libraries(main PRIVATE trinity)
-    add_custom_command(TARGET main
-            POST_BUILD
-            COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/data)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data)
 endif ()
 
 # export target from build/install trees
