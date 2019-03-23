@@ -44,54 +44,6 @@ Coarse::Coarse(Mesh* input, Partit* algo)
 }
 
 /* -------------------------------------------------------------------------- */
-void Coarse::run(Stats* total) {
-
-  initialize();
-
-  int elap[] = {0, 0, 0, 0, 0, 0};
-  int form[] = {0, 0};
-  int stat[] = {0, 0, 0};
-
-#pragma omp parallel
-  {
-    int level = 0;
-    std::vector<int> heap;
-    heap.reserve((size_t) nb_nodes / cores);
-
-    preProcess();
-    timer::save(time.tic, elap);
-
-    do {
-      mesh->extractPrimalGraph();
-      timer::save(time.tic, elap);
-
-      filterPoints(&heap);
-      timer::save(time.tic, elap + 1);
-
-      if (not nb.tasks)
-        break;
-
-      extractSubGraph();
-      timer::save(time.tic, elap + 2);
-
-      heuris->extractIndepSet(primal, nb.tasks);
-      timer::save(time.tic, elap + 3);
-
-      processPoints();
-      saveStat(level, stat, form);
-      timer::save(time.tic, elap + 4);
-
-      mesh->fixTagged();
-      timer::save(time.tic, elap + 5);
-      showStat(level++, form);
-    } while (nb_indep);
-
-    recap(elap, stat, form, total);
-    mesh->verifyTopology();
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 void Coarse::identifyTarget(int source) {
 
   bool bound_source = mesh->isBoundary(source);
@@ -507,4 +459,52 @@ void Coarse::recap(int* elap, int* stat, int* form, Stats* total) {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void Coarse::run(Stats* total) {
+
+  initialize();
+
+  int elap[] = {0, 0, 0, 0, 0, 0};
+  int form[] = {0, 0};
+  int stat[] = {0, 0, 0};
+
+#pragma omp parallel
+  {
+    int level = 0;
+    std::vector<int> heap;
+    heap.reserve((size_t) nb_nodes / cores);
+
+    preProcess();
+    timer::save(time.tic, elap);
+
+    do {
+      mesh->extractPrimalGraph();
+      timer::save(time.tic, elap);
+
+      filterPoints(&heap);
+      timer::save(time.tic, elap + 1);
+
+      if (not nb.tasks)
+        break;
+
+      extractSubGraph();
+      timer::save(time.tic, elap + 2);
+
+      heuris->extractIndepSet(primal, nb.tasks);
+      timer::save(time.tic, elap + 3);
+
+      processPoints();
+      saveStat(level, stat, form);
+      timer::save(time.tic, elap + 4);
+
+      mesh->fixTagged();
+      timer::save(time.tic, elap + 5);
+      showStat(level++, form);
+    } while (nb_indep);
+
+    recap(elap, stat, form, total);
+    mesh->verifyTopology();
+  }
+}
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

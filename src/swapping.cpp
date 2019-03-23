@@ -52,54 +52,6 @@ Swap::~Swap() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Swap::run(Stats* total) {
-
-  initialize();
-
-  int elap[] = {0, 0, 0, 0, 0, 0};
-  int form[] = {0, 0, 0};
-  int stat[] = {0, 0, 0};
-
-#pragma omp parallel
-  {
-    std::vector<int> heap;
-
-    cacheQuality();
-    timer::save(time.tic, elap);
-
-    int level = 0;
-    do {
-
-      filterElems(&heap);
-      timer::save(time.tic, elap + 1);
-
-      if (!nb.tasks)
-        break;
-
-      extractDualGraph();
-      timer::save(time.tic, elap + 2);
-
-      heuris.computeGreedyMatching(dual, nb.tasks);
-      heuris.getRatio(dual, nb.tasks, &nb.count);
-      timer::save(time.tic, elap + 3);
-
-      processFlips();
-      saveStat(level, stat, form);
-      timer::save(time.tic, elap + 4);
-
-      mesh->fixTagged();
-      timer::save(time.tic, elap + 5);
-
-      showStat(level++, form);
-
-    } while (nb.commit);
-
-    recap(elap, stat, form, total);
-    mesh->verifyTopology();
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 int Swap::swap(int id1, int id2, int index) {
 
   int j, k;
@@ -427,4 +379,53 @@ void Swap::recap(int* elap, int* stat, int* form, Stats* total) {
     std::fflush(stdout);
   }
 }
+
+/* -------------------------------------------------------------------------- */
+void Swap::run(Stats* total) {
+
+  initialize();
+
+  int elap[] = {0, 0, 0, 0, 0, 0};
+  int form[] = {0, 0, 0};
+  int stat[] = {0, 0, 0};
+
+#pragma omp parallel
+  {
+    std::vector<int> heap;
+
+    cacheQuality();
+    timer::save(time.tic, elap);
+
+    int level = 0;
+    do {
+
+      filterElems(&heap);
+      timer::save(time.tic, elap + 1);
+
+      if (!nb.tasks)
+        break;
+
+      extractDualGraph();
+      timer::save(time.tic, elap + 2);
+
+      heuris.computeGreedyMatching(dual, nb.tasks);
+      heuris.getRatio(dual, nb.tasks, &nb.count);
+      timer::save(time.tic, elap + 3);
+
+      processFlips();
+      saveStat(level, stat, form);
+      timer::save(time.tic, elap + 4);
+
+      mesh->fixTagged();
+      timer::save(time.tic, elap + 5);
+
+      showStat(level++, form);
+
+    } while (nb.commit);
+
+    recap(elap, stat, form, total);
+    mesh->verifyTopology();
+  }
+}
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

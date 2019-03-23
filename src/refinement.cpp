@@ -52,57 +52,6 @@ Refine::~Refine() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Refine::run(Stats* total) {
-
-  initialize();
-
-  int elap[] = {0, 0, 0, 0, 0};
-  int stat[] = {0, 0};
-  int form[] = {0, 0, 0};
-
-#pragma omp parallel
-  {
-    std::vector<int> heap[2];
-
-    int level = 0;
-    int tid = omp_get_thread_num();
-
-    preProcess(heap);
-    timer::save(time.tic, elap);
-
-    do {
-      filterElems(heap);
-      timer::save(time.tic, elap + 1);
-
-      if (!nb.tasks)
-        break;
-
-      computeSteinerPoints();
-      saveStat(level, stat, form);
-      timer::save(time.tic, elap + 2);
-
-      processElems(tid);
-      timer::save(time.tic, elap + 3);
-
-      #if DEFER_UPDATES
-        mesh->commitUpdates();
-        timer::save(time.tic, elap+4);
-      #endif
-      showStat(level, form);
-
-    } while (++level < task.level);
-
-#ifndef DEFER_UPDATES
-    mesh->fixAll();
-    timer::save(time.tic, elap + 4);
-#endif
-
-    recap(elap, stat, form, total);
-    mesh->verifyTopology();
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 void Refine::cutElem(int id, int* offset) {
 
 #if DEFER_UPDATES
@@ -491,4 +440,56 @@ void Refine::recap(int* elap, int* stat, int* form, Stats* total) {
     std::fflush(stdout);
   }
 }
+
+/* -------------------------------------------------------------------------- */
+void Refine::run(Stats* total) {
+
+  initialize();
+
+  int elap[] = {0, 0, 0, 0, 0};
+  int stat[] = {0, 0};
+  int form[] = {0, 0, 0};
+
+#pragma omp parallel
+  {
+    std::vector<int> heap[2];
+
+    int level = 0;
+    int tid = omp_get_thread_num();
+
+    preProcess(heap);
+    timer::save(time.tic, elap);
+
+    do {
+      filterElems(heap);
+      timer::save(time.tic, elap + 1);
+
+      if (!nb.tasks)
+        break;
+
+      computeSteinerPoints();
+      saveStat(level, stat, form);
+      timer::save(time.tic, elap + 2);
+
+      processElems(tid);
+      timer::save(time.tic, elap + 3);
+
+#if DEFER_UPDATES
+      mesh->commitUpdates();
+        timer::save(time.tic, elap+4);
+#endif
+      showStat(level, form);
+
+    } while (++level < task.level);
+
+#ifndef DEFER_UPDATES
+    mesh->fixAll();
+    timer::save(time.tic, elap + 4);
+#endif
+
+    recap(elap, stat, form, total);
+    mesh->verifyTopology();
+  }
+}
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

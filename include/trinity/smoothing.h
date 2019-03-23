@@ -37,7 +37,7 @@ public:
   Smooth(Smooth&& other) noexcept = delete;
   Smooth& operator=(Smooth&& other) noexcept = delete;
   Smooth(Mesh* input, Partit* algo, int level);
-  ~Smooth();
+  ~Smooth() = default;
 
   void run(Stats* total = nullptr);
 

@@ -37,40 +37,6 @@ Smooth::Smooth(Mesh* input, Partit* algo, int level)
 }
 
 /* -------------------------------------------------------------------------- */
-Smooth::~Smooth() {}
-
-/* -------------------------------------------------------------------------- */
-void Smooth::run(Stats* total) {
-
-  initialize();
-
-  int elap[] = {0, 0, 0, 0};
-  int form[] = {0, 0};
-  int stat[] = {0, 0};
-
-#pragma omp parallel
-  {
-    preProcess();
-    timer::save(time.tic, elap);
-
-    heuris->extractColoring(mesh);
-    timer::save(time.tic, elap + 1);
-
-    cacheQuality();
-    timer::save(time.tic, elap + 2);
-
-    for (int level = 0; level < task.depth; ++level) {
-      movePoints();
-      saveStat(level, stat, form);
-      showStat(level, form);
-    }
-    timer::save(time.tic, elap + 3);
-    // finalize
-    recap(elap, stat, form, total);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 int Smooth::moveSmartLaplacian(int i) {
 
   const auto& vicin = mesh->topo.vicin[i];
@@ -301,6 +267,37 @@ void Smooth::recap(int* elap, int* stat, int* form, Stats* total) {
       tools::separator();
     }
     std::fflush(stdout);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Smooth::run(Stats* total) {
+
+  initialize();
+
+  int elap[] = {0, 0, 0, 0};
+  int form[] = {0, 0};
+  int stat[] = {0, 0};
+
+#pragma omp parallel
+  {
+    preProcess();
+    timer::save(time.tic, elap);
+
+    heuris->extractColoring(mesh);
+    timer::save(time.tic, elap + 1);
+
+    cacheQuality();
+    timer::save(time.tic, elap + 2);
+
+    for (int level = 0; level < task.depth; ++level) {
+      movePoints();
+      saveStat(level, stat, form);
+      showStat(level, form);
+    }
+    timer::save(time.tic, elap + 3);
+    // finalize
+    recap(elap, stat, form, total);
   }
 }
 /* -------------------------------------------------------------------------- */
