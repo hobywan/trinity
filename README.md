@@ -203,7 +203,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 <a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="docs/figures/logo_osi.png" alt="logo_osi" width="70"></a>
 
 **trinity** is free and open-source.  
-It was intended for research purposes and released under the [GPL](https://www.gnu.org/licenses/gpl-3.0) license.  
+It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
 It was written during my doctorate, so improvements are welcome 😊   
 To get involved, you can:
 
