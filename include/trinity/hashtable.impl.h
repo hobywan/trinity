@@ -37,7 +37,7 @@ Hashtable<type_t, flag_t>::Hashtable(size_t table_size,
   bucket   = new type_t* [table_size];
 
 #pragma omp parallel for
-  for (int i = 0; i < (int) table_size; ++i) {
+  for (unsigned i = 0; i < table_size; ++i) {
     bucket[i] = new type_t[capacity];
   }
 }
@@ -46,7 +46,7 @@ Hashtable<type_t, flag_t>::Hashtable(size_t table_size,
 template <typename type_t, typename flag_t>
 Hashtable<type_t, flag_t>::~Hashtable() {
 
-  for (int i = 0; i < (int) size; ++i) {
+  for (unsigned i = 0; i < size; ++i) {
     delete[] bucket[i];
   }
   delete[] bucket;
@@ -76,7 +76,7 @@ void Hashtable<type_t, flag_t>::push(type_t key, const std::initializer_list<typ
   auto j = sync::fetchAndAdd(offset + key, (int) stride);
   assert((j + stride) < capacity);
 
-  for (auto i = 0; i < (int) stride; ++i)
+  for (unsigned i = 0; i < stride; ++i)
     bucket[key][j + i] = *(val.begin() + i);
 }
 
@@ -100,12 +100,12 @@ type_t Hashtable<type_t, flag_t>::getValue(type_t v1, type_t v2, bool use_hash) 
 template <typename type_t, typename flag_t>
 void Hashtable<type_t, flag_t>::reset() {
 #pragma omp for
-  for (int i = 0; i < (int) size; ++i) {
+  for (unsigned i = 0; i < size; ++i) {
     std::memset(bucket[i], -1, capacity * sizeof(int));
   }
 
 #pragma omp for
-  for (int i = 0; i < (int) size; ++i) {
+  for (unsigned i = 0; i < size; ++i) {
     offset[i] = 0;
   }
 }
