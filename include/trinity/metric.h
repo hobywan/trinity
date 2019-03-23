@@ -35,7 +35,10 @@ public:
   Metrics& operator=(Metrics other) = delete;
   Metrics(Metrics&& other) noexcept = delete;
   Metrics& operator=(Metrics&& other) noexcept = delete;
-  Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_min, double h_max);
+  Metrics(
+    Mesh* input_mesh, double target_factor, int Lp_norm,
+    double h_min, double h_max
+  );
   ~Metrics();
 
   void run(Stats* total = nullptr);

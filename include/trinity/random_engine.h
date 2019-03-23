@@ -1,7 +1,4 @@
-/* -------------------------------------------------------------------------- */
-#pragma once
-/* ------------------------------------
- *
+/*
  *  Copyright (c) 2012-2016 M.A. (Thijs) van den Berg, http://sitmo.com/
  *
  *  Use, modification and distribution are subject to the MIT Software License.
@@ -34,11 +31,14 @@
  *      fixed type-conversion earning
  *      fixed potential issues with constructor template matching
  * version 6, 4 March 2016
- *      made min() max() constexpr for C+11 compiler (thanks to James Joseph Balamuta)
+ *      made min() max() constexpr for C+11 compiler (thanks to James Balamuta)
 */
+
+#pragma once
+/* -------------------------------------------------------------------------- */
 #include <iostream>
 #include "tools.h"
-
+/* -------------------------------------------------------------------------- */
 // Double mixing function
 #define MIX2(x0, x1, rx, z0, z1, rz) \
     x0 += x1; \
@@ -91,10 +91,12 @@ class random_engine {
 public:
   // "req" are requirements as stated in the C++ 11 draft n3242=11-0012
   //
-  // req: 26.5.1.3 Uniform random number generator requirements, p.906, Table 116, row 1
+  // req: 26.5.1.3 Uniform random number generator requirements,
+  // p.906, Table 116, row 1
   typedef uint32_t result_type;
 
-  // req: 26.5.1.3 Uniform random number generator requirements, p.906, Table 116, row 3 & 4
+  // req: 26.5.1.3 Uniform random number generator requirements, p.906,
+  // Table 116, row 3 & 4
 #if __cplusplus <= 199711L
   static result_type (min)() { return 0; }
   static result_type (max)() { return 0xFFFFFFFF; }
@@ -139,7 +141,9 @@ public:
   // Creates an engine with an initial state that depends on a sequence
   // produced by one call to q.generate.
   template<class Seq>
-  random_engine(Seq& q, typename enable_if<has_generate_template<Seq>::value>::type* = 0) {
+  random_engine(
+    Seq& q, typename enable_if<has_generate_template<Seq>::value>::type* = 0
+  ) {
     seed(q);
   }
 
@@ -176,7 +180,9 @@ public:
 
   // req: 26.5.1.4 Random number engine requirements, p.908 Table 117, row 7
   template<class Seq>
-  void seed(Seq& q, typename enable_if<has_generate_template<Seq>::value>::type* = 0) {
+  void seed(
+    Seq& q, typename enable_if<has_generate_template<Seq>::value>::type* = 0
+  ) {
     typename Seq::result_type w[8];
     q.generate(&w[0], &w[8]);
 
@@ -224,8 +230,8 @@ public:
     }
 
     // we will have to generate a new block...
-    z -= (8 - _o_counter);  // discard the remainder of the current blok
-    _o_counter = z % 8;     // set the pointer in the correct element in the new block
+    z -= (8 - _o_counter);  // discard the remainder of the current block
+    _o_counter = z % 8;     // set the pointer to correct element in new block
     z -= _o_counter;        // update z
     z >>= 3;                // the number of buffers is elements/8
     ++z;                    // and one more because we crossed the buffer line
@@ -274,7 +280,12 @@ public:
   }
 
   // Extra function to set the key
-  void set_key(uint64_t k0 = 0, uint64_t k1 = 0, uint64_t k2 = 0, uint64_t k3 = 0) {
+  void set_key(
+    uint64_t k0 = 0,
+    uint64_t k1 = 0,
+    uint64_t k2 = 0,
+    uint64_t k3 = 0
+  ) {
     _k[0] = k0;
     _k[1] = k1;
     _k[2] = k2;
@@ -283,7 +294,13 @@ public:
   }
 
   // set the counter
-  void set_counter(uint64_t s0 = 0, uint64_t s1 = 0, uint64_t s2 = 0, uint64_t s3 = 0, unsigned short o_counter = 0) {
+  void set_counter(
+    uint64_t s0 = 0,
+    uint64_t s1 = 0,
+    uint64_t s2 = 0,
+    uint64_t s3 = 0,
+    unsigned short o_counter = 0
+  ) {
     _s[0] = s0;
     _s[1] = s1;
     _s[2] = s2;
@@ -350,7 +367,8 @@ private:
   }
 
   void inc_counter(uint64_t z) {
-    if (z > 0xFFFFFFFFFFFFFFFF - _s[0]) {   // check if we will overflow the first 64 bit int
+    // check if we will overflow the first 64 bit int
+    if (z > 0xFFFFFFFFFFFFFFFF - _s[0]) {
       ++_s[1];
       if (_s[1] == 0) {
         ++_s[2];
@@ -369,41 +387,7 @@ private:
   unsigned short _o_counter;  // output chunk counter, the 256 random bits in _o
   // are returned in eight 32 bit chunks
 };
-/* ------------------------------------
-void perfs_random_engine(){
 
-  auto tic = timer::now();
-  const int iter = 1e7;
-
-#pragma omp parallel
-  {
-    int tid = omp_get_thread_num();
-#pragma omp single
-     std::printf("Generating %.0e random numbers with Treefish cryptographic cipher ... ", (float)iter);
-
-    random_engine eng(tid);
-
-#pragma omp for
-    for(int i=0; i < iter; ++i)
-      eng() * trinity::max_f;
-
-#pragma omp single
-    {
-       std::printf("done. \e[32m(%d ms)\e[0m\n", timer::round(tic));
-       std::printf("Generating %.0e random numbers with Mersenne Twister ... ", (float)iter);
-    }
-
-    std::mt19937 engine(tid);
-    std::uniform_real_distribution<double> dist(0,1);
-
-#pragma omp for
-    for(int i=0; i < iter; ++i)
-      dist(engine);
-
-#pragma omp master
-     std::printf("done. \e[32m(%d ms)\e[0m\n", timer::round(tic));
-  }
-}*/
 } // namespace
 
 #undef MIXK

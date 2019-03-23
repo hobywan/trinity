@@ -27,7 +27,7 @@ namespace trinity { namespace sync {
 void reduceTasks(int* array, std::vector<int>* heap, int* count, int stride);
 void reduceTasks(int* array, std::vector<int>* heap, int* count, int* off);
 void prefixSum(int* values, size_t nb, size_t grain_size);
-void reallocBucket(std::vector<int>* bucket, int index, size_t chunk, int verbose);
+void reallocBucket(std::vector<int>* bucket, int index, size_t chunk, int verb);
 
 /* -------------------------------------------------------------------------- */
 template <typename type_t,

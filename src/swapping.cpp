@@ -150,8 +150,8 @@ int Swap::swap(int id1, int id2, int index) {
   if (not mesh->isCounterclockwise(cur1) or not mesh->isCounterclockwise(cur2))
     return 0;
 
-  // eval computeQuality improvement
-  const double q[]   = { mesh->computeQuality(cur1), mesh->computeQuality(cur2) };
+  // eval quality improvement
+  const double q[] = { mesh->computeQuality(cur1), mesh->computeQuality(cur2) };
   const double q_old = std::min(geom.qualit[id1], geom.qualit[id2]);
   const double q_new = std::min(q[0], q[1]);
 

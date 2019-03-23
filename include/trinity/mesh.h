@@ -106,22 +106,22 @@ public:
 private:
 
   struct {
-    int nodes;                        // nb of active+deleted nodes
-    int elems;                        // nb of active+deleted elems
+    int nodes;                        // nb of active + deleted nodes
+    int elems;                        // nb of active + deleted elements
     int cores;                        // nb of logical cores used
-    int activ_elem;                   // actual nb of elems
+    int activ_elem;                   // actual number of elements
   } nb;
 
   struct {
     std::vector<int> elems;           // elem vertices, stride=3
-    Graph stenc;                      // nodal incident elems
+    Graph stenc;                      // nodal incident elements
     Graph vicin;                      // nodal adjacent nodes
-  } topo;                             // could use a std::set but performance suffers
+  } topo;                             // could use a set but performance suffers
 
   struct {
     std::vector<double> points;       // nodal coordinates, stride=2
     std::vector<double> tensor;       // nodal metric tensor, stride=3
-    std::vector<double> solut;        // solut value for metric field construction
+    std::vector<double> solut;        // solution field for metric computation
     std::vector<double> qualit;       // cache elem quality to speedup kernels
   } geom;
 
@@ -129,7 +129,7 @@ private:
     int depth;                        // refine|smooth max depth
     int verb;                         // verbosity level
     int iter;                         // current iteration
-    int rounds;                       // remeshing rounds
+    int rounds;                       // remesh rounds
   } param;
 
   struct {
@@ -140,12 +140,12 @@ private:
   } capa;
 
   struct {
-    int*     deg;                     // nodal degree
-    int*     off;                     // offset per thread for prefix sum
-    char*    fixes;                   // nodal marker for topology fixes
-    char*    activ;                   // nodal marker for kernel propagation
-    uint8_t* tags;                    // nodal tags for geometrical features [bound|corner]
-    Time     tic;                     // time point for profiling purposes
+    int* deg      = nullptr;          // nodal degree
+    int* off      = nullptr;          // offset per thread for prefix sum
+    char* fixes   = nullptr;          // nodal marker for topology fixes
+    char* activ   = nullptr;          // nodal marker for kernel propagation
+    uint8_t* tags = nullptr;          // nodal marker for boundary|corner
+    Time tic;                         // time point for profiling purposes
   } sync;
 
 #ifdef DEFERRED_UPDATES

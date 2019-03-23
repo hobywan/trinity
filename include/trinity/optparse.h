@@ -101,7 +101,7 @@ public:
 
   //const std::string &operator[](const std::string &d) const
   const char *operator[](const std::string &d) const {
-    std::map<std::string, std::string>::const_iterator it = _map.find(d);
+    auto it = _map.find(d);
     return (it != _map.end()) ? it->second.c_str() : "";
   }
 
@@ -168,7 +168,9 @@ public:
 
 
 template<typename InputIterator, typename UnaryOperator>
-static std::string str_join_trans(const std::string &sep, InputIterator begin, InputIterator end, UnaryOperator op) {
+static std::string str_join_trans(
+  const std::string &sep, InputIterator begin, InputIterator end, UnaryOperator op
+) {
   std::string buf;
   for (InputIterator it = begin; it != end; ++it) {
     if (it != begin) {
@@ -182,12 +184,16 @@ static std::string str_join_trans(const std::string &sep, InputIterator begin, I
 
 
 template<class InputIterator>
-static std::string str_join(const std::string &sep, InputIterator begin, InputIterator end) {
+static std::string str_join(
+  const std::string &sep, InputIterator begin, InputIterator end
+) {
   return str_join_trans(sep, begin, end, str_wrap(""));
 }
 
 
-static std::string &str_replace_helper(std::string &s, const std::string &patt, const std::string &repl) {
+static std::string &str_replace_helper(
+  std::string &s, const std::string &patt, const std::string &repl
+) {
   size_t pos = 0;
   const size_t n = patt.length();
   while (true) {
@@ -203,14 +209,18 @@ static std::string &str_replace_helper(std::string &s, const std::string &patt, 
 }
 
 
-static std::string str_replace(const std::string &s, const std::string &patt, const std::string &repl) {
+static std::string str_replace(
+  const std::string &s, const std::string &patt, const std::string &repl
+) {
   std::string tmp = s;
   str_replace_helper(tmp, patt, repl);
   return tmp;
 }
 
 
-static std::string str_format(const std::string &s, size_t pre, size_t len, bool indent_first = true) {
+static std::string str_format(
+  const std::string &s, size_t pre, size_t len, bool indent_first = true
+) {
   std::stringstream ss;
   std::string p;
   if (indent_first) {
@@ -319,7 +329,11 @@ public:
 class Option {
 public:
 
-  Option() : _action("storeFile"), _type("string"), _nargs(1), _suppress_help(false), _callback(0) {}
+  Option()
+    : _action("storeFile"),
+      _type("string"), _nargs(1),
+      _suppress_help(false), _callback(0)
+  {}
 
   Option &action(const std::string &a) {
     _action = a;
@@ -450,24 +464,31 @@ private:
     if (type() == "int" or type() == "long") {
       long t;
       if (not(ss >> t)) {
-        err << "option" << " " << opt << ": " << "invalid integer value" << ": '" << val << "'";
+        err << "option" << " " << opt << ": "
+          << "invalid integer value" << ": '" << val << "'";
       }
     } else if (type() == "float" or type() == "double") {
       double t;
       if (not(ss >> t)) {
-        err << "option" << " " << opt << ": " << "invalid floating-point value" << ": '" << val << "'";
+        err << "option" << " " << opt << ": " << "invalid floating-point value"
+          << ": '" << val << "'";
       }
     } else if (type() == "choice") {
       if (find(choices().begin(), choices().end(), val) == choices().end()) {
         std::list<std::string> tmp = choices();
-        std::transform(tmp.begin(), tmp.end(), tmp.begin(), detail::str_wrap("'"));
-        err << "option" << " " << opt << ": " << "invalid choice" << ": '" << val << "'"
-            << " (" << "choose from" << " " << detail::str_join(", ", tmp.begin(), tmp.end()) << ")";
+        std::transform(
+          tmp.begin(), tmp.end(), tmp.begin(), detail::str_wrap("'")
+        );
+        err << "option" << " " << opt << ": " << "invalid choice"
+            << ": '" << val << "'"
+            << " (" << "choose from" << " "
+            << detail::str_join(", ", tmp.begin(), tmp.end()) << ")";
       }
     } else if (type() == "complex") {
       std::complex<double> t;
       if (not(ss >> t)) {
-        err << "option" << " " << opt << ": " << "invalid complex value" << ": '" << val << "'";
+        err << "option" << " " << opt << ": "
+            << "invalid complex value" << ": '" << val << "'";
       }
     }
 
@@ -492,13 +513,19 @@ private:
     ss << std::string(indent, ' ');
 
     if (not _short_opts.empty()) {
-      ss << detail::str_join_trans(", ", _short_opts.begin(), _short_opts.end(), detail::str_wrap("-", mvar_short));
+      ss << detail::str_join_trans(
+        ", ", _short_opts.begin(), _short_opts.end(),
+        detail::str_wrap("-", mvar_short)
+      );
       if (not _long_opts.empty()) {
         ss << ", ";
       }
     }
     if (not _long_opts.empty()) {
-      ss << detail::str_join_trans(", ", _long_opts.begin(), _long_opts.end(), detail::str_wrap("--", mvar_long));
+      ss << detail::str_join_trans(
+        ", ", _long_opts.begin(), _long_opts.end(),
+        detail::str_wrap("--", mvar_long)
+      );
     }
 
     return ss.str();
@@ -523,7 +550,8 @@ private:
     }
 
     if (help() != "") {
-      std::string help_str = (get_default() != "") ? detail::str_replace(help(), "%default", get_default()) : help();
+      std::string help_str = (get_default() != "") ?
+        detail::str_replace(help(), "%default", get_default()) : help();
       ss << detail::str_format(help_str, opt_width, width, indent_first);
     }
 
@@ -693,7 +721,9 @@ public:
     return add_option(std::vector<std::string>(&tmp[0], &tmp[2]));
   }
 
-  Option &add_option(const std::string &opt1, const std::string &opt2, const std::string &opt3) {
+  Option &add_option(
+    const std::string &opt1, const std::string &opt2, const std::string &opt3
+  ) {
     const std::string tmp[3] = {opt1, opt2, opt3};
     return add_option(std::vector<std::string>(&tmp[0], &tmp[3]));
   }
@@ -729,7 +759,7 @@ public:
       return ss.str();
     }
 
-    for (std::list<Option>::const_iterator it = _opts.begin(); it != _opts.end(); ++it) {
+    for (auto it = _opts.begin(); it != _opts.end(); ++it) {
       if (not it->_suppress_help) {
         ss << it->format_help(indent);
       }
@@ -792,7 +822,7 @@ public:
 private:
 
   const Option &lookup_short_opt(const std::string &opt) const {
-    std::map<std::string, Option const *>::const_iterator it = _optmap_s.find(opt);
+    auto it = _optmap_s.find(opt);
     if (it == _optmap_s.end()) {
       error("no such option" + std::string(": -") + opt);
     }
@@ -801,7 +831,7 @@ private:
 
   const Option &lookup_long_opt(const std::string &opt) const {
     std::vector<std::string> matching;
-    for (std::map<std::string, Option const *>::const_iterator it = _optmap_l.begin(); it != _optmap_l.end(); ++it) {
+    for (auto it = _optmap_l.begin(); it != _optmap_l.end(); ++it) {
       if (it->first.compare(0, opt.length(), opt) == 0) {
         matching.push_back(it->first);
       }
@@ -868,7 +898,9 @@ private:
     process_opt(option, std::string("--") + opt, value);
   }
 
-  void process_opt(const Option &o, const std::string &opt, const std::string &value) {
+  void process_opt(
+    const Option &o, const std::string &opt, const std::string &value
+  ) {
     if (o.action() == "storeFile") {
       std::string err = o.check_type(opt, value);
       if (err != "") {
@@ -983,7 +1015,7 @@ private:
 namespace detail {
 static Parser &add_option_group_helper(Parser &parser,
                                          const OptionGroup &group) {
-  for (std::list<Option>::const_iterator oit = group._opts.begin(); oit != group._opts.end(); ++oit) {
+  for (auto oit = group._opts.begin(); oit != group._opts.end(); ++oit) {
     const Option &option = *oit;
     for (std::set<std::string>::const_iterator it = option._short_opts.begin();
          it != option._short_opts.end();
@@ -1007,12 +1039,18 @@ static Values &parse_args_helper(Parser &parser,
   parser._remaining.assign(v.begin(), v.end());
 
   if (parser.add_version_option() and parser.version() != "") {
-    parser.add_option("--version").action("version").help("show program's version number and exit");
-    parser._opts.splice(parser._opts.begin(), parser._opts, --(parser._opts.end()));
+    parser.add_option("--version").action("version")
+      .help("show program's version number and exit");
+    parser._opts.splice(
+      parser._opts.begin(), parser._opts, --(parser._opts.end())
+    );
   }
   if (parser.add_help_option()) {
-    parser.add_option("-h", "--help").action("help").help("show this help message and exit");
-    parser._opts.splice(parser._opts.begin(), parser._opts, --(parser._opts.end()));
+    parser.add_option("-h", "--help").action("help")
+      .help("show this help message and exit");
+    parser._opts.splice(
+      parser._opts.begin(), parser._opts, --(parser._opts.end())
+    );
   }
 
   while (not parser._remaining.empty()) {
@@ -1041,29 +1079,30 @@ static Values &parse_args_helper(Parser &parser,
     parser._leftover.push_back(arg);
   }
 
-  for (std::map<std::string, std::string>::const_iterator it = parser._defaults.begin();
+  for (auto it = parser._defaults.begin();
        it != parser._defaults.end(); ++it) {
     if (not parser._values.is_set(it->first)) {
       parser._values[it->first] = it->second;
     }
   }
 
-  for (std::list<Option>::const_iterator it = parser._opts.begin(); it != parser._opts.end(); ++it) {
+  for (auto it = parser._opts.begin(); it != parser._opts.end(); ++it) {
     if (it->get_default() != "" and not parser._values.is_set(it->dest())) {
       parser._values[it->dest()] = it->get_default();
     }
   }
 
-  for (std::vector<OptionGroup const *>::iterator group_it = parser._groups.begin();
+  for (auto group_it = parser._groups.begin();
        group_it != parser._groups.end(); ++group_it) {
-    for (std::map<std::string, std::string>::const_iterator it = (*group_it)->_defaults.begin();
+    for (auto it = (*group_it)->_defaults.begin();
          it != (*group_it)->_defaults.end(); ++it) {
       if (not parser._values.is_set(it->first)) {
         parser._values[it->first] = it->second;;
       }
     }
 
-    for (std::list<Option>::const_iterator it = (*group_it)->_opts.begin(); it != (*group_it)->_opts.end(); ++it) {
+    for (auto it = (*group_it)->_opts.begin();
+              it != (*group_it)->_opts.end(); ++it) {
       if (it->get_default() != "" and not parser._values.is_set(it->dest())) {
         parser._values[it->dest()] = it->get_default();
       }
@@ -1078,7 +1117,8 @@ static std::string format_help_helper(const Parser &parser) {
   std::stringstream ss;
 
   if (parser.description() != "") {
-    ss << detail::str_format(parser.description(), 0, detail::cols()) << std::endl;
+    ss << detail::str_format(parser.description(), 0, detail::cols());
+    ss << std::endl;
   }
 
   ss << parser.get_usage() << std::endl;
@@ -1089,8 +1129,11 @@ static std::string format_help_helper(const Parser &parser) {
   for (auto it = parser._groups.begin(); it != parser._groups.end(); ++it) {
     const OptionGroup &group = **it;
     ss << std::endl << "  " << group.title() << ":" << std::endl;
-    if (group.group_description() != "")
-      ss << detail::str_format(group.group_description(), 4, detail::cols()) << std::endl;
+    if (group.group_description() != "") {
+      ss << detail::str_format(group.group_description(), 4, detail::cols());
+      ss << std::endl;
+    }
+
     ss << group.format_option_help(4);
   }
   ss << std::endl;

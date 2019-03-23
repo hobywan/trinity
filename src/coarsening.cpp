@@ -68,7 +68,7 @@ void Coarse::run(Stats* total) {
       filterPoints(&heap);
       timer::save(time.tic, elap + 1);
 
-      if (!nb.tasks)
+      if (not nb.tasks)
         break;
 
       extractSubGraph();
@@ -83,9 +83,7 @@ void Coarse::run(Stats* total) {
 
       mesh->fixTagged();
       timer::save(time.tic, elap + 5);
-
       showStat(level++, form);
-
     } while (nb_indep);
 
     recap(elap, stat, form, total);
@@ -118,7 +116,7 @@ void Coarse::identifyTarget(int source) {
   double length[3];
   bool skip = true;
   auto const stenc_beg = mesh->topo.stenc[source].begin();
-  auto const stenc_end = mesh->topo.stenc[source].begin() + mesh->sync.deg[source];
+  auto const stenc_end = stenc_beg + mesh->sync.deg[source];
 
   while (skip and not bucket.empty()) {
     //
@@ -134,9 +132,12 @@ void Coarse::identifyTarget(int source) {
       auto n = mesh->getElem(*t);
 
       // a) skip surrounding elems of (i,*it)
-      if ((source == n[0] and destin == n[1]) or (source == n[1] and destin == n[0])
-       or (source == n[1] and destin == n[2]) or (source == n[2] and destin == n[1])
-       or (source == n[2] and destin == n[0]) or (source == n[0] and destin == n[2])) {
+      if ((source == n[0] and destin == n[1])
+       or (source == n[1] and destin == n[0])
+       or (source == n[1] and destin == n[2])
+       or (source == n[2] and destin == n[1])
+       or (source == n[2] and destin == n[0])
+       or (source == n[0] and destin == n[2])) {
         // (!) check if diagonal
         // EDIT: decompose into 2 steps ?
         skip = (++shared > 1 and bound_source and bound_destin);
