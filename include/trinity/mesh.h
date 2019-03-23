@@ -86,7 +86,7 @@ public:
   void copyStencil(int i, int j, int nb_rm);
 
   // deferred updates (for perfs comparison)
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
   void initUpdates();
   void commitUpdates();
   void resetUpdates();
@@ -99,8 +99,8 @@ public:
   double computeLength(int i, int j) const;
   double computeQuality(int i) const;
   double computeQuality(const int* t) const;
-  bool isCounterclockwise(const int* t) const;
-  void computeSteinerPoint(int i, int j, double* point, double* metric) const;
+  bool isCounterclockwise(const int* elem) const;
+  void computeSteinerPoint(int edge_i, int edge_j, double* point, double* metric) const;
   void computeQuality(double quality[3]);
 
 private:
@@ -148,7 +148,7 @@ private:
     Time tic;                         // time point for profiling purposes
   } sync;
 
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
   struct Updates {
     std::vector<int> add;
     std::vector<int> rem;

@@ -84,7 +84,7 @@ void Refine::run(Stats* total) {
       processElems(tid);
       timer::save(time.tic, elap + 3);
 
-      #ifdef DEFERRED_UPDATES
+      #if DEFER_UPDATES
         mesh->commitUpdates();
         timer::save(time.tic, elap+4);
       #endif
@@ -92,7 +92,7 @@ void Refine::run(Stats* total) {
 
     } while (++level < task.level);
 
-#ifndef DEFERRED_UPDATES
+#ifndef DEFER_UPDATES
     mesh->fixAll();
     timer::save(time.tic, elap + 4);
 #endif
@@ -105,7 +105,7 @@ void Refine::run(Stats* total) {
 /* -------------------------------------------------------------------------- */
 void Refine::cutElem(int id, int* offset) {
 
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
   int tid = omp_get_thread_num();
 #endif
 
@@ -132,7 +132,7 @@ void Refine::cutElem(int id, int* offset) {
         assert(mesh->isCounterclockwise(elem0));
         assert(mesh->isCounterclockwise(elem1));
         //
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
         mesh->deferredAppend(tid, s[i], {t[0], t[1]});
         mesh->deferredAppend(tid, n[i], t[1]);
         mesh->deferredRemove(tid, n[k], t[0]); // replacement
@@ -173,7 +173,7 @@ void Refine::cutElem(int id, int* offset) {
         assert(mesh->isCounterclockwise(elem1));
         assert(mesh->isCounterclockwise(elem2));
         //
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
         mesh->deferredAppend(tid, s[v], {t[0], t[1], t[2]});
         mesh->deferredAppend(tid, s[w], {t[0], t[2]});
         mesh->deferredRemove(tid, n[v], t[0]);
@@ -208,7 +208,7 @@ void Refine::cutElem(int id, int* offset) {
     assert(mesh->isCounterclockwise(elem2));
     assert(mesh->isCounterclockwise(elem3));
     //
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
     mesh->deferredAppend(tid, s[0], {t[1], t[2], t[3]});
     mesh->deferredAppend(tid, s[1], {t[0], t[2], t[3]});
     mesh->deferredAppend(tid, s[2], {t[0], t[1], t[3]});

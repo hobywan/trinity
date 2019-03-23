@@ -99,12 +99,13 @@ void Mesh::reallocMemory() {
   // first-touch
   doFirstTouch();
 
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
   initUpdates();
 #endif
 
 #pragma omp master
   {
+    // (!) count only containers
     size_t memory_print = 0;
     memory_print += (capa.bucket * capa.node * sizeof(int)); // stenc
     memory_print += (6 * capa.node * sizeof(int));           // vicin
@@ -149,40 +150,40 @@ void Mesh::doFirstTouch() {
   for (int i = 0; i < nb.nodes; ++i)
     geom.solut[i] = 0.;
 #pragma omp for schedule(static, chunk*2) nowait
-  for (int i = 0; i < (int) capa.node * 2; ++i)
+  for (unsigned i = 0; i < capa.node * 2; ++i)
     geom.points[i] = 0.;
 #pragma omp for schedule(static, chunk*3) nowait
-  for (int i = 0; i < (int) capa.node * 3; ++i)
+  for (unsigned i = 0; i < capa.node * 3; ++i)
     geom.tensor[i] = 0.;
 
   // (!)
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
 #pragma omp for schedule(static,chunk) nowait
-  for(int i=0; i < nb_nodes; ++i)
-    topo.stenc[i].resize(64,-1);
+  for(int i = 0; i < nb.nodes; ++i)
+    topo.stenc[i].resize(64, -1);
 #pragma omp for schedule(static,chunk) nowait
-  for(int i=nb_nodes; i < capa.node; ++i)
+  for(unsigned i = (unsigned) nb.nodes; i < capa.node; ++i)
     topo.stenc[i].reserve(64);
 #else
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < (int) capa.node; ++i)
+  for (unsigned i = 0; i < capa.node; ++i)
     topo.stenc[i].resize(capa.bucket, -1);
 #endif
 
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < (int) capa.node; ++i)
+  for (unsigned i = 0; i < capa.node; ++i)
     sync.deg[i] = 0;
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < (int) capa.node; ++i)
+  for (unsigned i = 0; i < capa.node; ++i)
     sync.tags[i] = mask::unset;
 #pragma omp for schedule(static, block*3) nowait
-  for (int i = 0; i < (int) capa.elem * 3; ++i)
+  for (unsigned i = 0; i < capa.elem * 3; ++i)
     topo.elems[i] = -1;
 #pragma omp for schedule(static, block) nowait
-  for (int i = 0; i < (int) capa.elem; ++i)
+  for (unsigned i = 0; i < capa.elem; ++i)
     sync.activ[i] = 0;
 #pragma omp for schedule(static, block)
-  for (int i = 0; i < (int) capa.elem; ++i)
+  for (unsigned i = 0; i < capa.elem; ++i)
     geom.qualit[i] = 0.;
 }
 
@@ -190,7 +191,7 @@ void Mesh::doFirstTouch() {
 void Mesh::rebuildTopology() {
 
 #pragma omp for schedule(static, nb.nodes/nb.cores)
-  for (int i = 0; i < (int) capa.node; ++i)
+  for (int i = 0; i < capa.node; ++i)
     sync.deg[i] = 0;
 
 #pragma omp for
@@ -241,8 +242,8 @@ void Mesh::rebuildTopology() {
     heap.erase(std::unique(heap.begin(), heap.end()), heap.end());
     topo.vicin[i].swap(heap);
     std::sort(topo.stenc[i].begin(), topo.stenc[i].begin() + sync.deg[i]);
-    #ifdef DEFERRED_UPDATES
-      topo.stenc[i].resize(deg[i]);
+    #if DEFER_UPDATES
+      topo.stenc[i].resize(sync.deg[i]);
     #endif
   }
 }
@@ -256,9 +257,11 @@ bool Mesh::verifyTopology() const {
     if (__builtin_expect(t[0] > -1, 1)) {
 
       for(int j = 0; j < 3; ++j){
-        #ifdef DEBUG
-          if (std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i)
-              == topo.stenc[t[j]].end())
+        #if DEBUG
+          if (std::find(
+            topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i) ==
+            topo.stenc[t[j]].end()
+          )
           #pragma omp critical
             {
               std::fprintf(stderr,
@@ -271,7 +274,9 @@ bool Mesh::verifyTopology() const {
           // abort immediately if an error occured
           assert(t[0] != t[1] and t[1] != t[2] and t[2] != t[0]);
           auto cur = t[j];
-          auto itr = std::find(topo.stenc[cur].begin(), topo.stenc[cur].end(), i);
+          auto itr = std::find(
+            topo.stenc[cur].begin(), topo.stenc[cur].end(), i
+          );
           assert(itr != topo.stenc[cur].end());
         #endif
       }
@@ -501,19 +506,21 @@ void Mesh::copyStencil(int i, int j, int nb_rm) {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
 /* -------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, int t){
-  const int key = tools::hash(i)% (def_scale_fact*nb_cores);
+  const int key = tools::hash(i) % (def_scale_fact * nb.cores);
   deferred[tid][key].add.push_back(i);
   deferred[tid][key].add.push_back(t);
 }
 /* -------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
 
-  const int key = tools::hash(i)% (def_scale_fact*nb_cores);
-  for(size_t k=0; k < t.size(); ++k){
-    auto found = std::find(stenc[i].begin(), stenc[i].end(), *(t.begin()+k));
+  const int key = tools::hash(i) % (def_scale_fact * nb.cores);
+  for(size_t k = 0; k < t.size(); ++k){
+    auto found = std::find(
+      topo.stenc[i].begin(), topo.stenc[i].end(), *(t.begin()+k)
+    );
     assert(found == stenc[i].end());
     deferred[tid][key].add.push_back(i);
     deferred[tid][key].add.push_back(*(t.begin()+k));
@@ -521,8 +528,8 @@ void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
 }
 /* -------------------------------------------------------------------------- */
 void Mesh::deferredRemove(int tid, int i, int t){
-  const int key = tools::hash(i)% (def_scale_fact*nb_cores);
-  auto found = std::find(stenc[i].begin(), stenc[i].end(), t);
+  const int key = tools::hash(i)% (def_scale_fact * nb.cores);
+  auto found = std::find(topo.stenc[i].begin(), topo.stenc[i].end(), t);
   assert(found != stenc[i].end());
   deferred[tid][key].rem.push_back(i);
   deferred[tid][key].rem.push_back(t);
@@ -530,15 +537,15 @@ void Mesh::deferredRemove(int tid, int i, int t){
 /* -------------------------------------------------------------------------- */
 void Mesh::initUpdates(){
 
-  int size = nb_cores * def_scale_fact;
+  int const size = nb.cores * def_scale_fact;
 
 #pragma omp single
-  deferred.resize(nb_cores);
+  deferred.resize((size_t) nb.cores);
 
 #pragma omp for
-  for(int i=0; i < nb_cores; ++i){
-    deferred[i].resize(size);
-    for(int j=0; j < size; ++j){
+  for (int i = 0; i < nb.cores; ++i) {
+    deferred[i].resize((size_t) size);
+    for (int j = 0; j < size; ++j) {
       deferred[i][j].add.reserve(64);
       deferred[i][j].rem.reserve(64);
     }
@@ -549,38 +556,41 @@ void Mesh::commitUpdates(){
 
   // from 'pragmatic'
 #pragma omp for schedule(guided)
-  for(int j = 0; j < nb_cores * def_scale_fact; ++j){
-    for(int i = 0; i < nb_cores; ++i){
+  for (int j = 0; j < nb.cores * def_scale_fact; ++j) {
+    for (int i = 0; i < nb.cores; ++i) {
+
+      auto& defer_rem = deferred[i][j].rem;
+      auto& defer_add = deferred[i][j].add;
+
       // only one thread will update the adjacency list of a given node
-      for(auto v = deferred[i][j].rem.begin();
-               v < deferred[i][j].rem.end(); v += 2){
-        auto found = std::find(stenc[*v].begin(), stenc[*v].end(), *(v+1));
-        assert(found != stenc[*v].end());
-        stenc[*v].erase(found);
-      }
-      deferred[i][j].rem.clear();
-
-      for(auto v = deferred[i][j].add.begin();
-               v < deferred[i][j].add.end(); v += 2) {
-        stenc[*v].push_back(*(v+1));
+      for (auto v = defer_rem.begin(); v < defer_rem.end(); v += 2) {
+        auto& stenc = topo.stenc[*v];
+        auto const found = std::find(stenc.begin(), stenc.end(), *(v + 1));
+        assert(found != stenc.end());
+        stenc.erase(found);
       }
 
-      deferred[i][j].add.clear();
+      for(auto v = defer_add.begin(); v < defer_add.end(); v += 2) {
+        topo.stenc[*v].push_back(*(v + 1));
+      }
+
+      defer_rem.clear();
+      defer_add.clear();
     }
   }
 
 #pragma omp for
-  for(int i=0; i < nb_nodes; ++i)
-    deg[i] = (int) stenc[i].size();
+  for(int i = 0; i < nb.nodes; ++i)
+    sync.deg[i] = (int) topo.stenc[i].size();
 
-  verify();
+  this->verifyTopology();
 }
 /* -------------------------------------------------------------------------- */
 void Mesh::resetUpdates(){
 
 #pragma omp for schedule(guided)
-  for(int j=0; j < (nb_cores * def_scale_fact); ++j){
-    for(int i=0; i < nb_cores; ++i){
+  for(int j = 0; j < (nb.cores * def_scale_fact); ++j){
+    for(int i = 0; i < nb.cores; ++i){
       deferred[i][j].add.clear();
       deferred[i][j].rem.clear();
     }
@@ -671,74 +681,76 @@ void Mesh::computeQuality(double quality[3]) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::computeSteinerPoint(int i, int j, double* point, double* metric) const {
+void Mesh::computeSteinerPoint(
+  int edge_i, int edge_j, double point[2], double metric[3]
+) const {
 
   assert(point != nullptr);
   assert(metric != nullptr);
 
-  auto const p1 = geom.points.data() + (i * 2);
-  auto const p2 = geom.points.data() + (j * 2);
-  auto const m1 = geom.tensor.data() + (i * 3);
-  auto const m2 = geom.tensor.data() + (j * 3);
+  auto const p1 = geom.points.data() + (edge_i * 2);
+  auto const p2 = geom.points.data() + (edge_j * 2);
+  auto const m1 = geom.tensor.data() + (edge_i * 3);
+  auto const m2 = geom.tensor.data() + (edge_j * 3);
 
   numeric::computeSteinerPoint(p1, p2, m1, m2, point, metric);
 }
 
 /* -------------------------------------------------------------------------- */
-bool Mesh::isCounterclockwise(const int* t) const {
+bool Mesh::isCounterclockwise(const int* elem) const {
 
-  auto const pa = geom.points.data() + (t[0] * 2);
-  auto const pb = geom.points.data() + (t[1] * 2);
-  auto const pc = geom.points.data() + (t[2] * 2);
+  auto const point_a = geom.points.data() + (elem[0] * 2);
+  auto const point_b = geom.points.data() + (elem[1] * 2);
+  auto const point_c = geom.points.data() + (elem[2] * 2);
 
   double coef[4];
-  coef[0] = pb[0] - pa[0];
-  coef[1] = pc[0] - pa[0];
-  coef[2] = pb[1] - pa[1];
-  coef[3] = pc[1] - pa[1];
+  coef[0] = point_b[0] - point_a[0];
+  coef[1] = point_c[0] - point_a[0];
+  coef[2] = point_b[1] - point_a[1];
+  coef[3] = point_c[1] - point_a[1];
 
   return 0.5 * (coef[0] * coef[3] - coef[1] * coef[2]) > EPSILON;
 }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::fixTagged() {
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
 #pragma omp for schedule(guided)
-  for(int i=0; i < nb_nodes; ++i)
-    fixes[i] = 0;
+  for(int i = 0; i < nb.nodes; ++i)
+    sync.fixes[i] = 0;
   //
   commitUpdates();
 
 #else
   std::vector<int> elem;
   elem.resize(capa.bucket);
-  int k;
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb.nodes; ++i) {
     if (__builtin_expect(sync.fixes[i], 0)) {
       // reset
       sync.fixes[i] = 0;
-      k = 0;
+      int k = 0;
       if (__builtin_expect((int) elem.size() < sync.deg[i], 0))
         elem.resize((size_t) sync.deg[i]);
 
-      for (auto t = topo.stenc[i].begin();
-                t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
-
+      auto const& stenc = topo.stenc[i];
+      for (auto t = stenc.begin(); t < stenc.begin() + sync.deg[i]; ++t) {
         auto const n = getElem(*t);
         if (__builtin_expect(i == n[0] or i == n[1] or i == n[2], 1))
           elem[k++] = *t;
       }
-      #ifdef DEBUG
-        if (k >= elem.size()) {
+      #if DEBUG
+        if (k >= (int) elem.size()) {
           std::printf("k: %d, elem.size: %lu\n", k, elem.size());
         }
       #endif
       assert(k < (int) elem.size());
       // remove duplicates and adjust count
       std::sort(elem.begin(), elem.begin() + k);
-      sync.deg[i] = int(std::unique(elem.begin(), elem.begin() + k) - elem.begin());
+      sync.deg[i] = int(
+        std::unique(elem.begin(), elem.begin() + k) - elem.begin()
+      );
       std::fill(elem.begin() + sync.deg[i], elem.end(), -1);
       // swap arrays O(1)
       topo.stenc[i].swap(elem);

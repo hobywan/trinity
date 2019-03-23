@@ -162,12 +162,12 @@ int Swap::swap(int id1, int id2, int index) {
   mesh->replaceElem(id1, cur1);
   mesh->replaceElem(id2, cur2);
 
-  #ifdef DEFERRED_UPDATES
+  #if DEFER_UPDATES
     int tid = omp_get_thread_num();
-    mesh->deferredRemove(tid, f1[0], k2);
-    mesh->deferredRemove(tid, f2[2], k1);
-    mesh->deferredAppend(tid, f1[2], k2); //  N(s[2],k2)
-    mesh->deferredAppend(tid, f2[1], k1); //  N(s[3],k1)
+    mesh->deferredRemove(tid, cur1[0], id2);
+    mesh->deferredRemove(tid, cur2[2], id1);
+    mesh->deferredAppend(tid, cur1[2], id2); //  N(s[2],k2)
+    mesh->deferredAppend(tid, cur2[1], id1); //  N(s[3],k1)
   #else
     mesh->updateStencil(cur2[0], id2); //  N(s[2],k2)
     mesh->updateStencil(cur2[1], id1); //  N(s[3],k1)

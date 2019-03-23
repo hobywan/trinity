@@ -183,7 +183,7 @@ void Coarse::identifyTarget(int source) {
 /* -------------------------------------------------------------------------- */
 void Coarse::collapseEdge(int source, int destin) {
 
-#ifdef DEFERRED_UPDATES
+#if DEFER_UPDATES
   int tid = omp_get_thread_num();
 #endif
 
@@ -219,8 +219,8 @@ void Coarse::collapseEdge(int source, int destin) {
         break;
       }
     }
-#ifdef DEFERRED_UPDATES
-    mesh->deferredRemove(tid, j, *trash);
+#if DEFER_UPDATES
+    mesh->deferredRemove(tid, destin, *trash);
     mesh->deferredRemove(tid, opp, *trash);
 #endif
     // erase common patch
@@ -257,9 +257,9 @@ void Coarse::collapseEdge(int source, int destin) {
       }
     }
     assert(k == 2);
-#ifdef DEFERRED_UPDATES
-    mesh->deferredRemove(tid, j, *trash[0]);
-    mesh->deferredRemove(tid, j, *trash[1]);
+#if DEFER_UPDATES
+    mesh->deferredRemove(tid, destin, *trash[0]);
+    mesh->deferredRemove(tid, destin, *trash[1]);
     mesh->deferredRemove(tid, opp[0], *trash[0]);
     mesh->deferredRemove(tid, opp[1], *trash[1]);
 #endif
@@ -273,9 +273,9 @@ void Coarse::collapseEdge(int source, int destin) {
     sync::compareAndSwap(sync.fixes + opp[1], 0, 1);
   }
 
-#ifdef DEFERRED_UPDATES
-  for(const int& t : stenc)
-    mesh->deferredAppend(tid, j, t);
+#if DEFER_UPDATES
+  for(auto&& elem : stenc)
+    mesh->deferredAppend(tid, destin, elem);
 #else
   // N[j] += (N[i]-shell)
   mesh->copyStencil(source, destin, k);
@@ -284,7 +284,7 @@ void Coarse::collapseEdge(int source, int destin) {
   for (auto t = stenc.begin(); t < stenc.end() and *t > -1; ++t) {
     auto n = (int*) mesh->getElem(*t);
     // manually unrolled
-         if (n[0] == source) { n[0] = destin; }
+    if (n[0] == source) { n[0] = destin; }
     else if (n[1] == source) { n[1] = destin; }
     else if (n[2] == source) { n[2] = destin; }
     //
