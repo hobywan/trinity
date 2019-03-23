@@ -102,7 +102,7 @@ public:
   //const std::string &operator[](const std::string &d) const
   const char *operator[](const std::string &d) const {
     std::map<std::string, std::string>::const_iterator it = _map.find(d);
-    return (it not_eq _map.end()) ? it->second.c_str() : "";
+    return (it != _map.end()) ? it->second.c_str() : "";
   }
 
   std::string &operator[](const std::string &d) {
@@ -110,11 +110,11 @@ public:
   }
 
   bool is_set(const std::string &d) const {
-    return _map.find(d) not_eq _map.end();
+    return _map.find(d) != _map.end();
   }
 
   bool is_set_by_user(const std::string &d) const {
-    return _user_set.find(d) not_eq _user_set.end();
+    return _user_set.find(d) != _user_set.end();
   }
 
   void is_set_by_user(const std::string &d, bool yes) {
@@ -170,8 +170,8 @@ public:
 template<typename InputIterator, typename UnaryOperator>
 static std::string str_join_trans(const std::string &sep, InputIterator begin, InputIterator end, UnaryOperator op) {
   std::string buf;
-  for (InputIterator it = begin; it not_eq end; ++it) {
-    if (it not_eq begin) {
+  for (InputIterator it = begin; it != end; ++it) {
+    if (it != begin) {
       buf += sep;
     }
     buf += op(*it);
@@ -284,7 +284,7 @@ static std::string basename(const std::string &s) {
 
   b.erase(i + 1, b.length() - i - 1);
   i = b.find_last_of("/");
-  if (i not_eq std::string::npos) {
+  if (i != std::string::npos) {
     b.erase(0, i + 1);
   }
 
@@ -522,8 +522,8 @@ private:
         ss << std::endl;
     }
 
-    if (help() not_eq "") {
-      std::string help_str = (get_default() not_eq "") ? detail::str_replace(help(), "%default", get_default()) : help();
+    if (help() != "") {
+      std::string help_str = (get_default() != "") ? detail::str_replace(help(), "%default", get_default()) : help();
       ss << detail::str_format(help_str, opt_width, width, indent_first);
     }
 
@@ -662,7 +662,7 @@ public:
     _opts.resize(_opts.size() + 1);
     Option &option = _opts.back();
     std::string dest_fallback;
-    for (std::vector<std::string>::const_iterator it = opt.begin(); it not_eq opt.end(); ++it) {
+    for (std::vector<std::string>::const_iterator it = opt.begin(); it != opt.end(); ++it) {
       if (it->substr(0, 2) == "--") {
         const std::string s = it->substr(2);
         if (option.dest() == "")
@@ -729,7 +729,7 @@ public:
       return ss.str();
     }
 
-    for (std::list<Option>::const_iterator it = _opts.begin(); it not_eq _opts.end(); ++it) {
+    for (std::list<Option>::const_iterator it = _opts.begin(); it != _opts.end(); ++it) {
       if (not it->_suppress_help) {
         ss << it->format_help(indent);
       }
@@ -758,7 +758,7 @@ public:
 
   void print_usage(std::ostream &out) const {
     std::string u = get_usage();
-    if (u not_eq "") {
+    if (u != "") {
       out << u << std::endl;
     }
   }
@@ -801,7 +801,7 @@ private:
 
   const Option &lookup_long_opt(const std::string &opt) const {
     std::vector<std::string> matching;
-    for (std::map<std::string, Option const *>::const_iterator it = _optmap_l.begin(); it not_eq _optmap_l.end(); ++it) {
+    for (std::map<std::string, Option const *>::const_iterator it = _optmap_l.begin(); it != _optmap_l.end(); ++it) {
       if (it->first.compare(0, opt.length(), opt) == 0) {
         matching.push_back(it->first);
       }
@@ -846,7 +846,7 @@ private:
     std::string value;
 
     size_t delim = optstr.find("=");
-    if (delim not_eq std::string::npos) {
+    if (delim != std::string::npos) {
       opt = optstr.substr(0, delim);
       value = optstr.substr(delim + 1);
     } else {
@@ -871,7 +871,7 @@ private:
   void process_opt(const Option &o, const std::string &opt, const std::string &value) {
     if (o.action() == "storeFile") {
       std::string err = o.check_type(opt, value);
-      if (err not_eq "") {
+      if (err != "") {
         error(err);
       }
       _values[o.dest()] = value;
@@ -887,7 +887,7 @@ private:
       _values.is_set_by_user(o.dest(), true);
     } else if (o.action() == "append") {
       std::string err = o.check_type(opt, value);
-      if (err not_eq "") {
+      if (err != "") {
         error(err);
       }
       _values[o.dest()] = value;
@@ -983,16 +983,16 @@ private:
 namespace detail {
 static Parser &add_option_group_helper(Parser &parser,
                                          const OptionGroup &group) {
-  for (std::list<Option>::const_iterator oit = group._opts.begin(); oit not_eq group._opts.end(); ++oit) {
+  for (std::list<Option>::const_iterator oit = group._opts.begin(); oit != group._opts.end(); ++oit) {
     const Option &option = *oit;
     for (std::set<std::string>::const_iterator it = option._short_opts.begin();
-         it not_eq option._short_opts.end();
+         it != option._short_opts.end();
          ++it) {
       parser._optmap_s[*it] = &option;
     }
 
     for (std::set<std::string>::const_iterator it = option._long_opts.begin();
-         it not_eq option._long_opts.end();
+         it != option._long_opts.end();
          ++it) {
       parser._optmap_l[*it] = &option;
     }
@@ -1006,7 +1006,7 @@ static Values &parse_args_helper(Parser &parser,
                                    const std::vector<std::string> &v) {
   parser._remaining.assign(v.begin(), v.end());
 
-  if (parser.add_version_option() and parser.version() not_eq "") {
+  if (parser.add_version_option() and parser.version() != "") {
     parser.add_option("--version").action("version").help("show program's version number and exit");
     parser._opts.splice(parser._opts.begin(), parser._opts, --(parser._opts.end()));
   }
@@ -1042,29 +1042,29 @@ static Values &parse_args_helper(Parser &parser,
   }
 
   for (std::map<std::string, std::string>::const_iterator it = parser._defaults.begin();
-       it not_eq parser._defaults.end(); ++it) {
+       it != parser._defaults.end(); ++it) {
     if (not parser._values.is_set(it->first)) {
       parser._values[it->first] = it->second;
     }
   }
 
-  for (std::list<Option>::const_iterator it = parser._opts.begin(); it not_eq parser._opts.end(); ++it) {
-    if (it->get_default() not_eq "" and not parser._values.is_set(it->dest())) {
+  for (std::list<Option>::const_iterator it = parser._opts.begin(); it != parser._opts.end(); ++it) {
+    if (it->get_default() != "" and not parser._values.is_set(it->dest())) {
       parser._values[it->dest()] = it->get_default();
     }
   }
 
   for (std::vector<OptionGroup const *>::iterator group_it = parser._groups.begin();
-       group_it not_eq parser._groups.end(); ++group_it) {
+       group_it != parser._groups.end(); ++group_it) {
     for (std::map<std::string, std::string>::const_iterator it = (*group_it)->_defaults.begin();
-         it not_eq (*group_it)->_defaults.end(); ++it) {
+         it != (*group_it)->_defaults.end(); ++it) {
       if (not parser._values.is_set(it->first)) {
         parser._values[it->first] = it->second;;
       }
     }
 
-    for (std::list<Option>::const_iterator it = (*group_it)->_opts.begin(); it not_eq (*group_it)->_opts.end(); ++it) {
-      if (it->get_default() not_eq "" and not parser._values.is_set(it->dest())) {
+    for (std::list<Option>::const_iterator it = (*group_it)->_opts.begin(); it != (*group_it)->_opts.end(); ++it) {
+      if (it->get_default() != "" and not parser._values.is_set(it->dest())) {
         parser._values[it->dest()] = it->get_default();
       }
     }
@@ -1077,7 +1077,7 @@ static Values &parse_args_helper(Parser &parser,
 static std::string format_help_helper(const Parser &parser) {
   std::stringstream ss;
 
-  if (parser.description() not_eq "") {
+  if (parser.description() != "") {
     ss << detail::str_format(parser.description(), 0, detail::cols()) << std::endl;
   }
 
@@ -1086,16 +1086,16 @@ static std::string format_help_helper(const Parser &parser) {
   ss << "Options" << ":" << std::endl;
   ss << parser.format_option_help();
 
-  for (auto it = parser._groups.begin(); it not_eq parser._groups.end(); ++it) {
+  for (auto it = parser._groups.begin(); it != parser._groups.end(); ++it) {
     const OptionGroup &group = **it;
     ss << std::endl << "  " << group.title() << ":" << std::endl;
-    if (group.group_description() not_eq "")
+    if (group.group_description() != "")
       ss << detail::str_format(group.group_description(), 4, detail::cols()) << std::endl;
     ss << group.format_option_help(4);
   }
   ss << std::endl;
 
-  if (parser.epilog() not_eq "") {
+  if (parser.epilog() != "") {
     ss << detail::str_format(parser.epilog(), 0, detail::cols());
   }
 

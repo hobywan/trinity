@@ -2,26 +2,25 @@
  *                          'hwcount.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
- *            adapted from 'papi-wrapper' of Sean Chester.
+ *               Copyright 2016, Hoby Rakotoarivelo.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #if HAVE_PAPI
 #include "trinity/hwcount.h"
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::start(std::vector<PAPI*>& counter_array) {
 #pragma omp parallel num_threads( counter_array.size())
   {
@@ -29,7 +28,7 @@ void PAPI::start(std::vector<PAPI*>& counter_array) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::stop(std::vector<PAPI*>& counter_array) {
 #pragma omp parallel num_threads( counter_array.size())
   {
@@ -37,14 +36,14 @@ void PAPI::stop(std::vector<PAPI*>& counter_array) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::sum(std::vector<PAPI*>& counter_array) {
   for (uint32_t i = 1; i < counter_array.size(); ++i) {
     *(counter_array[0]) += *(counter_array[i]);
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 std::ostream& operator<<(std::ostream& os, const PAPI& b) {
   b.to_stream(os);
   return os;
@@ -57,23 +56,23 @@ void PAPI_Branch::to_stream(std::ostream& os) const {
      << "\t" << misprediction_ratio();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI_Cycles::to_stream(std::ostream& os) const {
   os << instructions() << "\t" << cycles() << "\t" << cycles_per_instruction();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI_Instructions::to_stream(std::ostream& os) const {
   os << load_instructions_ratio() << "\t" << store_instructions_ratio()
      << "\t" << branch_instructions_ratio();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI_TLB::to_stream(std::ostream& os) const {
   os << data_tlbs() << "\t" << instruction_tlbs();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI_Cache::to_stream(std::ostream& os) const {
   //first output L2 statistics: misses, accesses, and miss ratio
   //then output L3 statistics: misses, accesses, and miss ratio
@@ -82,7 +81,7 @@ void PAPI_Cache::to_stream(std::ostream& os) const {
      << l3_cache_misses() << "\t" << l3_cache_accesses() << "\t" << l3_miss_ratio();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI_Custom::to_stream(std::ostream& os) const {
   if (values_.size() > 0) {
     os << values_[0];
@@ -97,7 +96,7 @@ long long absolute_difference(const long long v1, const long long v2) {
   return (v1 > v2 ? v1 - v2 : v2 - v1);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void handle_error(int retval) {
   std::cerr << "PAPI error " << retval << ": " << PAPI_strerror(retval) << std::endl;
   exit(1);
@@ -110,7 +109,7 @@ void PAPI::register_counter(const std::string& counter_name, const std::string& 
   strcpy(c_style_string, counter_name.c_str());
   c_style_string[counter_name.length()] = '\0';
   int retval = PAPI_event_name_to_code(c_style_string, &counter);
-  if (retval not_eq PAPI_OK) {
+  if (retval != PAPI_OK) {
     std::cerr << "Could not decode PAPI counter: " << counter_name << std::endl;
     return;
   } else {
@@ -120,14 +119,14 @@ void PAPI::register_counter(const std::string& counter_name, const std::string& 
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::reset() {
-  for (auto it = values_.begin(); it not_eq values_.end(); ++it) {
+  for (auto it = values_.begin(); it != values_.end(); ++it) {
     *it = 0;
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::start() {
   std::vector<int> eventsMutable(counters_.data(), counters_.data() + counters_.size());
   int retval = PAPI_start_counters(&eventsMutable[0], counters_.size());
@@ -139,26 +138,26 @@ void PAPI::start() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void PAPI::stop() {
 
   if (values_.size() == 0) { return; }
   if (papi_started_) {
     long long v[counters_.size()];
     int retval = PAPI_stop_counters(&v[0], counters_.size());
-    if (retval not_eq PAPI_OK) handle_error(retval);
+    if (retval != PAPI_OK) handle_error(retval);
     for (uint32_t i = 0; i < values_.size(); ++i) {
       values_[i] += v[i];
     }
   } else {
-    for (auto it = values_.begin(); it not_eq values_.end(); ++it) {
+    for (auto it = values_.begin(); it != values_.end(); ++it) {
       *it = -1;
     }
   }
   papi_started_ = false;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 std::string PAPI::headers() {
 
   if (headers_.size() == 0) { return ""; }
@@ -169,7 +168,7 @@ std::string PAPI::headers() {
   return output;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI& PAPI::operator=(const PAPI& other) {
   for (uint32_t i = 0; i < values_.size(); ++i) {
     values_[i] = other.values_[i];
@@ -177,7 +176,7 @@ PAPI& PAPI::operator=(const PAPI& other) {
   return *this;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI& PAPI::operator+=(const PAPI& other) {
   for (uint32_t i = 0; i < values_.size(); ++i) {
     values_[i] += other.values_[i];
@@ -185,7 +184,7 @@ PAPI& PAPI::operator+=(const PAPI& other) {
   return *this;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI& PAPI::operator-=(const PAPI& other) {
   for (uint32_t i = 0; i < values_.size(); ++i) {
     values_[i] = absolute_difference(values_[i], other.values_[i]);
@@ -193,17 +192,17 @@ PAPI& PAPI::operator-=(const PAPI& other) {
   return *this;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI& PAPI::operator/=(const uint32_t scalar) {
-  for (auto it = values_.begin(); it not_eq values_.end(); ++it) {
+  for (auto it = values_.begin(); it != values_.end(); ++it) {
     *it /= scalar;
   }
   return *this;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI& PAPI::operator*=(const uint32_t scalar) {
-  for (auto it = values_.begin(); it not_eq values_.end(); ++it) {
+  for (auto it = values_.begin(); it != values_.end(); ++it) {
     *it *= scalar;
   }
   return *this;
@@ -218,28 +217,28 @@ PAPI_Instructions::PAPI_Instructions() {
   this->register_counter(std::string("PAPI_TOT_INS"), std::string("total"));
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 long long inline PAPI_Instructions::load_instructions() const { return values_[0]; }
 long long inline PAPI_Instructions::store_instructions() const { return values_[1]; }
 long long inline PAPI_Instructions::branch_instructions() const { return values_[2]; }
 long long inline PAPI_Instructions::total_instructions() const { return values_[3]; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Instructions::load_instructions_ratio() const {
   return load_instructions() / (double) total_instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Instructions::store_instructions_ratio() const {
   return store_instructions() / (double) total_instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Instructions::branch_instructions_ratio() const {
   return branch_instructions() / (double) total_instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI_Cycles::PAPI_Cycles() {
   this->register_counter("PAPI_STL_ICY", "cycles_no_instructions_issue");
   this->register_counter("PAPI_FUL_CCY", "cycles_max_instructions_completed"); //NOT on AMD
@@ -248,34 +247,34 @@ PAPI_Cycles::PAPI_Cycles() {
   this->register_counter("PAPI_TOT_INS", "total_instructions");
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 inline long long PAPI_Cycles::idle_cycles() const { return values_[0]; }
 inline long long PAPI_Cycles::utilised_cycles() const { return values_[1]; }
 inline long long PAPI_Cycles::stalled_cycles() const { return values_[2]; }
 inline long long PAPI_Cycles::cycles() const { return values_[3]; }
 inline long long PAPI_Cycles::instructions() const { return values_[4]; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cycles::stalled_cycles_ratio() const {
   return stalled_cycles() / (double) cycles();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cycles::idle_cycles_ratio() const {
   return idle_cycles() / (double) cycles();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cycles::utilised_cycles_ratio() const {
   return utilised_cycles() / (double) cycles();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cycles::cycles_per_instruction() const {
   return cycles() / (double) instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI_Cache::PAPI_Cache() {
   this->register_counter("PAPI_L2_TCM", "L2_total_cache_misses");
   this->register_counter("PAPI_L2_TCA", "L2_total_cache_accesses");
@@ -283,56 +282,56 @@ PAPI_Cache::PAPI_Cache() {
   this->register_counter("PAPI_L3_TCA", "L3_total_cache_accesses");
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 long long inline PAPI_Cache::l2_cache_misses() const { return values_[0]; }
 long long inline PAPI_Cache::l2_cache_accesses() const { return values_[1]; }
 long long inline PAPI_Cache::l3_cache_misses() const { return values_[2]; }
 long long inline PAPI_Cache::l3_cache_accesses() const { return values_[3]; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cache::l2_miss_ratio() const {
   return l2_cache_misses() / (double) l2_cache_accesses();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Cache::l3_miss_ratio() const {
   return l3_cache_misses() / (double) l3_cache_accesses();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI_Branch::PAPI_Branch() {
   this->register_counter("PAPI_BR_PRC", "conditional_branches_correctly_predicted"); //NOT on AMD
   this->register_counter("PAPI_BR_MSP", "conditional_branches_mispredicted");
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 long long inline PAPI_Branch::branch_instructions() const { return values_[0] + values_[1]; }
 long long inline PAPI_Branch::branch_misses() const { return values_[1]; }
 long long inline PAPI_Branch::branch_hits() const { return values_[0]; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Branch::misprediction_ratio() const {
   return branch_misses() / (double) branch_instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double PAPI_Branch::prediction_ratio() const {
   return branch_hits() / (double) branch_instructions();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI_TLB::PAPI_TLB() {
   this->register_counter("PAPI_TLB_DM", "dtlb_misses");
   this->register_counter("PAPI_TLB_IM", "itlb_misses");
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 long long inline PAPI_TLB::data_tlbs() const { return values_[0]; }
 long long inline PAPI_TLB::instruction_tlbs() const { return values_[1]; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 PAPI_Custom::PAPI_Custom(const std::vector <std::pair<std::string, std::string>>& events) {
-  for (auto it = events.begin(); it not_eq events.end(); ++it) {
+  for (auto it = events.begin(); it != events.end(); ++it) {
     this->register_counter(it->first, it->second);
   }
 }
@@ -347,7 +346,7 @@ void trinity::papi::init(int num_cores,
                          int papi_mode,
                          std::vector<PAPI*> hw_counters[4]) {
   assert(num_cores);
-  assert(hw_counters not_eq nullptr);
+  assert(hw_counters != nullptr);
   // init random seed
   srand((unsigned) time(0));
 
@@ -355,13 +354,13 @@ void trinity::papi::init(int num_cores,
   if (PAPI_is_initialized() == PAPI_NOT_INITED) {
     PAPI_library_init(PAPI_VER_CURRENT);
 #pragma omp parallel num_threads(num_cores)
-    if (PAPI_thread_init(pthread_self) not_eq PAPI_OK) {
+    if (PAPI_thread_init(pthread_self) != PAPI_OK) {
       exit(0);
     }
   }
 
   // step 2: initialise and start the papi counter sets, one for each thread
-  if (papi_mode not_eq PAPI::papi_mode_off) {
+  if (papi_mode != PAPI::papi_mode_off) {
     for (int k = 0; k < 4; ++k) {
       for (uint32_t t = 0; t < num_cores; ++t) {
         switch (papi_mode) {

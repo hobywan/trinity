@@ -2,26 +2,26 @@
  *                          'mesh.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "trinity/mesh.h"
 #include "trinity/tools.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
 
   nb.nodes     = size[0];
@@ -43,7 +43,7 @@ Mesh::Mesh(int size[2], int bucket, int depth, int verbosity, int rounds) {
   reallocMemory();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Mesh::~Mesh() {
 
   std::free(sync.activ);
@@ -53,7 +53,7 @@ Mesh::~Mesh() {
   std::free(sync.tags);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::reallocMemory() {
 #pragma omp master
   {
@@ -107,22 +107,23 @@ void Mesh::reallocMemory() {
   {
     size_t memory_print = 0;
     memory_print += (capa.bucket * capa.node * sizeof(int)); // stenc
-    memory_print += (6 * capa.node * sizeof(int));      // vicin
-    memory_print += (3 * capa.elem * sizeof(int));      // elems
-    memory_print += (2 * capa.node * sizeof(double));   // points
-    memory_print += (3 * capa.node * sizeof(double));   // tensor
-    memory_print += (1 * nb.nodes * sizeof(double));   // solut
-    memory_print += (1 * capa.elem * sizeof(double));   // qualit
-    memory_print += (1 * capa.node * sizeof(int));      // deg
-    memory_print += (1 * nb.cores * sizeof(int));      // off
-    memory_print += (1 * capa.elem);                    // activ
-    memory_print += (1 * capa.node);                    // fixes
-    memory_print += (1 * capa.node);                    // tags
-    // 1 megabyte: 10^6, 1 mebibyte: 2^20=1048576
+    memory_print += (6 * capa.node * sizeof(int));           // vicin
+    memory_print += (3 * capa.elem * sizeof(int));           // elems
+    memory_print += (2 * capa.node * sizeof(double));        // points
+    memory_print += (3 * capa.node * sizeof(double));        // tensor
+    memory_print += (1 * nb.nodes  * sizeof(double));        // solut
+    memory_print += (1 * capa.elem * sizeof(double));        // qualit
+    memory_print += (1 * capa.node * sizeof(int));           // deg
+    memory_print += (1 * nb.cores  * sizeof(int));           // off
+    memory_print += (1 * capa.elem);                         // activ
+    memory_print += (1 * capa.node);                         // fixes
+    memory_print += (1 * capa.node);                         // tags
+
     if (param.verb) {
-      std::printf("%d MB \e[32m(%.2f s)\e[0m\n",
-                  (int) std::ceil(memory_print / 1e6),
-                  (float) timer::elapsed_ms(sync.tic) / 1e3);
+      // 1 megabyte: 10^6, 1 mebibyte: 2^20=1048576
+      auto size = (int) std::ceil(memory_print / 1e6);
+      auto secs = (float) timer::elapsed_ms(sync.tic) / 1e3;
+      std::printf("%d MB \e[32m(%.2f s)\e[0m\n", size, secs);
     } else {
       std::printf("\r= Preprocess ...  33 %% =");
     }
@@ -130,7 +131,7 @@ void Mesh::reallocMemory() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::doFirstTouch() {
 #pragma omp barrier
 
@@ -148,10 +149,10 @@ void Mesh::doFirstTouch() {
   for (int i = 0; i < nb.nodes; ++i)
     geom.solut[i] = 0.;
 #pragma omp for schedule(static, chunk*2) nowait
-  for (int i = 0; i < capa.node * 2; ++i)
+  for (int i = 0; i < (int) capa.node * 2; ++i)
     geom.points[i] = 0.;
 #pragma omp for schedule(static, chunk*3) nowait
-  for (int i = 0; i < capa.node * 3; ++i)
+  for (int i = 0; i < (int) capa.node * 3; ++i)
     geom.tensor[i] = 0.;
 
   // (!)
@@ -164,37 +165,37 @@ void Mesh::doFirstTouch() {
     topo.stenc[i].reserve(64);
 #else
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < capa.node; ++i)
+  for (int i = 0; i < (int) capa.node; ++i)
     topo.stenc[i].resize(capa.bucket, -1);
 #endif
 
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < capa.node; ++i)
+  for (int i = 0; i < (int) capa.node; ++i)
     sync.deg[i] = 0;
 #pragma omp for schedule(static, chunk) nowait
-  for (int i = 0; i < capa.node; ++i)
+  for (int i = 0; i < (int) capa.node; ++i)
     sync.tags[i] = mask::unset;
 #pragma omp for schedule(static, block*3) nowait
-  for (int i = 0; i < capa.elem * 3; ++i)
+  for (int i = 0; i < (int) capa.elem * 3; ++i)
     topo.elems[i] = -1;
 #pragma omp for schedule(static, block) nowait
-  for (int i = 0; i < capa.elem; ++i)
+  for (int i = 0; i < (int) capa.elem; ++i)
     sync.activ[i] = 0;
 #pragma omp for schedule(static, block)
-  for (int i = 0; i < capa.elem; ++i)
+  for (int i = 0; i < (int) capa.elem; ++i)
     geom.qualit[i] = 0.;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::rebuildTopology() {
 
 #pragma omp for schedule(static, nb.nodes/nb.cores)
-  for (int i = 0; i < capa.node; ++i)
+  for (int i = 0; i < (int) capa.node; ++i)
     sync.deg[i] = 0;
 
 #pragma omp for
   for (int i = 0; i < nb.elems; ++i) {
-    const int* n = getElem(i);
+    auto const n = getElem(i);
     if (__builtin_expect(*n < 0, 0))
       continue;
 
@@ -202,9 +203,9 @@ void Mesh::rebuildTopology() {
     topo.stenc[n[0]][sync::fetchAndAdd(sync.deg + n[0], 1)] = i;
     topo.stenc[n[1]][sync::fetchAndAdd(sync.deg + n[1], 1)] = i;
     topo.stenc[n[2]][sync::fetchAndAdd(sync.deg + n[2], 1)] = i;
-    assert(sync.deg[n[0]] < topo.stenc[n[0]].size());
-    assert(sync.deg[n[1]] < topo.stenc[n[1]].size());
-    assert(sync.deg[n[2]] < topo.stenc[n[2]].size());
+    assert(sync.deg[n[0]] < (int) topo.stenc[n[0]].size());
+    assert(sync.deg[n[1]] < (int) topo.stenc[n[1]].size());
+    assert(sync.deg[n[2]] < (int) topo.stenc[n[2]].size());
   }
 
   std::vector<int> heap;
@@ -215,8 +216,10 @@ void Mesh::rebuildTopology() {
     heap.reserve(15);
     assert(sync.deg[i]);
 
-    for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
-      const int* n = getElem(*t);
+    for (auto t = topo.stenc[i].begin();
+              t < topo.stenc[i].begin() + sync.deg[i]; ++t)
+    {
+      auto const n = getElem(*t);
       //manually unrolled
       if (n[0] == i) {
         heap.push_back(n[1]);
@@ -244,7 +247,7 @@ void Mesh::rebuildTopology() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::verifyTopology() const {
 
 #pragma omp for
@@ -254,17 +257,22 @@ bool Mesh::verifyTopology() const {
 
       for(int j = 0; j < 3; ++j){
         #ifdef DEBUG
-          if (std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i) == topo.stenc[t[j]].end())
+          if (std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i)
+              == topo.stenc[t[j]].end())
           #pragma omp critical
             {
-              std::fprintf(stderr, "n: %d, t: %d [%d,%d,%d]", t[0], i, t[0], t[1], t[2]);
+              std::fprintf(stderr,
+                "n: %d, t: %d [%d,%d,%d]", t[0], i, t[0], t[1], t[2]
+              );
               tools::display(topo.stenc[t[j]]);
               std::exit(EXIT_FAILURE);
             }
         #else
           // abort immediately if an error occured
-          assert(t[0] not_eq t[1] and t[1] not_eq t[2] and t[2] not_eq t[0]);
-          assert(std::find(topo.stenc[t[j]].begin(), topo.stenc[t[j]].end(), i) not_eq topo.stenc[t[j]].end());
+          assert(t[0] != t[1] and t[1] != t[2] and t[2] != t[0]);
+          auto cur = t[j];
+          auto itr = std::find(topo.stenc[cur].begin(), topo.stenc[cur].end(), i);
+          assert(itr != topo.stenc[cur].end());
         #endif
       }
     }
@@ -272,15 +280,15 @@ bool Mesh::verifyTopology() const {
   return true;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::initActivElems() {
 
 #pragma omp for
   for (int i = 0; i < nb.nodes; ++i)
-    sync.activ[i] = static_cast<char>(__builtin_expect(topo.vicin[i].empty(), 0) ? 0 : 1);
+    sync.activ[i] = char(__builtin_expect(topo.vicin[i].empty(), 0) ? 0 : 1);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::extractPrimalGraph() {
 
 #pragma omp for schedule(guided)
@@ -290,8 +298,9 @@ void Mesh::extractPrimalGraph() {
       topo.vicin[i].clear();
       topo.vicin[i].reserve(size);
 
-      for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
-        const int* n = getElem(*t);
+      for (auto t = topo.stenc[i].begin();
+                t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
+        auto n = getElem(*t);
         // manually unrolled
         if (i == n[0]) {
           topo.vicin[i].push_back(n[1]);
@@ -307,61 +316,72 @@ void Mesh::extractPrimalGraph() {
         }
       }
       std::sort(topo.vicin[i].begin(), topo.vicin[i].end());
-      topo.vicin[i].erase(std::unique(topo.vicin[i].begin(), topo.vicin[i].end()), topo.vicin[i].end());
+      topo.vicin[i].erase(
+        std::unique(topo.vicin[i].begin(), topo.vicin[i].end()),
+        topo.vicin[i].end()
+      );
     }
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::extractDualGraph(Graph* dual) const {
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb.elems; ++i) {
-    const int* n = getElem(i);
+    auto const n = getElem(i);
     if (*n < 0)
       continue;
 
     auto& list = dual->at(i);
     list.clear();
 
-    std::set_intersection(topo.stenc[n[0]].begin(), topo.stenc[n[0]].begin() + sync.deg[n[0]],
-                          topo.stenc[n[1]].begin(), topo.stenc[n[1]].begin() + sync.deg[n[1]],
-                          std::back_inserter(list));
-    std::set_intersection(topo.stenc[n[0]].begin(), topo.stenc[n[0]].begin() + sync.deg[n[0]],
-                          topo.stenc[n[2]].begin(), topo.stenc[n[2]].begin() + sync.deg[n[2]],
-                          std::back_inserter(list));
-    std::set_intersection(topo.stenc[n[1]].begin(), topo.stenc[n[1]].begin() + sync.deg[n[1]],
-                          topo.stenc[n[2]].begin(), topo.stenc[n[2]].begin() + sync.deg[n[2]],
-                          std::back_inserter(list));
+    std::set_intersection(
+      topo.stenc[n[0]].begin(), topo.stenc[n[0]].begin() + sync.deg[n[0]],
+      topo.stenc[n[1]].begin(), topo.stenc[n[1]].begin() + sync.deg[n[1]],
+      std::back_inserter(list)
+    );
+
+    std::set_intersection(
+      topo.stenc[n[0]].begin(), topo.stenc[n[0]].begin() + sync.deg[n[0]],
+      topo.stenc[n[2]].begin(), topo.stenc[n[2]].begin() + sync.deg[n[2]],
+      std::back_inserter(list)
+    );
+
+    std::set_intersection(
+      topo.stenc[n[1]].begin(), topo.stenc[n[1]].begin() + sync.deg[n[1]],
+      topo.stenc[n[2]].begin(), topo.stenc[n[2]].begin() + sync.deg[n[2]],
+      std::back_inserter(list)
+    );
 
     std::sort(list.begin(), list.end());
     list.erase(std::unique(list.begin(), list.end()), list.end());
-    std::swap(*(std::find(list.begin(), list.end(), i)), list.front());  // don't shift just swap
+    std::swap(*(std::find(list.begin(), list.end(), i)), list.front());
     assert(list[0] == i);
   }
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 const int* Mesh::getElem(int i) const { return topo.elems.data() + (i * 3); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::isActiveNode(int i) const { return not topo.stenc[i].empty(); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::isActiveElem(int i) const { return topo.elems[i * 3] > -1; }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::isBoundary(int i) const { return (sync.tags[i] & mask::bound); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::isCorner(int i) const { return (sync.tags[i] & mask::corner); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int Mesh::getCapaNode() const { return static_cast<int>(capa.node); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int Mesh::getCapaElem() const { return static_cast<int>(capa.elem); }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Patch Mesh::getVicinity(int id, int dist) const {
 
   // verify step
@@ -387,9 +407,11 @@ Patch Mesh::getVicinity(int id, int dist) const {
     }
     for (int j = 0; j < 2; ++j) {
       last[j].clear();
-      std::set_difference(cur[j].begin(), cur[j].end(),
-                          all[j].begin(), all[j].end(),
-                          std::inserter(last[j], last[j].begin()));
+      std::set_difference(
+        cur[j].begin(), cur[j].end(),
+        all[j].begin(), all[j].end(),
+        std::inserter(last[j], last[j].begin())
+      );
       all[j].insert(last[j].begin(), last[j].end());
     }
   }
@@ -406,13 +428,13 @@ Patch Mesh::getVicinity(int id, int dist) const {
   return patch;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int Mesh::getElemNeigh(int id, int i, int j) const {
 
   assert(not topo.stenc[i].empty());
   for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].end() and *t > -1; ++t) {
-    if (__builtin_expect(*t not_eq id, 1)) {
-      const int* n = getElem(*t);
+    if (__builtin_expect(*t != id, 1)) {
+      auto const n = getElem(*t);
       // manually unrolled
       if ((n[0] == j and n[1] == i) or
           (n[1] == j and n[2] == i) or
@@ -425,26 +447,26 @@ int Mesh::getElemNeigh(int id, int i, int j) const {
   return -1;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::replaceElem(int id, const int* v) {
-  assert(v not_eq nullptr);
+  assert(v != nullptr);
   std::memcpy(topo.elems.data() + (id * 3), v, sizeof(int) * 3);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::eraseElem(int id) {
-  // nb: std::memsetting with -1 is ok
+  // nb: memset with -1 is ok
   std::memset(topo.elems.data() + (id * 3), -1, sizeof(int) * 3);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::updateStencil(int i, int t) {
   int k = sync::fetchAndAdd(sync.deg + i, 1);
   sync::reallocBucket(topo.stenc.data(), i, (k + 1), param.verb);
   topo.stenc[i][k] = t;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
   int j = sync::fetchAndAdd(sync.deg + i, (int) t.size());
   if (topo.stenc[i].empty()) {
@@ -455,7 +477,9 @@ void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
   sync::reallocBucket(topo.stenc.data(), i, j + t.size(), param.verb);
   //
   if ((j + t.size()) >= topo.stenc[i].capacity()) {
-    std::fprintf(stderr, "stenc[%d] not fixed, stenc.size: %lu\n", i, topo.stenc[i].size());
+    std::fprintf(stderr,
+      "stenc[%d] not fixed, stenc.size: %lu\n", i, topo.stenc[i].size()
+    );
     std::fflush(stderr);
   }
 
@@ -464,26 +488,27 @@ void Mesh::updateStencil(int i, const std::initializer_list<int>& t) {
     topo.stenc[i][j + k] = *(t.begin() + k);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::copyStencil(int i, int j, int nb_rm) {
   int chunk = sync.deg[i] - nb_rm;
   int k = sync::fetchAndAdd(sync.deg + j, chunk);
   // threads attempting to insert will spin until reallocation was done
   sync::reallocBucket(topo.stenc.data(), i, k + chunk, param.verb);
 
-  assert((k + chunk) < topo.stenc[i].size());
-  std::memcpy(topo.stenc[j].data() + k, topo.stenc[i].data(), chunk * sizeof(int));
+  assert(size_t(k + chunk) < topo.stenc[i].size());
+  auto const bytes = chunk * sizeof(int);
+  std::memcpy(topo.stenc[j].data() + k, topo.stenc[i].data(), bytes);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 #ifdef DEFERRED_UPDATES
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, int t){
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
   deferred[tid][key].add.push_back(i);
   deferred[tid][key].add.push_back(t);
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
 
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
@@ -494,15 +519,15 @@ void Mesh::deferredAppend(int tid, int i, const std::initializer_list<int>& t){
     deferred[tid][key].add.push_back(*(t.begin()+k));
   }
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::deferredRemove(int tid, int i, int t){
   const int key = tools::hash(i)% (def_scale_fact*nb_cores);
   auto found = std::find(stenc[i].begin(), stenc[i].end(), t);
-  assert(found not_eq stenc[i].end());
+  assert(found != stenc[i].end());
   deferred[tid][key].rem.push_back(i);
   deferred[tid][key].rem.push_back(t);
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::initUpdates(){
 
   int size = nb_cores * def_scale_fact;
@@ -519,23 +544,27 @@ void Mesh::initUpdates(){
     }
   }
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::commitUpdates(){
 
   // from 'pragmatic'
 #pragma omp for schedule(guided)
-  for(int j=0; j < nb_cores*def_scale_fact; ++j){
-    for(int i=0; i < nb_cores; ++i){
+  for(int j = 0; j < nb_cores * def_scale_fact; ++j){
+    for(int i = 0; i < nb_cores; ++i){
       // only one thread will update the adjacency list of a given node
-      for(auto v = deferred[i][j].rem.begin(); v < deferred[i][j].rem.end(); v+=2){
+      for(auto v = deferred[i][j].rem.begin();
+               v < deferred[i][j].rem.end(); v += 2){
         auto found = std::find(stenc[*v].begin(), stenc[*v].end(), *(v+1));
-        assert(found not_eq stenc[*v].end());
+        assert(found != stenc[*v].end());
         stenc[*v].erase(found);
       }
       deferred[i][j].rem.clear();
 
-      for(auto v = deferred[i][j].add.begin(); v < deferred[i][j].add.end(); v+=2)
+      for(auto v = deferred[i][j].add.begin();
+               v < deferred[i][j].add.end(); v += 2) {
         stenc[*v].push_back(*(v+1));
+      }
+
       deferred[i][j].add.clear();
     }
   }
@@ -546,7 +575,7 @@ void Mesh::commitUpdates(){
 
   verify();
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::resetUpdates(){
 
 #pragma omp for schedule(guided)
@@ -557,54 +586,55 @@ void Mesh::resetUpdates(){
     }
   }
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 #endif
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 const int* Mesh::getElemCoord(int id, double* p) const {
 
   // manually unrolled
-  const int* n = getElem(id);
-  std::memcpy(p    , geom.points.data() + (n[0] * 2), 2 * sizeof(double));
-  std::memcpy(p + 2, geom.points.data() + (n[1] * 2), 2 * sizeof(double));
-  std::memcpy(p + 4, geom.points.data() + (n[2] * 2), 2 * sizeof(double));
+  auto const n = getElem(id);
+  auto const bytes = 2 * sizeof(double);
+  std::memcpy(p    , geom.points.data() + (n[0] * 2), bytes);
+  std::memcpy(p + 2, geom.points.data() + (n[1] * 2), bytes);
+  std::memcpy(p + 4, geom.points.data() + (n[2] * 2), bytes);
   return n;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double Mesh::computeLength(int i, int j) const {
 
-  const double* p1 = geom.points.data() + (i * 2);
-  const double* p2 = geom.points.data() + (j * 2);
-  const double* M1 = geom.tensor.data() + (i * 3);
-  const double* M2 = geom.tensor.data() + (j * 3);
+  auto const p1 = geom.points.data() + (i * 2);
+  auto const p2 = geom.points.data() + (j * 2);
+  auto const M1 = geom.tensor.data() + (i * 3);
+  auto const M2 = geom.tensor.data() + (j * 3);
 
   return numeric::approxRiemannDist(p1, p2, M1, M2);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double Mesh::computeQuality(const int* t) const {
 
   assert(t[0] > -1 and t[1] > -1 and t[2] > -1);
 
   // zero-copy
-  const double* pa = geom.points.data() + (t[0] * 2);
-  const double* pb = geom.points.data() + (t[1] * 2);
-  const double* pc = geom.points.data() + (t[2] * 2);
-  const double* ma = geom.tensor.data() + (t[0] * 3);
-  const double* mb = geom.tensor.data() + (t[1] * 3);
-  const double* mc = geom.tensor.data() + (t[2] * 3);
+  auto const pa = geom.points.data() + (t[0] * 2);
+  auto const pb = geom.points.data() + (t[1] * 2);
+  auto const pc = geom.points.data() + (t[2] * 2);
+  auto const ma = geom.tensor.data() + (t[0] * 3);
+  auto const mb = geom.tensor.data() + (t[1] * 3);
+  auto const mc = geom.tensor.data() + (t[2] * 3);
 
   return numeric::computeQuality(pa, pb, pc, ma, mb, mc);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 double Mesh::computeQuality(int id) const {
   return computeQuality(getElem(id));
 }
 
-/* --------------------------------------------------------------------------- */
-void Mesh::computeQuality(double q[3]) {
+/* -------------------------------------------------------------------------- */
+void Mesh::computeQuality(double quality[3]) {
 
   double q_min = 3.;
   double q_max = 0.;
@@ -616,7 +646,7 @@ void Mesh::computeQuality(double q[3]) {
 
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb.elems; ++i) {
-    const int* t = getElem(i);
+    auto const t = getElem(i);
     if (*t < 0)
       continue;
 
@@ -629,48 +659,48 @@ void Mesh::computeQuality(double q[3]) {
 
 #pragma omp critical
   {
-    q[0] = std::min(q[0], q_min);
-    q[1] = std::max(q[1], q_max);
-    q[2] += q_tot;
+    quality[0] = std::min(quality[0], q_min);
+    quality[1] = std::max(quality[1], q_max);
+    quality[2] += q_tot;
     nb.activ_elem += count;
   }
 #pragma omp barrier
 #pragma omp single
-  q[2] /= nb.activ_elem;
+  quality[2] /= nb.activ_elem;
 
 }
 
-/* --------------------------------------------------------------------------- */
-void Mesh::computeSteinerPoint(int i, int j, double* p, double* M) const {
+/* -------------------------------------------------------------------------- */
+void Mesh::computeSteinerPoint(int i, int j, double* point, double* metric) const {
 
-  assert(p not_eq nullptr);
-  assert(M not_eq nullptr);
+  assert(point != nullptr);
+  assert(metric != nullptr);
 
-  const double* p1 = geom.points.data() + (i * 2);
-  const double* p2 = geom.points.data() + (j * 2);
-  const double* m1 = geom.tensor.data() + (i * 3);
-  const double* m2 = geom.tensor.data() + (j * 3);
+  auto const p1 = geom.points.data() + (i * 2);
+  auto const p2 = geom.points.data() + (j * 2);
+  auto const m1 = geom.tensor.data() + (i * 3);
+  auto const m2 = geom.tensor.data() + (j * 3);
 
-  numeric::computeSteinerPoint(p1, p2, m1, m2, p, M);
+  numeric::computeSteinerPoint(p1, p2, m1, m2, point, metric);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 bool Mesh::isCounterclockwise(const int* t) const {
 
-  const double* pa = geom.points.data() + (t[0] * 2);
-  const double* pb = geom.points.data() + (t[1] * 2);
-  const double* pc = geom.points.data() + (t[2] * 2);
+  auto const pa = geom.points.data() + (t[0] * 2);
+  auto const pb = geom.points.data() + (t[1] * 2);
+  auto const pc = geom.points.data() + (t[2] * 2);
 
-  double s[4];
-  s[0] = pb[0] - pa[0];
-  s[1] = pc[0] - pa[0];
-  s[2] = pb[1] - pa[1];
-  s[3] = pc[1] - pa[1];
+  double coef[4];
+  coef[0] = pb[0] - pa[0];
+  coef[1] = pc[0] - pa[0];
+  coef[2] = pb[1] - pa[1];
+  coef[3] = pc[1] - pa[1];
 
-  return 0.5 * (s[0] * s[3] - s[1] * s[2]) > EPSILON;
+  return 0.5 * (coef[0] * coef[3] - coef[1] * coef[2]) > EPSILON;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::fixTagged() {
 #ifdef DEFERRED_UPDATES
 #pragma omp for schedule(guided)
@@ -690,11 +720,13 @@ void Mesh::fixTagged() {
       // reset
       sync.fixes[i] = 0;
       k = 0;
-      if (__builtin_expect(elem.size() < sync.deg[i], 0))
+      if (__builtin_expect((int) elem.size() < sync.deg[i], 0))
         elem.resize((size_t) sync.deg[i]);
 
-      for (auto t = topo.stenc[i].begin(); t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
-        const int* n = getElem(*t);
+      for (auto t = topo.stenc[i].begin();
+                t < topo.stenc[i].begin() + sync.deg[i]; ++t) {
+
+        auto const n = getElem(*t);
         if (__builtin_expect(i == n[0] or i == n[1] or i == n[2], 1))
           elem[k++] = *t;
       }
@@ -703,10 +735,10 @@ void Mesh::fixTagged() {
           std::printf("k: %d, elem.size: %lu\n", k, elem.size());
         }
       #endif
-      assert(k < elem.size());
+      assert(k < (int) elem.size());
       // remove duplicates and adjust count
       std::sort(elem.begin(), elem.begin() + k);
-      sync.deg[i] = static_cast<int>(std::unique(elem.begin(), elem.begin() + k) - elem.begin());
+      sync.deg[i] = int(std::unique(elem.begin(), elem.begin() + k) - elem.begin());
       std::fill(elem.begin() + sync.deg[i], elem.end(), -1);
       // swap arrays O(1)
       topo.stenc[i].swap(elem);
@@ -715,14 +747,15 @@ void Mesh::fixTagged() {
 #endif
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::fixAll() {
 
 #pragma omp for
   for (int i = 0; i < nb.nodes; ++i)
-    sync.fixes[i] = static_cast<char>(topo.stenc[i].empty() ? 0 : 1);
+    sync.fixes[i] = char(topo.stenc[i].empty() ? 0 : 1);
 
   this->fixTagged();
 }
 
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

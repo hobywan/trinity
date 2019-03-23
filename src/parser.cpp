@@ -2,62 +2,79 @@
  *                          'parser.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-/* ------------------------------------*/
+/* -------------------------------------------------------------------------- */
 #include "trinity/parser.h"
 #include "trinity/io.h"
-#include <hwloc.h>
-/* ------------------------------------*/
+
+#if HAVE_HWLOC
+  #include <hwloc.h>
+#endif
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* ------------------------------------*/
+/* -------------------------------------------------------------------------- */
 Parser::Parser(int argc, char* argv[]) {
 
   optparse::Parser parser;
-  std::string const mode[] = {"normal", "benchmark", "debug"};
-  std::string const papi[] = {"cache", "cycles", "tlb", "branch"};
+  std::string const run_mode[] = {"normal", "benchmark", "debug"};
+  std::string const papi_mode[] = {"cache", "cycles", "tlb", "branch"};
 
   // add options
-  auto& modes = parser.add_option("-m").dest("mode") .help("select mode [normal|benchmark|debug]");
-  auto& arch  = parser.add_option("-a").dest("arch") .help("cpu architecture [skl|knl|kbl]");
-  auto& input = parser.add_option("-i").dest("in")   .help("initial mesh file");
-  auto& rsult = parser.add_option("-o").dest("out")  .help("result  mesh file");
-  auto& solut = parser.add_option("-s").dest("solut").help("solution field .bb file");
-  auto& cores = parser.add_option("-c").dest("cores").help("number of threads");
-  auto& buck  = parser.add_option("-b").dest("buck") .help("vertex bucket capacity [64-256]");
-  auto& targ  = parser.add_option("-t").dest("targ") .help("target resolution factor [0.5-1.0]");
-  auto& norm  = parser.add_option("-p").dest("norm") .help("metric field L^p norm [0-4]");
-  auto& round = parser.add_option("-r").dest("round").help("remeshing rounds [1-5]");
-  auto& depth = parser.add_option("-d").dest("depth").help("max refinement/smoothing depth [1-3]");
-  auto& verb  = parser.add_option("-v").dest("verb") .help("verbosity level [0-2]");
-  auto& papis = parser.add_option("-P").dest("papi") .help("enable papi [cache|cycles|tlb|branch]");
+  auto& modes  = parser.add_option("-m").dest("mode");
+  auto& archi  = parser.add_option("-a").dest("arch");
+  auto& input  = parser.add_option("-i").dest("in");
+  auto& result = parser.add_option("-o").dest("out");
+  auto& solut  = parser.add_option("-s").dest("solut");
+  auto& cores  = parser.add_option("-c").dest("cores");
+  auto& bucket = parser.add_option("-b").dest("buck");
+  auto& target = parser.add_option("-t").dest("targ");
+  auto& norm   = parser.add_option("-p").dest("norm");
+  auto& rounds = parser.add_option("-r").dest("round");
+  auto& depth  = parser.add_option("-d").dest("depth");
+  auto& verbo  = parser.add_option("-v").dest("verb");
+  auto& papis  = parser.add_option("-P").dest("papi");
 
-  cores.set_default(4).type("int");
-  buck .set_default(64).type("int");
-  targ .set_default(1.0).type("float");
-  norm .set_default(2).type("int");
-  depth.set_default(3).type("int");
-  round.set_default(8).type("int");
-  verb .set_default(1).type("int");
-  input.set_default(std::string(TRINITY_EXAMP_DIR) + "/mesh/GRID4.mesh");
-  solut.set_default(std::string(TRINITY_EXAMP_DIR) + "/solut/shock4.bb");
-  rsult.set_default(std::string(TRINITY_BUILD_DIR) + "/data/adapted.mesh");
-  modes.set_default(mode[0]).choices(mode, mode + 3);
-  papis.set_default(papi[0]).choices(papi, papi + 4);
-  arch .set_default("kbl");
+  modes .help("select mode [normal|benchmark|debug]");
+  archi .help("cpu architecture [skl|knl|kbl]");
+  input .help("initial mesh file");
+  result.help("result  mesh file");
+  solut .help("solution field .bb file");
+  cores .help("number of threads");
+  bucket.help("vertex bucket capacity [64-256]");
+  target.help("target resolution factor [0.5-1.0]");
+  norm  .help("metric field L^p norm [0-4]");
+  rounds.help("remeshing rounds [1-5]");
+  depth .help("max refinement/smoothing depth [1-3]");
+  verbo .help("verbosity level [0-2]");
+  papis .help("enable papi [cache|cycles|tlb|branch]");
+
+  modes .set_default(run_mode[0]).choices(run_mode, run_mode + 3);
+  archi .set_default("kbl");
+  input .set_default(std::string(TRINITY_EXAMP_DIR) + "/mesh/GRID4.mesh");
+  solut .set_default(std::string(TRINITY_EXAMP_DIR) + "/solut/shock4.bb");
+  result.set_default(std::string(TRINITY_BUILD_DIR) + "/data/adapted.mesh");
+  cores .set_default(4).type("int");
+  bucket.set_default(64).type("int");
+  target.set_default(1.0).type("float");
+  norm  .set_default(2).type("int");
+  rounds.set_default(8).type("int");
+  depth .set_default(3).type("int");
+  verbo .set_default(1).type("int");
+  papis .set_default(papi_mode[0]).choices(papi_mode, papi_mode + 4);
 
   // read stdin
   const auto& params = parser.parse_args(argc, argv);
@@ -69,7 +86,7 @@ Parser::Parser(int argc, char* argv[]) {
   param.bucket  = std::max(std::min(std::atoi(params["buck"]), 256), 64);
   param.rounds  = std::max(std::min(std::atoi(params["round"]), 5), 1);
   param.depth   = std::max(std::min(std::atoi(params["depth"]), 3), 1);
-  param.target  = std::max(std::min(std::atof(params["targ"]), 1.), 0.5);   // 0.5*1e4
+  param.target  = std::max(std::min(std::atof(params["targ"]), 1.), 0.5);
   param.norm    = std::max(std::min(std::atoi(params["norm"]), 4), 0);
   param.verb    = std::max(std::min(std::atoi(params["verb"]), 2), 0);
   param.input   = std::string(params["in"]);
@@ -83,18 +100,20 @@ Parser::Parser(int argc, char* argv[]) {
     #if HAVE_HWLOC
       hwloc_topology_t topology;
       int const ok = 0;
-      if (hwloc_topology_init(&topology) == ok and hwloc_topology_load(topology) == ok) {
+      if (hwloc_topology_init(&topology) == ok
+      and hwloc_topology_load(topology) == ok) {
         param.hw_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
         hwloc_topology_destroy(topology);
         omp_set_num_threads(param.threads);
       } else {
-        tools::abort('c', "unable to retrieve the number of physical cores", parser);
+        tools::abort('c', "unable to retrieve number of physical cores", parser);
       }
     #else
       param.hw_cores = param.cores;
     #endif
-  } else
+  } else {
     tools::abort('c', "not enough available logical cores", parser);
+  }
 
 
   if (tools::exists(param.input)) {
@@ -115,16 +134,18 @@ Parser::Parser(int argc, char* argv[]) {
     int col[] = {0, 0, 0, 0};
     file >> col[0] >> col[1] >> col[2] >> col[3];
     file.close();
-    if (col[2] not_eq param.size[0])
+    if (col[2] != param.size[0]) {
       tools::abort('s', "wrong number of vertices in solut. file", parser);
-  } else
+    }
+  } else {
     tools::abort('s', "invalid solut. file", parser);
+  }
 
   // show description
   showDesc();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Parser::recap(Stats* stat) {
 
   if (stat != nullptr) {
@@ -143,19 +164,24 @@ void Parser::recap(Stats* stat) {
     std::printf("\n\n= recap: %d rounds, %d threads (%.1f sec)\n",
                 param.rounds, param.threads, (float) param.makespan / 1e3);
     std::printf("=  %2d %% metric (%*.2f s), %*d  calc/sec (%*d done)\n",
-                (int) std::floor(stat[0].elap * 100 / param.makespan), form[0], (float) stat[0].elap / 1e3,
+                (int) std::floor(stat[0].elap * 100 / param.makespan), form[0],
+                (float) stat[0].elap / 1e3,
                 form[1], rate[0], form[2], stat[0].task);
     std::printf("=  %2d %% refine (%*.2f s), %*d split/sec (%*d done)\n",
-                (int) std::floor(stat[1].elap * 100 / param.makespan), form[0], (float) stat[1].elap / 1e3,
+                (int) std::floor(stat[1].elap * 100 / param.makespan), form[0],
+                (float) stat[1].elap / 1e3,
                 form[1], rate[1], form[2], stat[1].task);
     std::printf("=  %2d %% coarse (%*.2f s), %*d merge/sec (%*d done)\n",
-                (int) std::floor(stat[2].elap * 100 / param.makespan), form[0], (float) stat[2].elap / 1e3,
+                (int) std::floor(stat[2].elap * 100 / param.makespan), form[0],
+                (float) stat[2].elap / 1e3,
                 form[1], rate[2], form[2], stat[2].task);
     std::printf("=  %2d %% swap   (%*.2f s), %*d  flip/sec (%*d done)\n",
-                (int) std::floor(stat[3].elap * 100 / param.makespan), form[0], (float) stat[3].elap / 1e3,
+                (int) std::floor(stat[3].elap * 100 / param.makespan), form[0],
+                (float) stat[3].elap / 1e3,
                 form[1], rate[3], form[2], stat[3].task);
     std::printf("=  %2d %% smooth (%*.2f s), %*d  move/sec (%*d done)\n\n",
-                (int) std::floor(stat[4].elap * 100 / param.makespan), form[0], (float) stat[4].elap / 1e3,
+                (int) std::floor(stat[4].elap * 100 / param.makespan), form[0],
+                (float) stat[4].elap / 1e3,
                 form[1], rate[4], form[2], stat[4].task);
 
     std::memset(form, 0, sizeof(int) * 4);
@@ -164,52 +190,77 @@ void Parser::recap(Stats* stat) {
         form[i] = std::max(form[i], tools::format(j));
 
     std::printf("|%6s%-15s | %5s%-15s | %5s%-15s | %5s%-15s |\n",
-                "", "refinement", "", "contraction", "", "swapping", "", "smoothing");
+                "", "refinement",
+                "", "contraction",
+                "", "swapping",
+                "", "smoothing");
 
     std::printf("|%3d %% filter \e[0m(%*.2f s)\e[0m |"
                 "%3d %% filter \e[0m(%*.2f s)\e[0m |"
                 "%3d %% qualit \e[0m(%*.2f s)\e[0m |"
                 "%3d %% primal \e[0m(%*.2f s)\e[0m |\n",
-                stat[1].step[0] * 100 / stat[1].elap, form[0], (float) stat[1].step[0] / 1e3,
-                stat[2].step[0] * 100 / stat[2].elap, form[1], (float) stat[2].step[0] / 1e3,
-                stat[3].step[0] * 100 / stat[3].elap, form[2], (float) stat[3].step[0] / 1e3,
-                stat[4].step[0] * 100 / stat[4].elap, form[3], (float) stat[4].step[0] / 1e3);
+                stat[1].step[0] * 100 / stat[1].elap,
+                form[0], (float) stat[1].step[0] / 1e3,
+                stat[2].step[0] * 100 / stat[2].elap,
+                form[1], (float) stat[2].step[0] / 1e3,
+                stat[3].step[0] * 100 / stat[3].elap,
+                form[2], (float) stat[3].step[0] / 1e3,
+                stat[4].step[0] * 100 / stat[4].elap,
+                form[3], (float) stat[4].step[0] / 1e3);
+
     std::printf("|%3d %% stein  \e[0m(%*.2f s)\e[0m |"
                 "%3d %% primal \e[0m(%*.2f s)\e[0m |"
                 "%3d %% dual   \e[0m(%*.2f s)\e[0m |"
                 "%3d %% color  \e[0m(%*.2f s)\e[0m |\n",
-                stat[1].step[1] * 100 / stat[1].elap, form[0], (float) stat[1].step[1] / 1e3,
-                stat[2].step[1] * 100 / stat[2].elap, form[1], (float) stat[2].step[1] / 1e3,
-                stat[3].step[1] * 100 / stat[3].elap, form[2], (float) stat[3].step[1] / 1e3,
-                stat[4].step[1] * 100 / stat[4].elap, form[3], (float) stat[4].step[1] / 1e3);
+                stat[1].step[1] * 100 / stat[1].elap,
+                form[0], (float) stat[1].step[1] / 1e3,
+                stat[2].step[1] * 100 / stat[2].elap,
+                form[1], (float) stat[2].step[1] / 1e3,
+                stat[3].step[1] * 100 / stat[3].elap,
+                form[2], (float) stat[3].step[1] / 1e3,
+                stat[4].step[1] * 100 / stat[4].elap,
+                form[3], (float) stat[4].step[1] / 1e3);
+
     std::printf("|%3d %% kernel \e[0m(%*.2f s)\e[0m |"
                 "%3d %% indep  \e[0m(%*.2f s)\e[0m |"
                 "%3d %% match  \e[0m(%*.2f s)\e[0m |"
                 "%3d %% qualit \e[0m(%*.2f s)\e[0m |\n",
-                stat[1].step[2] * 100 / stat[1].elap, form[0], (float) stat[1].step[2] / 1e3,
-                stat[2].step[2] * 100 / stat[2].elap, form[1], (float) stat[2].step[2] / 1e3,
-                stat[3].step[2] * 100 / stat[3].elap, form[2], (float) stat[3].step[2] / 1e3,
-                stat[4].step[2] * 100 / stat[4].elap, form[3], (float) stat[4].step[2] / 1e3);
+                stat[1].step[2] * 100 / stat[1].elap,
+                form[0], (float) stat[1].step[2] / 1e3,
+                stat[2].step[2] * 100 / stat[2].elap,
+                form[1], (float) stat[2].step[2] / 1e3,
+                stat[3].step[2] * 100 / stat[3].elap,
+                form[2], (float) stat[3].step[2] / 1e3,
+                stat[4].step[2] * 100 / stat[4].elap,
+                form[3], (float) stat[4].step[2] / 1e3);
+
     std::printf("|%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
                 "%3d %% kernel \e[0m(%*.2f s)\e[0m |"
                 "%3d %% kernel \e[0m(%*.2f s)\e[0m |"
                 "%3d %% kernel \e[0m(%*.2f s)\e[0m |\n",
-                stat[1].step[3] * 100 / stat[1].elap, form[0], (float) stat[1].step[3] / 1e3,
-                stat[2].step[3] * 100 / stat[2].elap, form[1], (float) stat[2].step[3] / 1e3,
-                stat[3].step[3] * 100 / stat[3].elap, form[2], (float) stat[3].step[3] / 1e3,
-                stat[4].step[3] * 100 / stat[4].elap, form[3], (float) stat[4].step[3] / 1e3);
+                stat[1].step[3] * 100 / stat[1].elap,
+                form[0], (float) stat[1].step[3] / 1e3,
+                stat[2].step[3] * 100 / stat[2].elap,
+                form[1], (float) stat[2].step[3] / 1e3,
+                stat[3].step[3] * 100 / stat[3].elap,
+                form[2], (float) stat[3].step[3] / 1e3,
+                stat[4].step[3] * 100 / stat[4].elap,
+                form[3], (float) stat[4].step[3] / 1e3);
+
     std::printf("|%6s%-15s |"
                 "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
                 "%3d %% fixes  \e[0m(%*.2f s)\e[0m |"
                 "%6s%-15s |\n\n",
                 "", "",
-                stat[2].step[4] * 100 / stat[2].elap, form[1], (float) stat[2].step[4] / 1e3,
-                stat[3].step[4] * 100 / stat[3].elap, form[2], (float) stat[3].step[4] / 1e3,
+                stat[2].step[4] * 100 / stat[2].elap,
+                form[1], (float) stat[2].step[4] / 1e3,
+                stat[3].step[4] * 100 / stat[3].elap,
+                form[2], (float) stat[3].step[4] / 1e3,
                 "", "");
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Parser::dump(Stats* stat) {
 
   if (stat != nullptr) {
@@ -219,13 +270,15 @@ void Parser::dump(Stats* stat) {
         std::fflush(stdout);
       }
 
-      auto start  = timer::now();
+      auto start = timer::now();
+
       auto prefix = std::string(TRINITY_BUILD_DIR);
-      auto suffix = tools::rootOf(param.name) + "_" + param.arch + "_" + kernel + ".dat";
+      auto suffix = param.name + "_" + param.arch + "_" + kernel + ".dat";
       auto path   = prefix + "/data/" + suffix;
       auto file   = std::fopen(path.data(), "a");
       std::fprintf(file,
-                   "%2d \t%d \t%d \t%d \t%3.2f \t%8d \t%8d \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f\n",
+                   "%2d \t%d \t%d \t%d \t%3.2f \t%8d \t%8d \t%.3f"
+                   "\t%.3f \t%.3f \t%.3f \t%.3f \t%.3f \t%.3f\n",
                    param.threads,
                    param.rounds,
                    param.size[0],
@@ -242,21 +295,24 @@ void Parser::dump(Stats* stat) {
                    (float) stat[i].step[4] / 1e3);
       std::fclose(file);
 
-      auto output = path.erase(0,prefix.length()+1).data();
-      if (param.verb)
-        std::printf("%-35s \e[32m(%.2f s)\e[0m\n", output, (float) timer::elapsed_ms(start) / 1e3);
-      else
+      auto output = path.erase(0, prefix.length() + 1).data();
+      if (param.verb) {
+        std::printf("%-35s \e[32m(%.2f s)\e[0m\n",
+                    output,
+                    (float) timer::elapsed_ms(start) / 1e3);
+      } else {
         std::printf("= '%-35s' exported\n", output);
+      }
     };
 
     dumpKernel("refine", 1);
     dumpKernel("coarse", 2);
-    dumpKernel(  "swap", 3);
+    dumpKernel("swap"  , 3);
     dumpKernel("smooth", 4);
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Parser::showDesc() {
 
   std::string compil;
@@ -273,15 +329,16 @@ void Parser::showDesc() {
 #endif
 #endif
 
-  char const symbol = static_cast<char>(1 == param.threads ? '\0' : 's');
+  char const symbol = char(1 == param.threads ? '\0' : 's');
 
   std::printf("\n\t= trinity =\n\t");
   std::printf("(c) 2016 H. Rakotoarivelo\n\t");
-  std::printf("compiled with %s (%s) on %s, %s\n\t", compil.data(), __VERSION__, __DATE__, __TIME__);
-  std::printf("using %d thread%c on %d core%c (%s)\n\n",
-              param.threads, symbol, std::min(param.hw_cores, param.threads),
-              symbol, param.threads > param.hw_cores ? "hyperthreading" : "native");
+  std::printf("compiled with %s (%s) on %s, %s\n\t",
+              compil.data(), __VERSION__, __DATE__, __TIME__);
+  std::printf("using %d thread%c on %d core%c (%s)\n\n", param.threads,
+              symbol, std::min(param.hw_cores, param.threads), symbol,
+              param.threads > param.hw_cores ? "hyperthreading" : "native");
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 }

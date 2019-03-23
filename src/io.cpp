@@ -2,26 +2,26 @@
  *                          'io.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *               Copyright 2016, Hoby Rakotoarivelo.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "trinity/io.h"
 #include "trinity/tools.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* -------------------------------- */
+/* -------------------------------------------------------------------------- */
 int io::find(const std::string key, std::ifstream& file) {
 
   assert(file.is_open());
@@ -49,7 +49,7 @@ int io::find(const std::string key, std::ifstream& file) {
 }
 
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::load(const std::string& path, const std::string& solu) {
 
   if (param.verb) {
@@ -73,7 +73,8 @@ void Mesh::load(const std::string& path, const std::string& solu) {
   k = 0;
   count = io::find("Vertices", input);
   assert(count == nb.nodes);
-  while (k < count and input >> geom.points[k * 2] >> geom.points[k * 2 + 1] >> tag) k++;
+  while (k < count and input >> geom.points[k * 2] >>
+                                geom.points[k * 2 + 1] >> tag) k++;
 
   // todo: RequiredVertices
   k = 0;
@@ -114,10 +115,12 @@ void Mesh::load(const std::string& path, const std::string& solu) {
 
   input.close();
   if (param.verb) {
-    std::printf("done. \e[32m(%.2f s)\e[0m\n", (float) timer::elapsed_ms(start) / 1e3);
+    auto secs = (float) timer::elapsed_ms(start) / 1e3;
+    std::printf("done. \e[32m(%.2f s)\e[0m\n", secs);
     std::printf("Rebuild topology  ... ");
-  } else
+  } else {
     std::printf("\r= Preprocess ...  66 %% =");
+  }
 
   std::fflush(stdout);
   start = timer::now();
@@ -125,10 +128,12 @@ void Mesh::load(const std::string& path, const std::string& solu) {
 #pragma omp parallel
   rebuildTopology();
 
-  if (param.verb)
-    std::printf("done. \e[32m(%.2f s)\e[0m\n", (float) timer::elapsed_ms(start) / 1e3);
-  else
+  if (param.verb) {
+    auto secs = (float) timer::elapsed_ms(start) / 1e3;
+    std::printf("done. \e[32m(%.2f s)\e[0m\n", secs);
+  } else {
     std::printf("\r= Preprocess ... 100 %% =");
+  }
 
   std::fflush(stdout);
 
@@ -141,19 +146,21 @@ void Mesh::load(const std::string& path, const std::string& solu) {
 
   const int form[] = {tools::format(nb.elems), tools::format((int) capa.elem)};
 
-  if (param.verb == 1)
+  if (param.verb == 1) {
     std::printf("\n");
+  } else if (param.verb == 2) {
 
-  else if (param.verb == 2) {
-    std::printf("= %*d nodes, %*lu max. \e[0m(x%d)\e[0m, %d bound. \e[0m(%.1f %%)\e[0m\n",
-                form[0], nb.nodes, form[1], capa.node, capa.scale, nb_bounds,
-                (float) nb_bounds * 100 / nb.nodes);
-    std::printf("= %*d elems, %*lu max. \e[0m(x%d)\e[0m\n\n",
+    auto const ratio = (float) nb_bounds * 100 / nb.nodes;
+
+    std::printf("= %*d nodes, capacity: %*lu \e[0m(x%d)\e[0m",
+                form[0], nb.nodes, form[1], capa.node, capa.scale);
+    std::printf(", %d boundary \e[0m(%.1f %%)\e[0m\n", nb_bounds, ratio);
+    std::printf("= %*d elems, capacity: %*lu \e[0m(x%d)\e[0m\n\n",
                 form[0], nb.elems, form[0], capa.elem, capa.scale);
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::store(const std::string& path) const {
 
   if (param.verb) {
@@ -191,17 +198,20 @@ void Mesh::store(const std::string& path) const {
 
   int k = 0;
   char buffer[50];
-
-  int* index = new int[nb.nodes];
-  std::memset(index, -1, nb.nodes * sizeof(int));
+  int index[nb.nodes];
+  std::fill(index, index + nb.nodes, -1);
 
   std::vector<int> required;
   required.reserve((size_t) nb.nodes / 4);
 
   for (int i = 0; i < nb.nodes; ++i) {
     if (__builtin_expect(isActiveNode(i), 1)) {
-      std::sprintf(buffer, "%.8f\t%.8f\t0\n", geom.points[i * 2], geom.points[i * 2 + 1]);
+
+      auto const& p0 = geom.points[i * 2];
+      auto const& p1 = geom.points[i * 2 + 1];
+      std::sprintf(buffer, "%.8f\t%.8f\t0\n", p0, p1);
       file << buffer;
+
       index[i] = ++k;
       if (__builtin_expect(isBoundary(i), 0))
         required.push_back(k);
@@ -213,9 +223,12 @@ void Mesh::store(const std::string& path) const {
   file << real_nb_elems << std::endl;
 
   for (int i = 0; i < nb.elems; ++i) {
-    const int* n = getElem(i);
+    auto const n = getElem(i);
     if (*n > -1) {
-      std::sprintf(buffer, "%d\t%d\t%d\t0\n", index[n[0]], index[n[1]], index[n[2]]);
+      auto const& v0 = index[n[0]];
+      auto const& v1 = index[n[1]];
+      auto const& v2 = index[n[2]];
+      std::sprintf(buffer, "%d\t%d\t%d\t0\n", v0, v1, v2);
       file << buffer;
     }
   }
@@ -231,18 +244,17 @@ void Mesh::store(const std::string& path) const {
   file << "End" << std::endl;
   file.close();
 
-  delete[] index;
+  auto const parsed_file = ("data/" + tools::basename(path)).data();
 
-  if (param.verb)
-    std::printf("%s \e[32m(%.2f s)\e[0m\n",
-                ("data/" + tools::basename(path)).data(),
-                (float) timer::elapsed_ms(start) / 1e3);
-  else
-    std::printf("= %s exported\n",
-                ("data/" + tools::basename(path)).data());
+  if (param.verb) {
+    auto const secs = (float) timer::elapsed_ms(start) / 1E3;
+    std::printf("%s \e[32m(%.2f s)\e[0m\n", parsed_file, secs);
+  } else {
+    std::printf("= %s exported\n", parsed_file);
+  }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Mesh::storePrimalGraph(const std::string& path) const {
 
   if (param.verb) {
@@ -270,17 +282,23 @@ void Mesh::storePrimalGraph(const std::string& path) const {
 
   for (int i = 0; i < nb.nodes; ++i) {
     file << i << "\t" << 1 << "\t" << topo.vicin[i].size() << "\t";
-    for (const int& w : topo.vicin[i])
+    for (const int& w : topo.vicin[i]) {
       file << w << "\t";
+    }
     file << std::endl;
   }
 
   file << std::endl;
   file.close();
 
-  if (param.verb)
-    std::printf("done. \e[32m(%d ms)\e[0m\n", timer::elapsed_ms(start));
-  else
-    std::printf("= '%s' exported\n", tools::basename(path).data());
+  if (param.verb) {
+    auto const secs = timer::elapsed_ms(start);
+    std::printf("done. \e[32m(%d ms)\e[0m\n", secs);
+  } else {
+    auto const file = tools::basename(path).data();
+    std::printf("= '%s' exported\n", file);
+  }
 }
+
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

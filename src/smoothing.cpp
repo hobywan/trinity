@@ -2,44 +2,44 @@
  *                          'smoothing.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "trinity/smoothing.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Smooth::Smooth(Mesh* input, Partit* algo, int level)
   : mesh    (input),
+    heuris  (algo),
     cores   (mesh->nb.cores),
     nb_nodes(mesh->nb.nodes),
     nb_elems(mesh->nb.elems),
     verbose (mesh->param.verb),
     iter    (mesh->param.iter),
-    rounds  (mesh->param.rounds),
-    heuris  (algo)
+    rounds  (mesh->param.rounds)
 {
   sync.activ  = mesh->sync.activ;
   geom.qualit = mesh->geom.qualit.data();
   task.depth  = level;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Smooth::~Smooth() {}
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::run(Stats* total) {
 
   initialize();
@@ -70,51 +70,53 @@ void Smooth::run(Stats* total) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int Smooth::moveSmartLaplacian(int i) {
 
   const auto& vicin = mesh->topo.vicin[i];
   const auto& stenc = mesh->topo.stenc[i];
   const int deg = mesh->sync.deg[i];
-  const int nb = (int) vicin.size();
+  const int nb_neigh = (int) vicin.size();
+  const int nb_cells = (int) stenc.size();
 
   double q_min = std::numeric_limits<double>::max();
 
   for (auto t = stenc.begin(); t < stenc.begin() + deg; ++t)
     q_min = std::min(q_min, geom.qualit[*t]);
 
-  auto* M = new double[nb * 3];
-  auto* q = new double[stenc.size()];
-  double* pa = mesh->geom.points.data() + (i * 2);
-  double* ma = mesh->geom.tensor.data() + (i * 3);
+  double metric[nb_neigh * 3];
+  double qualit[nb_cells];
+  auto point_a  = mesh->geom.points.data() + (i * 2);
+  auto tensor_a = mesh->geom.tensor.data() + (i * 3);
 
-  double len;
-  double p_opt[] = {0, 0};
+  double length;
+  double point_opt[] = {0, 0};
 
   // 1) compute average optimal position of v[i]
-  for (int k = 0; k < nb; ++k) {
+  for (int k = 0; k < nb_neigh; ++k) {
 
-    const int& j = vicin[k];
-    const double* pb = mesh->geom.points.data() + (j * 2);
-    const double* mb = mesh->geom.tensor.data() + (j * 3);
+    const int& neigh = vicin[k];
+    const auto point_b  = mesh->geom.points.data() + (neigh * 2);
+    const auto tensor_b = mesh->geom.tensor.data() + (neigh * 3);
 
     // a. reduction on each local Pimal position of v[i]
-    len = mesh->computeLength(i, j);
-    assert(len);
-    p_opt[0] += pa[0] + ((pb[0] - pa[0]) / len);  // unrolled for perfs
-    p_opt[1] += pa[1] + ((pb[1] - pa[1]) / len);
+    length = mesh->computeLength(i, neigh);
+    assert(length);
+    // unrolled for perfs
+    point_opt[0] += point_a[0] + ((point_b[0] - point_a[0]) / length);
+    point_opt[1] += point_a[1] + ((point_b[1] - point_a[1]) / length);
 
     // b. storeFile tensor locally for interpolation
-    std::memcpy(M + (k * 3), mb, sizeof(double) * 3);
-    assert(std::isfinite(M[k * 3]));
+    std::memcpy(metric + (k * 3), tensor_b, sizeof(double) * 3);
+    assert(std::isfinite(metric[k * 3]));
   }
-  p_opt[0] /= nb;
-  p_opt[1] /= nb;
+  point_opt[0] /= nb_neigh;
+  point_opt[1] /= nb_neigh;
 
   // 2) interpolate tensor according to stencil
-  const double p_ini[] = {pa[0], pa[1]};
-  const double m_ini[] = {ma[0], ma[1], ma[2]};
-  numeric::interpolateTensor(M, ma, nb);
+  const double point_ini[]  = {point_a[0], point_a[1]};
+  const double tensor_ini[] = {tensor_a[0], tensor_a[1], tensor_a[2]};
+  numeric::interpolateTensor(metric, tensor_a, nb_neigh);
 
 #ifdef DEBUG
   std::printf("interpolated[%d]: (%.2f,%.2f,%.2f)\n", i, ma[0], ma[1], ma[2]);
@@ -129,8 +131,8 @@ int Smooth::moveSmartLaplacian(int i) {
     // reset
     valid = true;
     // update weighted coords
-    pa[0] = (1 - weight) * p_ini[0] + weight * p_opt[0];
-    pa[1] = (1 - weight) * p_ini[1] + weight * p_opt[1];
+    point_a[0] = (1 - weight) * point_ini[0] + weight * point_opt[0];
+    point_a[1] = (1 - weight) * point_ini[1] + weight * point_opt[1];
 
     int j = 0;
     // stencil convexity and qualit improvement test
@@ -138,8 +140,8 @@ int Smooth::moveSmartLaplacian(int i) {
       const int* n = mesh->getElem(*t);
       valid = false;
       if (mesh->isCounterclockwise(n)) {
-        q[j] = mesh->computeQuality(*t);
-        valid = (q[j] > q_min);
+        qualit[j] = mesh->computeQuality(*t);
+        valid = (qualit[j] > q_min);
       }
     }
     weight *= 0.5;
@@ -148,21 +150,17 @@ int Smooth::moveSmartLaplacian(int i) {
   if (valid) {
     int j = 0;
     for (auto t = stenc.begin(); t < stenc.begin() + deg; ++t, ++j)
-      geom.qualit[*t] = q[j];
+      geom.qualit[*t] = qualit[j];
   } else {
-    std::memcpy(pa, p_ini, sizeof(double) * 2);
-    std::memcpy(ma, m_ini, sizeof(double) * 3);
+    std::memcpy( point_a,  point_ini, sizeof(double) * 2);
+    std::memcpy(tensor_a, tensor_ini, sizeof(double) * 3);
   }
 
-  delete[] M;
-  delete[] q;
   return (int) valid;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::preProcess() {
-
-  int count = 0;
 
 #pragma omp single
   nb.tasks = nb.commit = 0;
@@ -170,14 +168,14 @@ void Smooth::preProcess() {
 #pragma omp for
   for (int i = 0; i < nb_nodes; ++i)
     if (not mesh->topo.stenc[i].empty()) {
-      sync.activ[i] = (char) (__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
+      sync.activ[i] = char(__builtin_expect(mesh->isBoundary(i), 0) ? 0 : 1);
     }
 
   mesh->extractPrimalGraph();
 
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::cacheQuality() {
 
 #pragma omp for
@@ -190,7 +188,7 @@ void Smooth::cacheQuality() {
   time.iter = time.tic;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::movePoints() {
 
   int success = 0;
@@ -214,7 +212,7 @@ void Smooth::movePoints() {
 #pragma omp barrier
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::initialize() {
 #pragma omp master
   {
@@ -229,7 +227,7 @@ void Smooth::initialize() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::saveStat(int level, int* stat, int* form) {
 #pragma omp single
   {
@@ -242,27 +240,32 @@ void Smooth::saveStat(int level, int* stat, int* form) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::showStat(int level, int* form) {
 #pragma omp single
   {
     if (verbose == 2) {
+      int const round = level + 1;
+      int const percent = nb.commit * 100 / nb.tasks;
+      int const secs = timer::round(time.iter);
+
       std::printf("\n= round %2d. %*d tasks \e[0m(100 %%)\e[0m, "
                   "%*d comm. \e[0m(%2d %%) \e[32m(%d ms)\e[0m",
-                  level + 1, form[0], nb.tasks, form[1], nb.commit,
-                  (int) (nb.commit * 100 / nb.tasks), timer::round(time.iter));
+                  round,
+                  form[0], nb.tasks,
+                  form[1], nb.commit, percent, secs);
       std::fflush(stdout);
     }
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Smooth::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
 
-    if (total not_eq nullptr) {
+    if (total != nullptr) {
       total->eval += stat[0];
       total->task += stat[1];
       total->elap += end;
@@ -272,22 +275,33 @@ void Smooth::recap(int* elap, int* stat, int* form, Stats* total) {
 
     *form = tools::format(elap[3]);
     if (not verbose) {
-      std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
+      auto percent = (int) std::floor(100 * (++iter) / (4 * rounds + 1));
+      std::printf("\r= Remeshing  ... %3d %% =", percent);
+
     } else if (verbose == 1) {
-      std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n", (int) std::floor(stat[0] / (end * 1e-3)), (float) end / 1e3);
+      auto rate = (int) std::floor(stat[0] / (end * 1e-3));
+      auto secs = (float) end / 1E3;
+      std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n", rate, secs);
+
     } else if (verbose == 2) {
+      int rate = (int) std::floor(stat[0] / (end * 1e-3));
       std::printf("\n\n");
-      std::printf("= rate : %d move/sec (%d tasks) \n", (int) std::floor(stat[0] / (end * 1e-3)), stat[0]);
+      std::printf("= rate : %d move/sec (%d tasks) \n", rate, stat[0]);
+
+      int step[4];
+      for (int i = 0; i < 4; ++i)
+        step[i] = elap[i] * 100 / end;
+
       std::printf("= time per step\n");
-      std::printf("  %2d %% primal \e[32m(%*d ms)\e[0m\n", (int) elap[0] * 100 / end, *form, elap[0]);
-      std::printf("  %2d %% color  \e[32m(%*d ms)\e[0m\n", (int) elap[1] * 100 / end, *form, elap[1]);
-      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", (int) elap[2] * 100 / end, *form, elap[2]);
-      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", (int) elap[3] * 100 / end, *form, elap[3]);
+      std::printf("  %2d %% primal \e[32m(%*d ms)\e[0m\n", step[0], *form, elap[0]);
+      std::printf("  %2d %% color  \e[32m(%*d ms)\e[0m\n", step[1], *form, elap[1]);
+      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", step[2], *form, elap[2]);
+      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", step[3], *form, elap[3]);
       std::printf("done. \e[32m(%d ms)\e[0m\n", end);
       tools::separator();
     }
     std::fflush(stdout);
   }
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

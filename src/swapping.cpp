@@ -2,25 +2,26 @@
  *                          'swapping.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
+#include <trinity.h>
 #include "trinity/swapping.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Swap::Swap(Mesh* input)
   : mesh    (input),
     cores   (mesh->nb.cores),
@@ -44,13 +45,13 @@ Swap::Swap(Mesh* input)
   heuris.initialize(capacity, task.match, sync.off);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Swap::~Swap() {
   delete[] task.match;
   delete[] task.list;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::run(Stats* total) {
 
   initialize();
@@ -98,18 +99,18 @@ void Swap::run(Stats* total) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
-int Swap::swap(int k1, int k2, int index) {
+/* -------------------------------------------------------------------------- */
+int Swap::swap(int id1, int id2, int index) {
 
   int j, k;
-  int f1[] = {-1, -1, -1};
-  int f2[] = {-1, -1, -1};
+  int cur1[] = {-1, -1, -1};
+  int cur2[] = {-1, -1, -1};
 
-  const int* t1 = mesh->getElem(k1);
-  const int* t2 = mesh->getElem(k2);
+  const int* old1 = mesh->getElem(id1);
+  const int* old2 = mesh->getElem(id2);
 
-  __builtin_prefetch(t1, 1);
-  __builtin_prefetch(t2, 1);
+  __builtin_prefetch(old1, 1);
+  __builtin_prefetch(old2, 1);
 
   // rotate (t1,t2) and find shared edge/opposite vertices
   for (int i = 0; i < 3; ++i) {
@@ -117,49 +118,49 @@ int Swap::swap(int k1, int k2, int index) {
     k = (i + 2) % 3;
 
     // manually unrolled
-    if (t1[i] == t2[1] and t1[j] == t2[0]) {
-      f1[0] = t1[i];
-      f1[1] = t2[2];
-      f1[2] = t1[k];
-      f2[0] = t1[k];
-      f2[1] = t2[2];
-      f2[2] = t1[j];
+    if (old1[i] == old2[1] and old1[j] == old2[0]) {
+      cur1[0] = old1[i];
+      cur1[1] = old2[2];
+      cur1[2] = old1[k];
+      cur2[0] = old1[k];
+      cur2[1] = old2[2];
+      cur2[2] = old1[j];
       break;
     }
-    if (t1[i] == t2[2] and t1[j] == t2[1]) {
-      f1[0] = t1[i];
-      f1[1] = t2[0];
-      f1[2] = t1[k];
-      f2[0] = t1[k];
-      f2[1] = t2[0];
-      f2[2] = t1[j];
+    if (old1[i] == old2[2] and old1[j] == old2[1]) {
+      cur1[0] = old1[i];
+      cur1[1] = old2[0];
+      cur1[2] = old1[k];
+      cur2[0] = old1[k];
+      cur2[1] = old2[0];
+      cur2[2] = old1[j];
       break;
     }
-    if (t1[i] == t2[0] and t1[j] == t2[2]) {
-      f1[0] = t1[i];
-      f1[1] = t2[1];
-      f1[2] = t1[k];
-      f2[0] = t1[k];
-      f2[1] = t2[1];
-      f2[2] = t1[j];
+    if (old1[i] == old2[0] and old1[j] == old2[2]) {
+      cur1[0] = old1[i];
+      cur1[1] = old2[1];
+      cur1[2] = old1[k];
+      cur2[0] = old1[k];
+      cur2[1] = old2[1];
+      cur2[2] = old1[j];
       break;
     }
   }
   // check inversions
-  if (not mesh->isCounterclockwise(f1) or not mesh->isCounterclockwise(f2))
+  if (not mesh->isCounterclockwise(cur1) or not mesh->isCounterclockwise(cur2))
     return 0;
 
   // eval computeQuality improvement
-  const double q[]   = { mesh->computeQuality(f1), mesh->computeQuality(f2) };
-  const double q_old = std::min(geom.qualit[k1], geom.qualit[k2]);
+  const double q[]   = { mesh->computeQuality(cur1), mesh->computeQuality(cur2) };
+  const double q_old = std::min(geom.qualit[id1], geom.qualit[id2]);
   const double q_new = std::min(q[0], q[1]);
 
   if (q_new < q_old)
     return 0;
 
   // update mesh
-  mesh->replaceElem(k1, f1);
-  mesh->replaceElem(k2, f2);
+  mesh->replaceElem(id1, cur1);
+  mesh->replaceElem(id2, cur2);
 
   #ifdef DEFERRED_UPDATES
     int tid = omp_get_thread_num();
@@ -168,27 +169,27 @@ int Swap::swap(int k1, int k2, int index) {
     mesh->deferredAppend(tid, f1[2], k2); //  N(s[2],k2)
     mesh->deferredAppend(tid, f2[1], k1); //  N(s[3],k1)
   #else
-    mesh->updateStencil(f2[0], k2); //  N(s[2],k2)
-    mesh->updateStencil(f2[1], k1); //  N(s[3],k1)
+    mesh->updateStencil(cur2[0], id2); //  N(s[2],k2)
+    mesh->updateStencil(cur2[1], id1); //  N(s[3],k1)
   #endif
 
   // mark nodes as to be fixed
-  sync::compareAndSwap(sync.fixes + f1[0], 0, 1);
-  sync::compareAndSwap(sync.fixes + f1[1], 0, 1);
-  sync::compareAndSwap(sync.fixes + f1[2], 0, 1);
-  sync::compareAndSwap(sync.fixes + f2[2], 0, 1);
+  sync::compareAndSwap(sync.fixes + cur1[0], 0, 1);
+  sync::compareAndSwap(sync.fixes + cur1[1], 0, 1);
+  sync::compareAndSwap(sync.fixes + cur1[2], 0, 1);
+  sync::compareAndSwap(sync.fixes + cur2[2], 0, 1);
 
   // update cached qualit
-  geom.qualit[k1] = q[0];
-  geom.qualit[k2] = q[1];
+  geom.qualit[id1] = q[0];
+  geom.qualit[id2] = q[1];
 
   // propagate
   for (const int& t : dual[index]) {
     sync::compareAndSwap(sync.activ + t, 0, 1);
   }
 
-  if (task.match[k2] > -1) {
-    for (const int& t : dual[task.match[k2]]) {
+  if (task.match[id2] > -1) {
+    for (const int& t : dual[task.match[id2]]) {
       sync::compareAndSwap(sync.activ + t, 0, 1);
     }
   }
@@ -196,7 +197,7 @@ int Swap::swap(int k1, int k2, int index) {
   return 2;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::cacheQuality() {
 
 #pragma omp single
@@ -225,7 +226,7 @@ void Swap::cacheQuality() {
   time.iter = timer::now();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::filterElems(std::vector<int>* heap) {
 
 #pragma omp master
@@ -248,11 +249,11 @@ void Swap::filterElems(std::vector<int>* heap) {
   sync::fetchAndAdd(&nb.activ, count);
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::extractDualGraph() {
 
   const auto& stenc = mesh->topo.stenc;
-  const int* deg = mesh->sync.deg;
+  const auto* deg = mesh->sync.deg;
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb.tasks; ++i) {
@@ -295,7 +296,7 @@ void Swap::extractDualGraph() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::processFlips() {
 
   int succ = 0;
@@ -316,7 +317,7 @@ void Swap::processFlips() {
 #pragma omp barrier
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::initialize() {
 #pragma omp master
   {
@@ -331,7 +332,7 @@ void Swap::initialize() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::saveStat(int level, int* stat, int* form) {
 #pragma omp master
   {
@@ -346,28 +347,38 @@ void Swap::saveStat(int level, int* stat, int* form) {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::showStat(int level, int* form) {
 #pragma omp single
   {
     if (verbose == 2) {
-      std::printf("\n= round %2d. %*d tasks \e[0m(%2d %%)\e[0m, %*d filt. \e[0m(%2d %%)\e[0m, "
+      int const round = level + 1;
+      int const percent[] = {
+        nb.activ  * 100 / nb_nodes,
+        nb.tasks  * 100 / nb.activ,
+        nb.commit * 100 / nb.tasks
+      };
+      int const secs = timer::round(time.iter);
+
+      std::printf("\n= round %2d. %*d tasks \e[0m(%2d %%)\e[0m, %*d"
+                  " filt. \e[0m(%2d %%)\e[0m, "
                   "%*d comm. \e[0m(%2d %%) \e[32m(%d ms)\e[0m",
-                  level + 1, form[0], nb.activ, (int) (nb.activ * 100 / nb_elems),
-                  form[1], nb.tasks, (int) (nb.tasks * 100 / nb.activ),
-                  form[2], nb.commit, (int) (nb.commit * 100 / nb.tasks), timer::round(time.iter));
+                  round,
+                  form[0], nb.activ, percent[0],
+                  form[1], nb.tasks, percent[1],
+                  form[2], nb.commit, percent[2], secs);
       std::fflush(stdout);
     }
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Swap::recap(int* elap, int* stat, int* form, Stats* total) {
 #pragma omp master
   {
     int end = std::max(timer::elapsed_ms(time.start), 1);
 
-    if (total not_eq nullptr) {
+    if (total != nullptr) {
       total->eval += stat[0];
       total->task += stat[1];
       total->elap += end;
@@ -384,21 +395,32 @@ void Swap::recap(int* elap, int* stat, int* form, Stats* total) {
       span = std::max(span, elap[i]);
     *form = tools::format(span);
 
-    if (not verbose)
-      std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
+    if (not verbose) {
+      auto percent = (int) std::floor(100 * (++iter) / (4 * rounds + 1));
+      std::printf("\r= Remeshing  ... %3d %% =", percent);
 
-    else if (verbose == 1) {
-      std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n", (int) std::floor(stat[1] / (end * 1e-3)), (float) end / 1e3);
+    } else if (verbose == 1) {
+      auto rate = (int) std::floor(stat[1] / (end * 1e-3));
+      auto secs = (float) end / 1E3;
+      std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n", rate, secs);
+
     } else if (verbose == 2) {
+      int step[6];
+      auto const rate = (int) std::floor(stat[1] / (end * 1e-3));
+      for (int i = 0; i < 6; ++i)
+        step[i] = elap[i] * 100 / end;
+
       std::printf("\n\n");
-      std::printf("= rate : %d flip/sec (%d tasks) \n", (int) std::floor(stat[1] / (end * 1e-3)), stat[1]);
+      std::printf("= rate : %d flip/sec (%d tasks) \n", rate, stat[1]);
+
       std::printf("= time per step\n");
-      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", (int) elap[0] * 100 / end, *form, elap[0]);
-      std::printf("  %2d %% filter \e[32m(%*d ms)\e[0m\n", (int) elap[1] * 100 / end, *form, elap[1]);
-      std::printf("  %2d %% dual   \e[32m(%*d ms)\e[0m\n", (int) elap[2] * 100 / end, *form, elap[2]);
-      std::printf("  %2d %% match  \e[32m(%*d ms)\e[0m\n", (int) elap[3] * 100 / end, *form, elap[3]);
-      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", (int) elap[4] * 100 / end, *form, elap[4]);
-      std::printf("  %2d %% fixes  \e[32m(%*d ms)\e[0m\n", (int) elap[5] * 100 / end, *form, elap[5]);
+      std::printf("= time per step\n");
+      std::printf("  %2d %% qualit \e[32m(%*d ms)\e[0m\n", step[0], *form, elap[0]);
+      std::printf("  %2d %% filter \e[32m(%*d ms)\e[0m\n", step[1], *form, elap[1]);
+      std::printf("  %2d %% dual   \e[32m(%*d ms)\e[0m\n", step[2], *form, elap[2]);
+      std::printf("  %2d %% match  \e[32m(%*d ms)\e[0m\n", step[3], *form, elap[3]);
+      std::printf("  %2d %% kernel \e[32m(%*d ms)\e[0m\n", step[4], *form, elap[4]);
+      std::printf("  %2d %% fixes  \e[32m(%*d ms)\e[0m\n", step[5], *form, elap[5]);
       std::printf("done. \e[32m(%d ms)\e[0m\n", end);
       tools::separator();
     }

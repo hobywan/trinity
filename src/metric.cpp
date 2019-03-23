@@ -2,35 +2,39 @@
  *                          'metric.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "trinity/metric.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* --------------------------------------------------------------------------- */
-Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_min, double h_max)
-
-  : mesh    (input_mesh),
+/* -------------------------------------------------------------------------- */
+Metrics::Metrics(
+  Mesh*  input_mesh,
+  double target_factor,
+  int    Lp_norm,
+  double h_min,
+  double h_max
+) : mesh    (input_mesh),
     nb_nodes(mesh->nb.nodes),
     nb_elems(mesh->nb.elems),
     nb_cores(mesh->nb.cores),
     verbose (mesh->param.verb),
     iter    (mesh->param.iter),
-    rounds  (mesh->param.rounds)
-{
+    rounds  (mesh->param.rounds) {
+
   param.chunk      = mesh->nb.nodes / mesh->nb.cores;
   param.target     = (int) std::floor(mesh->nb.nodes * target_factor);
   param.norm       = Lp_norm;
@@ -48,10 +52,10 @@ Metrics::Metrics(Mesh* input_mesh, double target_factor, int Lp_norm, double h_m
   field.gradient   = new double[nb_nodes * 2];
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Metrics::~Metrics() {}
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::run(Stats* total) {
 #pragma omp parallel
   {
@@ -65,14 +69,14 @@ void Metrics::run(Stats* total) {
   clear();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::clear() {
 
   delete[] field.stencil;
   delete[] field.gradient;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::recoverHessianField() {
 
 #pragma omp for
@@ -92,20 +96,19 @@ void Metrics::recoverHessianField() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::normalizeLocally() {
 
   // 3) local normalization
-  int j, k;
-  double s[4], det;
-  double p[6], m[9];
+  double det;
+  double m[9];
   double h[4];
   double val[2], vec[4];
   double scale_loc;
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb_nodes; ++i) {
-    k = i * 3;
+    int k = i * 3;
     std::memset(val, 0, sizeof(double) * 2);
     std::memset(vec, 0, sizeof(double) * 4);
 
@@ -124,7 +127,7 @@ void Metrics::normalizeLocally() {
     val[0] = val[1] = temp;*/
 
     // compute local scale factor w.r.t to L^p, and normalize eigenvalues
-    det = val[0] * val[1];
+    det       = val[0] * val[1];
     scale_loc = std::pow(det, param.scale.exp);
     val[0] *= scale_loc;
     val[1] *= scale_loc;
@@ -148,10 +151,10 @@ void Metrics::normalizeLocally() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::computeComplexity() {
 
-  int j, k;
+  int    j, k;
   double s[4], det;
   double p[6];
   double rho;
@@ -185,14 +188,13 @@ void Metrics::computeComplexity() {
 #pragma omp barrier
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::normalizeGlobally() {
 
   assert(field.complexity);
 
-  int j, k;
-  double s[4], det;
-  double p[6], m[9];
+  int    j, k;
+  double m[9];
   double h[4];
   double val[2], vec[4];
 
@@ -239,7 +241,7 @@ void Metrics::normalizeGlobally() {
   }
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 void Metrics::initialize() {
 #pragma omp master
@@ -248,14 +250,13 @@ void Metrics::initialize() {
     assert(param.h_min > 0);
     assert(param.h_max > 0);
 
-    if (not verbose)
+    if (not verbose) {
       std::printf("\n\r= Remeshing  ... %3d %% =", 0);
-
-    else if (verbose == 1)
+    } else if (verbose == 1) {
       std::printf("%-18s%s", "= metric field", "...");
-
-    else if (verbose == 2)
+    } else if (verbose == 2) {
       std::printf("Computing multi-scale metric field ... \n");
+    }
 
     std::fflush(stdout);
     time.start = timer::now();
@@ -266,29 +267,36 @@ void Metrics::initialize() {
 
   // first-touch
   std::memset(field.gradient + (off * 2), 0, (param.chunk * 2) * sizeof(double));
-  std::memset(field.tensor   + (off * 3), 0, (param.chunk * 3) * sizeof(double));
+  std::memset(  field.tensor + (off * 3), 0, (param.chunk * 3) * sizeof(double));
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Metrics::recap(Stats* total) {
 #pragma omp master
   {
     int end = timer::elapsed_ms(time.start);
 
-    if (total not_eq nullptr) {
+    if (total != nullptr) {
       total->eval += nb_nodes;
       total->task += nb_nodes;
       total->elap += end;
     }
 
-    if (not verbose)
-      std::printf("\r= Remeshing  ... %3d %% =", (int) std::floor(100 * (++iter) / (4 * rounds + 1)));
-
-    else if (verbose == 1) {
-      std::printf("%10d task/sec \e[32m(%4.2f s)\e[0m\n",
-                  (int) std::floor(nb_nodes / (end * 1e-3)), (float) end / 1e3);
+    if (not verbose) {
+      std::printf(
+        "\r= Remeshing  ... %3d %% =",
+        (int) std::floor(100 * (++iter) / (4 * rounds + 1))
+      );
+    } else if (verbose == 1) {
+      std::printf(
+        "%10d task/sec \e[32m(%4.2f s)\e[0m\n",
+        (int) std::floor(nb_nodes / (end * 1e-3)), (float) end / 1e3
+      );
     } else if (verbose == 2) {
-      std::printf("= norm L^%s\n", param.norm <= 0 ? "inf" : std::to_string(param.norm).data());
+      std::printf(
+        "= norm L^%s\n",
+        param.norm <= 0 ? "inf" : std::to_string(param.norm).data()
+      );
       std::printf("= target : %.2e\n", (float) param.target);
       std::printf("= complex: %.1f\n", (float) std::floor(field.complexity));
       std::printf("= scale_f: %.1f\n", param.scale.fact);
@@ -297,4 +305,5 @@ void Metrics::recap(Stats* total) {
     std::fflush(stdout);
   }
 }
+/* -------------------------------------------------------------------------- */
 } // namespace trinity

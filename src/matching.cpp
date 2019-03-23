@@ -2,25 +2,25 @@
  *                          'matching.cpp'
  *            This file is part of the "trinity" project.
  *               (https://github.com/hobywan/trinity)
- *               Copyright (c) 2016 Hoby Rakotoarivelo.
+ *                Copyright 2016, Hoby Rakotoarivelo.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "trinity/matching.h"
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace trinity {
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Match::Match() {
   max.capa     = 0;
   max.depth    = 0;
@@ -34,7 +34,7 @@ Match::Match() {
   sync.off     = nullptr;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Match::initialize(size_t capacity, int* mapping, int* index) {
 
   max.capa    = (int) capacity;
@@ -52,7 +52,7 @@ void Match::initialize(size_t capacity, int* mapping, int* index) {
   reset();
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 Match::~Match() {
 
   delete[] task.matched;
@@ -60,7 +60,7 @@ Match::~Match() {
   delete[] sync.degree;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 void Match::reset() {
 
 #pragma omp master
@@ -79,7 +79,7 @@ void Match::reset() {
     task.matched[i] = -1;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int* Match::computeGreedyMatching(const Graph& graph, int nb) {
 
   reset();
@@ -101,46 +101,46 @@ int* Match::computeGreedyMatching(const Graph& graph, int nb) {
   return task.matched;
 }
 
-/* --------------------------------------------------------------------------- */
-void Match::matchAndUpdate(int i, const Graph& graph, std::stack<int>* stack) {
+/* -------------------------------------------------------------------------- */
+void Match::matchAndUpdate(int vertex, const Graph& graph, std::stack<int>* stack) {
 
-  stack->push(i);
+  stack->push(vertex);
 
-  int j;
-  int k;
-  int u;
+  int cur;
+  int nxt;
+  int current;
 
   do {
-    j = stack->top();
-    u = graph[j][0];
+    cur = stack->top();
+    current = graph[cur][0];
     stack->pop();
 
-    if (!sync::compareAndSwap(sync.visited + u, 0, 1))
+    if (not sync::compareAndSwap(sync.visited + current, 0, 1))
       continue;
 
-    for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compareAndSwap(sync.visited + (*v), 0, 1)) {
-        task.matched[u] = *v;
-        task.matched[*v] = MATCHED;  // avoid duplicates
+    for (auto neigh = graph[cur].begin() + 1; neigh < graph[cur].end(); ++neigh) {
+      if (sync::compareAndSwap(sync.visited + (*neigh), 0, 1)) {
+        task.matched[current] = *neigh;
+        task.matched[*neigh] = MATCHED;  // avoid duplicates
 
-        k = task.mapping[*v];
-        if (k < 0)
+        nxt = task.mapping[*neigh];
+        if (nxt < 0)
           continue;
 
         // update the degree of neighbors of v
         // and recursive call to match the new vertex w of degree=1
-        for (auto w = graph[k].begin() + 1; w < graph[k].end(); ++w) {
-          const int& nxt = task.mapping[*w];
-          if (nxt > -1 and sync::fetchAndSub(sync.degree + (*w), char(1)) == 2)
-            stack->push(nxt);
+        for (auto far = graph[nxt].begin() + 1; far < graph[nxt].end(); ++far) {
+          const int& next = task.mapping[*far];
+          if (next > -1 and sync::fetchAndSub(sync.degree + (*far), char(1)) == 2)
+            stack->push(next);
         }
         break;
       }
     }
-  } while (!stack->empty());
+  } while (not stack->empty());
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int Match::getRatio(const Graph& graph, int nb, int* count) {
 
   int local_matched = 0;
@@ -164,7 +164,7 @@ int Match::getRatio(const Graph& graph, int nb, int* count) {
   return *count;
 }
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 int* Match::localSearchBipartite(const Graph& graph, int nb) {
 
   auto tic = timer::now();
@@ -179,7 +179,6 @@ int* Match::localSearchBipartite(const Graph& graph, int nb) {
     look_ahead[i] = 1;
 
   bool found;
-  int level = 0;
 
   std::stack<int> stack;
 
@@ -210,43 +209,44 @@ int* Match::localSearchBipartite(const Graph& graph, int nb) {
   return task.matched;
 }
 
-/* --------------------------------------------------------------------------- */
-bool Match::lookAheadDFS(int id, const Graph& graph, std::stack<int>* stack) {
+/* -------------------------------------------------------------------------- */
+bool Match::lookAheadDFS(int vertex, const Graph& graph, std::stack<int>* stack) {
 
-  int* look_ahead = task.lists[0];
+  auto look_ahead = task.lists[0];
 
-  int j;
-  int u;
-  int k;
+  int cur;
+  int current;
 
-  stack->push(id);
+  stack->push(vertex);
 
   do {
-    j = stack->top();
-    u = graph[j][0];
+    cur = stack->top();
+    current = graph[cur][0];
     stack->pop();
 
     // look ahead step
-    for (auto v = graph[j].begin() + look_ahead[u]; v < graph[j].end(); ++v) {
-      look_ahead[u]++;
-      if (task.matched[*v] < 0) {
-        if (sync::compareAndSwap(sync.visited + u, 0, 1)) {
-          task.matched[u] = *v;
-          task.matched[*v] = u;
+    for (auto check = graph[cur].begin() + look_ahead[current];
+              check < graph[cur].end(); ++check) {
+      look_ahead[current]++;
+      if (task.matched[*check] < 0) {
+        if (sync::compareAndSwap(sync.visited + current, 0, 1)) {
+          task.matched[current] = *check;
+          task.matched[*check] = current;
           return true;
         }
       }
     }
     // scan unmatched but sync.visited neighbors if not found
-    for (auto v = graph[j].begin() + 1; v < graph[j].end(); ++v) {
-      if (sync::compareAndSwap(sync.visited + u, 0, 1)) {
-        const int& w = task.mapping[task.matched[*v]];
-        if (w > -1)
-          stack->push(w);
+    for (auto neigh = graph[cur].begin() + 1; neigh < graph[cur].end(); ++neigh) {
+      if (sync::compareAndSwap(sync.visited + current, 0, 1)) {
+        const int& next = task.mapping[task.matched[*neigh]];
+        if (next > -1)
+          stack->push(next);
       }
     }
-  } while (!stack->empty());
+  } while (not stack->empty());
+
   return false;
 }
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 } // namespace trinity
