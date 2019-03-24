@@ -1,6 +1,7 @@
 # trinity
 [![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
@@ -32,12 +33,14 @@ It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and pr
 git clone https://github.com/hobywan/trinity.git .      # or through SSH
 mkdir build                                             # out-of-source build recommended
 cd build                                                #
-cmake ..                                                # can toggle -DBuild_Medit=[ON|OFF]
+cmake ..                                                # see build options below
 make -j4                                                # use multiple jobs for compilation
 make install                                            # optional, can use a prefix
 ```
 
 ###### Use the library
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
+
 **trinity** is exported as a package.  
 To use it in your project, update your CMakeLists.txt with:
 
@@ -204,6 +207,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 <!--<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="docs/figures/logo_osi.png" alt="logo_osi" width="70"></a>-->
 
 [![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is free and open-source.  
 It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  

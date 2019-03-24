@@ -1,0 +1,8 @@
+exclude_paths:
+  - scripts
+  - build
+
+engines:
+ cppcheck:
+   enabled: true
+   language: c++  
