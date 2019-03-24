@@ -1,6 +1,6 @@
 exclude_paths:
   - 'scripts/*.py'
-  - 'build/*'
+  - '*.md'
 
 engines:
  cppcheck:
