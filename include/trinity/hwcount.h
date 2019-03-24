@@ -302,7 +302,9 @@ public:
    * be tracked
    * @post Constructs a new instance of a papi_custom set.
    */
-  PAPI_Custom(const std::vector<std::pair<std::string, std::string> >& event_names);
+  explicit PAPI_Custom(
+    const std::vector<std::pair<std::string, std::string> >& event_names
+  );
 
 private:
   void to_stream(std::ostream& os) const override;

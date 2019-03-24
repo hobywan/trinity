@@ -133,7 +133,7 @@ public:
 
   // req: 26.5.1.4 Random number engine requirements, p.907 Table 117, row 3
   // Creates an engine with initial O(size of state) state determined by s.
-  random_engine(uint32_t s) {
+  explicit random_engine(uint32_t s) {
     seed(s);
   }
 

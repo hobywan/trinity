@@ -21,7 +21,6 @@
 
 int main(int argc, char* argv[]) {
 
-  int const threads = std::thread::hardware_concurrency();
   int const verbose = 1;
   int const bucket  = 64;
   int const depth   = 3;

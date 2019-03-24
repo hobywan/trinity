@@ -163,5 +163,3 @@ namespace X { namespace Y {
 
 }} // end namespace X::Y
 ```
-
-

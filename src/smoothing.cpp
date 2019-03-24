@@ -55,7 +55,6 @@ int Smooth::moveSmartLaplacian(int i) {
   auto point_a  = mesh->geom.points.data() + (i * 2);
   auto tensor_a = mesh->geom.tensor.data() + (i * 3);
 
-  double length;
   double point_opt[] = {0, 0};
 
   // 1) compute average optimal position of v[i]
@@ -66,7 +65,7 @@ int Smooth::moveSmartLaplacian(int i) {
     const auto tensor_b = mesh->geom.tensor.data() + (neigh * 3);
 
     // a. reduction on each local Pimal position of v[i]
-    length = mesh->computeLength(i, neigh);
+    double const length = mesh->computeLength(i, neigh);
     assert(length);
     // unrolled for perfs
     point_opt[0] += point_a[0] + ((point_b[0] - point_a[0]) / length);
@@ -195,7 +194,7 @@ void Smooth::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void Smooth::saveStat(int level, int* stat, int* form) {
-#pragma omp single
+#pragma omp master
   {
     stat[0] += nb.tasks;
     stat[1] += nb.commit;
@@ -275,12 +274,12 @@ void Smooth::run(Stats* total) {
 
   initialize();
 
-  int elap[] = {0, 0, 0, 0};
-  int form[] = {0, 0};
-  int stat[] = {0, 0};
-
 #pragma omp parallel
   {
+    int elap[] = {0, 0, 0, 0};
+    int form[] = {0, 0};
+    int stat[] = {0, 0};
+
     preProcess();
     timer::save(time.tic, elap);
 

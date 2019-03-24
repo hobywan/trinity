@@ -1,8 +1,8 @@
 exclude_paths:
-  - scripts
-  - build
+  - 'scripts/*.py'
+  - 'build/*'
 
 engines:
  cppcheck:
    enabled: true
-   language: c++  
+   language: c++

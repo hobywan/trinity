@@ -464,12 +464,12 @@ void Coarse::run(Stats* total) {
 
   initialize();
 
-  int elap[] = {0, 0, 0, 0, 0, 0};
-  int form[] = {0, 0};
-  int stat[] = {0, 0, 0};
-
 #pragma omp parallel
   {
+    int elap[] = {0, 0, 0, 0, 0, 0};
+    int form[] = {0, 0};
+    int stat[] = {0, 0, 0};
+
     int level = 0;
     std::vector<int> heap;
     heap.reserve((size_t) nb_nodes / cores);

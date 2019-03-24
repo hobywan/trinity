@@ -24,7 +24,6 @@ namespace trinity {
 Match::Match() {
   max.capa     = 0;
   max.depth    = 0;
-  param.cores  = 1;
   param.found  = false;
   task.mapping = nullptr;
   task.matched = nullptr;
@@ -39,7 +38,6 @@ void Match::initialize(size_t capacity, int* mapping, int* index) {
 
   max.capa    = (int) capacity;
   max.depth   = 0;
-  param.cores = omp_get_max_threads();
   param.found = false;
   sync.off    = index;
   // memalloc
@@ -106,13 +104,9 @@ void Match::matchAndUpdate(int vertex, const Graph& graph, std::stack<int>* stac
 
   stack->push(vertex);
 
-  int cur;
-  int nxt;
-  int current;
-
   do {
-    cur = stack->top();
-    current = graph[cur][0];
+    int cur = stack->top();
+    int current = graph[cur][0];
     stack->pop();
 
     if (not sync::compareAndSwap(sync.visited + current, 0, 1))
@@ -123,7 +117,7 @@ void Match::matchAndUpdate(int vertex, const Graph& graph, std::stack<int>* stac
         task.matched[current] = *neigh;
         task.matched[*neigh] = MATCHED;  // avoid duplicates
 
-        nxt = task.mapping[*neigh];
+        int nxt = task.mapping[*neigh];
         if (nxt < 0)
           continue;
 
@@ -178,8 +172,6 @@ int* Match::localSearchBipartite(const Graph& graph, int nb) {
   for (int i = 0; i < max.capa; ++i)
     look_ahead[i] = 1;
 
-  bool found;
-
   std::stack<int> stack;
 
   do {
@@ -187,7 +179,7 @@ int* Match::localSearchBipartite(const Graph& graph, int nb) {
 #pragma omp barrier
 #pragma omp master
     param.found = false;
-    found = false;
+    bool found = false;
 
 #pragma omp for
     for (int i = 0; i < max.capa; ++i)
@@ -214,14 +206,11 @@ bool Match::lookAheadDFS(int vertex, const Graph& graph, std::stack<int>* stack)
 
   auto look_ahead = task.lists[0];
 
-  int cur;
-  int current;
-
   stack->push(vertex);
 
   do {
-    cur = stack->top();
-    current = graph[cur][0];
+    int cur = stack->top();
+    int current = graph[cur][0];
     stack->pop();
 
     // look ahead step

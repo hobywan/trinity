@@ -59,7 +59,8 @@ void RMAT::load(const std::string path) {
   assert(nb.edges);
   graph.resize((size_t) nb.nodes);
 
-  int k, u, v;
+  int k = 0;
+  int u, v;
 
   // first-touch
 #pragma omp parallel for schedule(static)

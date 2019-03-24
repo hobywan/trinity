@@ -54,7 +54,6 @@ Swap::~Swap() {
 /* -------------------------------------------------------------------------- */
 int Swap::swap(int id1, int id2, int index) {
 
-  int j, k;
   int cur1[] = {-1, -1, -1};
   int cur2[] = {-1, -1, -1};
 
@@ -66,8 +65,8 @@ int Swap::swap(int id1, int id2, int index) {
 
   // rotate (t1,t2) and find shared edge/opposite vertices
   for (int i = 0; i < 3; ++i) {
-    j = (i + 1) % 3;
-    k = (i + 2) % 3;
+    int j = (i + 1) % 3;
+    int k = (i + 2) % 3;
 
     // manually unrolled
     if (old1[i] == old2[1] and old1[j] == old2[0]) {
@@ -385,12 +384,12 @@ void Swap::run(Stats* total) {
 
   initialize();
 
-  int elap[] = {0, 0, 0, 0, 0, 0};
-  int form[] = {0, 0, 0};
-  int stat[] = {0, 0, 0};
-
 #pragma omp parallel
   {
+    int elap[] = {0, 0, 0, 0, 0, 0};
+    int form[] = {0, 0, 0};
+    int stat[] = {0, 0, 0};
+
     std::vector<int> heap;
 
     cacheQuality();

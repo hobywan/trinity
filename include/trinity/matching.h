@@ -56,7 +56,6 @@ private:
   bool lookAheadDFS(int vertex, const Graph& graph, std::stack<int>* stack);
 
   struct {
-    int  cores;        // number of cores used
     bool found;
   } param;
 

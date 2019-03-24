@@ -100,11 +100,9 @@ void Metrics::recoverHessianField() {
 void Metrics::normalizeLocally() {
 
   // 3) local normalization
-  double det;
   double m[9];
   double h[4];
   double val[2], vec[4];
-  double scale_loc;
 
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb_nodes; ++i) {
@@ -127,8 +125,8 @@ void Metrics::normalizeLocally() {
     val[0] = val[1] = temp;*/
 
     // compute local scale factor w.r.t to L^p, and normalize eigenvalues
-    det       = val[0] * val[1];
-    scale_loc = std::pow(det, param.scale.exp);
+    double const det = val[0] * val[1];
+    double const scale_loc = std::pow(det, param.scale.exp);
     val[0] *= scale_loc;
     val[1] *= scale_loc;
 
@@ -154,29 +152,27 @@ void Metrics::normalizeLocally() {
 /* -------------------------------------------------------------------------- */
 void Metrics::computeComplexity() {
 
-  int    j, k;
-  double s[4], det;
+  double s[4];
   double p[6];
-  double rho;
-  double area;
   double phi = 0.;
   // 4) compute field.complexity
 #pragma omp for schedule(guided) nowait
   for (int i = 0; i < nb_elems; ++i) {
-    const int* v = mesh->getElemCoord(i, p);
+    auto v = mesh->getElemCoord(i, p);
     //
     s[0] = p[2] - p[0];      // t[1].x - t[0].x
     s[1] = p[4] - p[0];      // t[2].x - t[0].x
     s[2] = p[3] - p[1];      // t[1].y - t[0].y
     s[3] = p[5] - p[1];      // t[2].y - t[0].y
-    area = 0.5 * (s[0] * s[3] - s[1] * s[2]);
+    double const area = 0.5 * (s[0] * s[3] - s[1] * s[2]);
 
     // local average aspect ratio
     // rho=(1/3) * sum_k=1^3 det(metric[v[k]])
-    rho = 0.;
-    for (j = 0; j < 3; ++j) {
-      k = 3 * v[j]; // offset
-      det = field.tensor[k] * field.tensor[k + 2] - pow(field.tensor[k + 1], 2);
+    double rho = 0.;
+    for (int j = 0; j < 3; ++j) {
+      int k = 3 * v[j]; // offset
+      double const det =
+        field.tensor[k] * field.tensor[k + 2] - pow(field.tensor[k + 1], 2);
       assert(det > 0);
       rho += sqrt(det);
     }
@@ -193,7 +189,7 @@ void Metrics::normalizeGlobally() {
 
   assert(field.complexity);
 
-  int    j, k;
+  int    j;
   double m[9];
   double h[4];
   double val[2], vec[4];
@@ -205,7 +201,7 @@ void Metrics::normalizeGlobally() {
 #pragma omp for schedule(guided)
   for (int i = 0; i < nb_nodes; ++i) {
 
-    k = i * 3;
+    int k = i * 3;
     m[0] = field.tensor[k];
     m[1] = field.tensor[k + 1];
     m[2] = m[1];

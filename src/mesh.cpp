@@ -742,7 +742,7 @@ void Mesh::fixTagged() {
       }
       #if DEBUG
         if (k >= (int) elem.size()) {
-          std::printf("k: %d, elem.size: %lu\n", k, elem.size());
+          std::printf("k: %d, elem.size: %zu\n", k, elem.size());
         }
       #endif
       assert(k < (int) elem.size());
