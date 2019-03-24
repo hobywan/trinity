@@ -25,7 +25,6 @@ void Metrics::computeGradient(int index) {
 
   // init
   double total_area = 0.;      // stencil area
-  double norm;                 // normalization factor
   double point[6];             // elem coords and metric tensor
   double coef[4];              // matrix for area computation
   double deriv[6];               // finite elem basis function
@@ -50,7 +49,7 @@ void Metrics::computeGradient(int index) {
     area[i] = 0.5 * (coef[0] * coef[3] - coef[1] * coef[2]);
 
     assert(area[i]);
-    norm = 2 / area[i];
+    double const norm = 2 / area[i];
     total_area += area[i];
 
     // derivative of basis function
@@ -87,10 +86,9 @@ void Metrics::computeGradient(int index) {
 void Metrics::computeHessian(int index) {
 
   // init
-  double total_area = 0;     // stencil area
-  double norm;                // normalization factor
-  double point[6];            // elem coords and metric tensor
-  double coef[4];             // matrix for area computation
+  double total_area = 0;        // stencil area
+  double point[6];              // elem coords and metric tensor
+  double coef[4];               // matrix for area computation
   double deriv[6];              // finite elem basis function
   double hessian[4] = {0};
 
@@ -118,7 +116,7 @@ void Metrics::computeHessian(int index) {
 
     // sum to size total area
     assert(area[i]);
-    norm = 2 / area[i];
+    double const norm = 2 / area[i];
     total_area += area[i];
 
     // compute derivative of basis function : nabla_psi[i]
