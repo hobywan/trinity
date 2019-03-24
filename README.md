@@ -3,20 +3,19 @@
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
-**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).
-It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.
-It is intended to be involved within a numerical simulation loop.
+**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
+It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
+It is intended to be involved within a numerical simulation loop.  
 
 <img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar**
-domain **M** by adapting its discretization with respect to a target number of points **_n_**.
-Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.
-It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.
+It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar**   
+domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
+Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
+It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
 
 <img src="docs/figures/principle.png" alt="principle" width="820">
-
 
 ----
 ### Build and use
@@ -24,10 +23,10 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
 
 **trinity** is completely standalone.
-It can be built on Linux or macOS using [CMake](https://cmake.org).
-It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).
-It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional though.
-It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.
+It can be built on Linux or macOS using [CMake](https://cmake.org).  
+It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
+It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional though.  
+It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.  
 
 ``` bash
 git clone https://github.com/hobywan/trinity.git .      # or through SSH
@@ -41,14 +40,14 @@ make install                                            # optional, can use a pr
 ###### Use the library
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
-**trinity** is exported as a package.
+**trinity** is exported as a package.  
 To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
 find_package(trinity REQUIRED)                          # works for both build/install trees
 target_link_libraries(target PRIVATE trinity)           # replace 'target' with your library/binary
 ```
-And then include `trinity.h` in your application.
+And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
 
 ###### Use the tool
@@ -79,20 +78,20 @@ For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/p
 ----
 ### Features and algorithms
 ###### Core features
-**trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.
-It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.
+**trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
+It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
 -	[metric recover](sources/metric.h): compute a tensor field which encodes desired point density.
 -	[refinement](sources/refinement.h): add points on areas where the error of **_u_** is large.
 -	[coarsening](sources/coarsening.h): remove points on areas where the error of **_u_** is small.
--    [swapping](sources/swapping.h): flip edges to locally improve cell quality.
--    [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
+-   [swapping](sources/swapping.h): flip edges to locally improve cell quality.
+-   [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
 
 ###### Error estimate
-**trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.
-A tensor encodes the desired edge length incident to a point, which may be [direction-dependent](https://en.wikipedia.org/wiki/Anisotropy).
-**trinity** enables to tune the sensitivity of the error estimate according to the simulation needs.
+**trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.  
+A tensor encodes the desired edge length incident to a point, which may be [direction-dependent](https://en.wikipedia.org/wiki/Anisotropy).  
+**trinity** enables to tune the sensitivity of the error estimate according to the simulation needs.  
 For that, it provides a multi-scale estimate in [**L^_p_** norm](https://en.wikipedia.org/wiki/Lp_space):
 
 -    a small **_p_** will distribute points to capture all scales of the error of **_u_**.
@@ -103,30 +102,30 @@ It actually implements the [continuous metric](https://link.springer.com/chapter
 >"Multi-Dimensional Continuous Metric for Mesh Adaptation".  
 >In _proceedings of the 15th International Meshing Roundtable_, pp 191-214, Springer Berlin.
 
-To obtain a good mesh, it needs an accurate metric tensor field.
-The latter rely on the computation of the variations of the gradient of **_u_**.
-It is given by its local [hessian matrices](https://en.wikipedia.org/wiki/Hessian_matrix).
-It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002/nme.2036).
+To obtain a good mesh, it needs an accurate metric tensor field.  
+The latter rely on the computation of the variations of the gradient of **_u_**.  
+It is given by its local [hessian matrices](https://en.wikipedia.org/wiki/Hessian_matrix).  
+It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002/nme.2036).  
 
 <img src="docs/figures/multiscale_meshes.png" alt="multiscale_meshes.png" width="790">
 
 ###### Fine-grained parallelism
-**trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).
-It relies on a [fork-join](https://en.wikipedia.org/wiki/Fork–join_model) model through OpenMP.
-All kernels are structured into synchronous stages.
-A stage consists of local computation, a [reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern)) in shared-memory, and a [barrier](https://en.wikipedia.org/wiki/Barrier_(computer_science)).
+**trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).  
+It relies on a [fork-join](https://en.wikipedia.org/wiki/Fork–join_model) model through OpenMP.  
+All kernels are structured into synchronous stages.  
+A stage consists of local computation, a [reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern)) in shared-memory, and a [barrier](https://en.wikipedia.org/wiki/Barrier_(computer_science)).  
 
 <table>
   <tr><td><img src="docs/figures/algo_structure.png" alt="algo_structure" width="600"></td></tr>
 </table>
 
->It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.
+>It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.  
 >It does **not** rely on [task parallelism](https://en.wikipedia.org/wiki/Task_parallelism) and runtime capabilities such as [Cilk](http://supertech.csail.mit.edu/papers/PPoPP95.pdf), [TBB](https://software.intel.com/en-us/intel-tbb) or [StarPU](http://starpu.gforge.inria.fr) neither.
 
-In fact [manycore](https://en.wikipedia.org/wiki/Manycore_processor) machines have plenty of slow cores with small caches.
-To scale up, one needs plenty of very thin and local tasks to keep them busy.
-In **trinity**, remesh kernels are expressed into a [graph](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)), except for refinement.
-Runnable tasks are then extracted using multithreaded heuristics:
+In fact [manycore](https://en.wikipedia.org/wiki/Manycore_processor) machines have plenty of slow cores with small caches.  
+To scale up, one needs plenty of very thin and local tasks to keep them busy.  
+In **trinity**, remesh kernels are expressed into a [graph](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)), except for refinement.  
+Runnable tasks are then extracted using multithreaded heuristics:  
 
 -    maximal [stable set](https://en.wikipedia.org/wiki/Maximal_independent_set) for coarsening
 -    maximal [matching](https://en.wikipedia.org/wiki/Matching_(graph_theory)) for swapping
@@ -134,10 +133,10 @@ Runnable tasks are then extracted using multithreaded heuristics:
 
 <img src="docs/figures/graph_matching.png" alt="graph_matching.png" width="450">
 
- **trinity** fixes incidence data only at the end of a round of any kernel.
-It uses an explicit synchronization scheme to fix them.
-It relies on the use of low-level [atomic primitives](https://fr.cppreference.com/w/cpp/atomic).
-It was designed to minimize data movement penalties, especially on [NUMA](https://en.wikipedia.org/wiki/Non-uniform_memory_access) cases.
+ **trinity** fixes incidence data only at the end of a round of any kernel.  
+It uses an explicit synchronization scheme to fix them.  
+It relies on the use of low-level [atomic primitives](https://fr.cppreference.com/w/cpp/atomic).  
+It was designed to minimize data movement penalties, especially on [NUMA](https://en.wikipedia.org/wiki/Non-uniform_memory_access) cases.  
 
 <img src="docs/figures/topology_fixes.png" alt="topology_fixes.png" width="600">
 
@@ -150,17 +149,17 @@ For further details, please take a look at:
 ----
 ### Benchmark
 ###### Profiling
-**trinity** is natively instrumented.
-It prints the runtime stats with three verbosity level.
-Here is an output example with the medium level.
+**trinity** is natively instrumented.  
+It prints the runtime stats with three verbosity level.  
+Here is an output example with the medium level.  
 
 <img src="docs/figures/screenshot.png" alt="screenshot" width="650">
 
 >💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).
 
-**trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.
-They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).
-Please take a look at the [examples](examples/) folder for basic usage.
+**trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.  
+They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
+Please take a look at the [examples](examples/) folder for basic usage.  
 
 <!--Here is an example of use:
 
@@ -186,7 +185,7 @@ papi::finalize(count);                                     // report counters va
 >💡 You can profile either CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) performances.
 
 ###### Deployment on a cluster
-Preparing a benchmark campaign can be tedious 😩
+Preparing a benchmark campaign can be tedious 😩.  
 I included some python scripts to help setting it up on a node, enabling to:
 <!--(https://blogs.cisco.com/performance/process-and-memory-affinity-why-do-you-care)-->
 
@@ -208,9 +207,9 @@ I included some python scripts to help setting it up on a node, enabling to:
 [![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
-**trinity** is free and open-source.
-It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.
-It was written during my doctorate, so improvements are welcome 😊
+**trinity** is free and open-source.  
+It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
+It was written during my doctorate, so improvements are welcome 😊.  
 To get involved, you can:
 
 -    report bugs or request features by submitting an [issue](https://github.com/hobywan/trinity/issues).
