@@ -119,7 +119,8 @@ private:
  * packs
  */
 template <
-  typename CollectionT, typename IndexT, typename TupleT, typename RetT,
+  typename CollectionType, typename IndexType, 
+  typename TupleType, typename ReturnType,
   typename... Args
 >
 class MyFunctor {
@@ -127,9 +128,10 @@ class MyFunctor {
   /*
    * Wrap function args when they get long, indented as so.
    */
-  RetT operator()(
-    CollectionT const& col, IndexT const& idx, TupleT&& tup,
-    std::tuple<Args...> tup, std::unique_ptr<int> ptr
+  ReturnType operator()(
+    CollectionType const& col, IndexType const& idx, 
+    TupleType&& tup, std::tuple<Args...> tup, 
+    std::unique_ptr<int> ptr
   ) {
     return {};
   }
