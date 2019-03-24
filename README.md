@@ -1,5 +1,6 @@
 # trinity
 [![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
@@ -16,11 +17,11 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 <img src="docs/figures/principle.png" alt="principle" width="820">
 
 
-<!--###### Motivations-->
-
 ----
 ### Build and use
 ###### Build
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
+
 **trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
 It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
@@ -200,7 +201,9 @@ I included some python scripts to help setting it up on a node, enabling to:
 ### License and contributions
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
-<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="docs/figures/logo_osi.png" alt="logo_osi" width="70"></a>
+<!--<a href="https://en.wikipedia.org/wiki/Open-source_software"><img src="docs/figures/logo_osi.png" alt="logo_osi" width="70"></a>-->
+
+[![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 **trinity** is free and open-source.  
 It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
