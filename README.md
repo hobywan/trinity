@@ -22,7 +22,7 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 ###### Build
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
 
-**trinity** is completely standalone.
+**trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
 It only requires a [C++14](https://isocpp.org/wiki/faq/cpp14-language) compiler endowed with [OpenMP](https://www.openmp.org).  
 It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) to render meshes but it is optional though.  
@@ -36,6 +36,13 @@ cmake ..                                                # see build options belo
 make -j4                                                # use multiple jobs for compilation
 make install                                            # optional, can use a prefix
 ```
+| Option           | Description                                                                                      | Default |
+|------------------|--------------------------------------------------------------------------------------------------|---------|
+| `Build_Medit`    | Build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) mesh renderer         | `ON`    |
+| `Build_GTest`    | Build [googletest](https://github.com/google/googletest) for *future* unit tests                 | `ON`    |
+| `Build_Main`     | Build the command-line tool                                                                      | `ON`    |
+| `Build_Examples` | Build provided examples                                                                          | `ON`    |
+| `Use_Deferred`   | Use deferred topology updates scheme in [pragmatic](https://github.com/meshadaptation/pragmatic) | `OFF`   |
 
 ###### Use the library
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
