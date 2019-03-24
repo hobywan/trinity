@@ -1,7 +1,7 @@
 dist: xenial
 os:
-  - osx
   - linux
+  - osx
 
 language: cpp
 compiler:
@@ -23,11 +23,9 @@ addons:
     - llvm-toolchain-xenial-7
     - ubuntu-toolchain-r-test
     packages:
-    - clang-8
     - cmake
+    - clang-7
     - libhwloc-dev
-    - gcc-8
-    - g++-8
     - mesa-utils
     - freeglut3-dev
 
@@ -38,17 +36,19 @@ addons:
     - llvm
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then
       LLVM=/usr/local/opt/llvm;
       export CC=$LLVM/bin/clang;
       export CXX=$LLVM/bin/clang++;
       export CFLAGS=-I$LLVM/include;
       export CXXFLAGS=-I$LLVM/include;
       export LDFLAGS=-L$LLVM/lib;
+    elif [ $CC = "clang" ]; then
+      export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH;
     fi
 
 install:
-  - ${CXX} --version
+  - $CXX --version
   - cmake --version
 
 script:
