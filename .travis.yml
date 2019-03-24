@@ -1,0 +1,59 @@
+dist: xenial
+os:
+  - osx
+  - linux
+
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+env:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+
+matrix:
+  exclude:
+    - compiler: gcc
+      os: osx
+
+addons:
+  apt:
+    sources:
+    - llvm-toolchain-xenial-7
+    - ubuntu-toolchain-r-test
+    packages:
+    - clang-8
+    - cmake
+    - libhwloc-dev
+    - gcc-8
+    - g++-8
+    - mesa-utils
+    - freeglut3-dev
+
+  homebrew:
+    packages:
+    - cmake
+    - hwloc
+    - llvm
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      LLVM=/usr/local/opt/llvm;
+      export CC=$LLVM/bin/clang;
+      export CXX=$LLVM/bin/clang++;
+      export CFLAGS=-I$LLVM/include;
+      export CXXFLAGS=-I$LLVM/include;
+      export LDFLAGS=-L$LLVM/lib;
+    fi
+
+install:
+  - ${CXX} --version
+  - cmake --version
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j 4
+  - bin/trinity -h
