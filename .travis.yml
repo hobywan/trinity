@@ -3,6 +3,10 @@ os:
   - linux
   - osx
 
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps
+
 language: cpp
 compiler:
   - gcc

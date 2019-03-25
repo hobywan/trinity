@@ -1,6 +1,6 @@
 # trinity
 [![License: GPL v3](https://img.shields.io/badge/License-Apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
@@ -20,7 +20,7 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 ----
 ### Build and use
 ###### Build
-[![Build Status](https://travis-ci.com/hobywan/trinity.svg?token=bWsDg5CSTa9NpP9D1YkU&branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 
 **trinity** is completely standalone.  
 It can be built on Linux or macOS using [CMake](https://cmake.org).  
