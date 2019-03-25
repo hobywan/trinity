@@ -8,13 +8,12 @@
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
 It is intended to be involved within a numerical simulation loop.  
 
-<img src="figures/adaptive_loop.png" alt="adaptive-loop" width="390">
+<img src="figures/adaptive_loop_inverted.png" alt="adaptive-loop" width="390">
 
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
-It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
+It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points. It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
 
-<img src="figures/principle.png" alt="principle" width="820">
+<img src="figures/principle_inverted.png" alt="principle" width="820">
 
 ----
 ### Build and use
@@ -51,8 +50,8 @@ make install                                       # optional
 To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
-find_package(trinity REQUIRED)                    # works for both build/install trees
-target_link_libraries(target PRIVATE trinity)     # replace 'target' with your library/binary
+find_package(trinity REQUIRED)                    # for build|install trees
+target_link_libraries(target PRIVATE trinity)     # replace 'target'
 ```
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
@@ -114,7 +113,7 @@ The latter rely on the computation of the variations of the gradient of **_u_**.
 It is given by its local [hessian matrices](https://en.wikipedia.org/wiki/Hessian_matrix).  
 It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002/nme.2036).  
 
-<img src="figures/multiscale_meshes.png" alt="multiscale_meshes.png" width="790">
+<img src="figures/multiscale_meshes_inverted.png" alt="multiscale_meshes.png" width="790">
 
 ###### Fine-grained parallelism
 **trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).  
@@ -123,7 +122,7 @@ All kernels are structured into synchronous stages.
 A stage consists of local computation, a [reduction](https://en.wikipedia.org/wiki/Reduce_(parallel_pattern)) in shared-memory, and a [barrier](https://en.wikipedia.org/wiki/Barrier_(computer_science)).  
 
 <table>
-  <tr><td><img src="figures/algo_structure.png" alt="algo_structure" width="600"></td></tr>
+  <tr><td><img src="figures/algo_structure_inverted.png" alt="algo_structure" width="600"></td></tr>
 </table>
 
 >It does **not** rely on [domain partitioning](http://www.cs.cmu.edu/~quake/sc96/node5.html) unlike coarse-grained parallel remeshers.  
@@ -138,7 +137,7 @@ Runnable tasks are then extracted using multithreaded heuristics:
 -    maximal [matching](https://en.wikipedia.org/wiki/Matching_(graph_theory)) for swapping
 -    maximal [coloring](https://en.wikipedia.org/wiki/Graph_coloring) for smoothing
 
-<img src="figures/graph_matching.png" alt="graph_matching.png" width="450">
+<img src="figures/graph_matching_inverted.png" alt="graph_matching_inverted.png" width="450">
 
  **trinity** fixes incidence data only at the end of a round of any kernel.  
 It uses an explicit synchronization scheme to fix them.  
