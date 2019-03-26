@@ -4,6 +4,38 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
+<style>
+.social-button-container {
+  /*background-color: red;*/
+  /**
+  * This is a nice CSS trick that allows you to clear an element
+  * without having to add extra elements to your HTML. This helps
+  * seperate content from design, which should always be an architectural
+  * goal.
+  */
+  overflow: hidden;
+  float: left:
+}
+.social-button {
+  float: left;
+  min-width: 90px;
+  min-height: 20px;
+  padding-right: 4px;
+}
+</style>
+
+<div class="social-button-container" style="position: relative; z-index: 999;">
+  <div class="social-button" style="margin-top: -2px; margin-right: -25px;">
+    <script src="https://platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script><script type="in/share" data-url="https://hobywan.github.io/trinity" height="20"></script>
+  </div>
+  
+  <div class="social-button">
+    <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fhobywan.github.io%2Ftrinity&width=121&layout=standard&action=like&size=small&show_faces=true&share=true&height=65&appId" width="121" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true" allow="encrypted-media">
+</iframe>
+    <a href="https://hobywan.github.io/trinity" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>
+</div>
+
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
 It is intended to be involved within a numerical simulation loop.  
@@ -218,3 +250,17 @@ To get involved, you can:
 -    submit code contributions using feature branches and [pull requests](https://github.com/hobywan/trinity/pulls).
 
 Enjoy! 😉
+
+###### Share
+
+<div class="social-button-container" style="position: relative; z-index: 999;">
+  <div class="social-button" style="margin-top: -2px; margin-right: -25px;">
+    <script src="https://platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script><script type="in/share" data-url="https://hobywan.github.io/trinity" height="20"></script>
+  </div>
+  
+  <div class="social-button">
+    <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fhobywan.github.io%2Ftrinity&width=121&layout=standard&action=like&size=small&show_faces=true&share=true&height=65&appId" width="121" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true" allow="encrypted-media">
+</iframe>
+    <a href="https://hobywan.github.io/trinity" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>
+</div>
