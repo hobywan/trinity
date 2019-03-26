@@ -1,6 +1,8 @@
 <meta property="og:image" content="https://hobywan.github.io/trinity/figures/logo.png"/>
 
+<a href="https://github.com/hobywan/trinity">
 <img src="figures/logo_transparent.png" alt="principle" width="100">
+</a>
 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
@@ -92,7 +94,7 @@ find_package(trinity REQUIRED)                    # for build|install trees
 target_link_libraries(target PRIVATE trinity)     # replace 'target'
 ```
 And then include `trinity.h` in your application.  
-Please take a look at the [examples](examples/) folder for basic usage.
+Please take a look at the [examples](https://github.com/hobywan/trinity/tree/master/examples/) folder for basic usage.
 
 ###### Use the tool
 The list of command arguments is given by the `-h` option.
@@ -126,11 +128,11 @@ For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/p
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
--	[metric recover](sources/metric.h): compute a tensor field which encodes desired point density.
--	[refinement](sources/refinement.h): add points on areas where the error of **_u_** is large.
--	[coarsening](sources/coarsening.h): remove points on areas where the error of **_u_** is small.
--   [swapping](sources/swapping.h): flip edges to locally improve cell quality.
--   [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
+-	[metric recover](https://github.com/hobywan/trinity/blob/master/src/metric.cpp): compute a tensor field which encodes desired point density.
+-	[refinement](https://github.com/hobywan/trinity/blob/master/src/refinement.cpp): add points on areas where the error of **_u_** is large.
+-	[coarsening](https://github.com/hobywan/trinity/blob/master/src/coarsening.cpp): remove points on areas where the error of **_u_** is small.
+-   [swapping](https://github.com/hobywan/trinity/blob/master/src/swapping.cpp): flip edges to locally improve cell quality.
+-   [smoothing](https://github.com/hobywan/trinity/blob/master/src/smoothing.cpp): relocate points to locally improve cell qualities.
 
 ###### Error estimate
 **trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.  
@@ -201,7 +203,7 @@ Here is an output example with the medium level.
 
 **trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.  
 They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
-Please take a look at the [examples](examples/) folder for basic usage.  
+Please take a look at the [examples](https://github.com/hobywan/trinity/tree/master/examples/) folder for basic usage.  
 
 <!--Here is an example of use:
 
