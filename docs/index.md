@@ -1,3 +1,5 @@
+<meta property="og:image" content="https://hobywan.github.io/trinity/figures/logo.png"/>
+
 <img src="figures/logo_transparent.png" alt="principle" width="100">
 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
