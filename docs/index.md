@@ -4,6 +4,19 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
+**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
+It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.   
+It is intended to be involved within a numerical simulation loop.  
+
+<img src="figures/adaptive_loop_inverted.png" alt="adaptive-loop" width="390">
+
+It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points. It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
+It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
+
+<img src="figures/principle_inverted.png" alt="principle" width="820">
+
+###### Share
+
 <style>
 .social-button-container {
   /*background-color: red;*/
@@ -34,18 +47,9 @@
 </iframe>
     <a href="https://hobywan.github.io/trinity" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
   </div>
-</div>
+</div>  
 
-**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
-It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
-It is intended to be involved within a numerical simulation loop.  
-
-<img src="figures/adaptive_loop_inverted.png" alt="adaptive-loop" width="390">
-
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points. It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
-It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
-
-<img src="figures/principle_inverted.png" alt="principle" width="820">
+<br>
 
 ----
 ### Build and use
@@ -239,7 +243,6 @@ I included some python scripts to help setting it up on a node, enabling to:
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is free and open-source.  
 It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
