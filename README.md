@@ -1,8 +1,3 @@
-
-[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
-[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-
 <img src="docs/figures/logo_shadow.png" alt="principle" width="180">
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
@@ -10,6 +5,10 @@ It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non
 It is intended to be involved within a numerical simulation loop.  
 
 <img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
+
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
+[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
 **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
@@ -165,7 +164,7 @@ Here is an output example with the medium level.
 
 >💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).  
 
-You may use [wrappi]() to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) for any kernel.
+You may use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer).
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩.  
