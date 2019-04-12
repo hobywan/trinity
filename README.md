@@ -1,4 +1,4 @@
-<img src="docs/figures/logo_shadow_2.png" alt="principle" width="210">
+<img src="docs/figures/logo.png" alt="logo" width="210">
 
 **trinity** is a C++ library and command-line tool for [anisotropic mesh adaptation](https://pdfs.semanticscholar.org/3246/d43a28559273446811da8acc705c37198926.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
@@ -8,7 +8,6 @@ It is intended to be involved within a numerical simulation loop.
 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
-[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
 **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
