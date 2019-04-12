@@ -1,3 +1,4 @@
+BasedOnStyle: LLVM
 Language: Cpp
 ColumnLimit: 80
 
@@ -10,15 +11,7 @@ AlwaysBreakAfterReturnType: None
 AlignAfterOpenBracket: AlwaysBreak
 ContinuationIndentWidth: 2
 PenaltyReturnTypeOnItsOwnLine: 100
-
-# CompactNamespaces: true
-# BraceWrapping: AfterFunction
-
-#BinPackArguments: false
-#BinPackParameters: false
-# AllowAllParametersOfDeclarationOnNextLine: true
-
-# BreakBeforeBraces: Attach
+CompactNamespaces: true
 
 BreakBeforeBraces: Custom
 BraceWrapping:
@@ -54,9 +47,6 @@ SpaceBeforeParens: ControlStatements
 MaxEmptyLinesToKeep: 2
 IndentCaseLabels: false
 
-# BreakBeforeInheritanceComma: false
 ConstructorInitializerIndentWidth: 2
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 BreakConstructorInitializersBeforeComma: false
-
-# ExperimentalAutoDetectBinPacking: true
