@@ -56,4 +56,4 @@ script:
   - cd build
   - cmake ..
   - make -j 4
-  - bin/trinity -h
+  - bin/trinity
