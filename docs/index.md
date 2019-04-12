@@ -1,18 +1,18 @@
 <meta property="og:image" content="https://hobywan.github.io/trinity/figures/logo.png"/>
 
 <a href="https://github.com/hobywan/trinity">
-<img src="figures/logo_transparent.png" alt="principle" width="100">
+<img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
-
-[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
-[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.   
 It is intended to be involved within a numerical simulation loop.  
 
 <img src="figures/adaptive_loop_inverted.png" alt="adaptive-loop" width="390">
+
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
+[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points. It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
@@ -67,7 +67,6 @@ It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf
 It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.  
 
 ``` bash
-git clone https://github.com/hobywan/trinity.git . # or through SSH
 mkdir build                                        # out-of-source build
 cd build                                           #
 cmake ..                                           # see build options
@@ -77,7 +76,7 @@ make install                                       # optional
 <table>
 	<tr><td> Option </td><td> Description </td><td> Default </td></tr>
 	<tr><td> Build_Medit </td><td>Build <a href="https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf">medit</a> mesh renderer</td><td> ON </td> </tr>
-	<tr><td> Build_GTest </td><td>Build <a href="https://github.com/google/googletest">googletest</a> for <i>future</i> unit tests </td><td> ON </td></tr>
+	<tr><td> Build_GTest </td><td>Build <a href="https://github.com/google/googletest">googletest</a> for <i>future</i> unit tests </td><td> OFF </td></tr>
 	<tr><td> Build_Main</td><td>Build the command-line tool</td><td>ON</td></tr>
 	<tr><td> Build_Examples </td><td>Build built-in examples</td><td> ON </td></tr>
 	<tr><td> Use_Deferred </td><td>Use deferred topology updates scheme in <a href="https://github.com/meshadaptation/pragmatic">pragmatic</a></td><td> OFF </td></tr>
@@ -90,8 +89,8 @@ make install                                       # optional
 To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
-find_package(trinity REQUIRED)                    # for build|install trees
-target_link_libraries(target PRIVATE trinity)     # replace 'target'
+find_package(trinity)                           # for build|install trees
+target_link_libraries(target PRIVATE trinity)   # replace 'target'
 ```
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](https://github.com/hobywan/trinity/tree/master/examples/) folder for basic usage.
@@ -122,8 +121,8 @@ Options:
 For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ----
-### Features and algorithms
-###### Core features
+### Features
+###### Core
 **trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
@@ -201,32 +200,7 @@ Here is an output example with the medium level.
 
 >💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).
 
-**trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.  
-They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
-Please take a look at the [examples](https://github.com/hobywan/trinity/tree/master/examples/) folder for basic usage.  
-
-<!--Here is an example of use:
-
-``` c++
-#ifdef HAVE_PAPI                                           // avoid compilation errors
-using namespace trinity;
-int const nb_kernels = 4;
-int const nb_threads = omp_get_max_threads();              // thread-core affinity should be set
-int const papi_mode  = PAPI_mode_cache;                    // choose to profile cache performance
-papi::Cache count[nb_kernels];                             // cache counters per thread
-
-papi::init(nb_threads, papi_mode, count);                  // initialize all counters
-
-for (int i = 0; i < nb_kernels; ++i) {
-  papi::start(count[i]);                                   // start profile
-  kernel[i].run();                                         // a thing you wanna profile
-  papi::stop(count[i]);                                    // stop
-}
-
-papi::finalize(count);                                     // report counters values and clean-up
-#endif
-```-->
->💡 You can profile either CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) performances.
+You may use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer).
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩.  
@@ -243,7 +217,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
 ----
-### License and contributions
+### License
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
