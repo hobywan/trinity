@@ -98,8 +98,10 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 ```
 
 ----
+<img src="docs/figures/logo.png" alt="logo" width="210">
+
 ### Features
-###### Core
+
 **trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
@@ -159,9 +161,6 @@ Runnable tasks are then extracted using multithreaded heuristics:
 It uses an explicit synchronization scheme to fix them.  
 It relies on the use of low-level [atomic primitives](https://fr.cppreference.com/w/cpp/atomic).  
 It was designed to minimize data movement penalties, especially on [NUMA](https://en.wikipedia.org/wiki/Non-uniform_memory_access) cases.  
-
-<img src="docs/figures/topology_fixes.png" alt="topology_fixes.png" width="600">
-
 For further details, please take a look at:
 
 >📄 Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
@@ -196,11 +195,12 @@ I included some python scripts to help setting it up on a node, enabling to:
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
 ----
-### License
-###### Copyright (c) 2016 Hoby Rakotoarivelo
+<img src="docs/figures/logo.png" alt="logo" width="210">
+
+###### Copyright 2016, Hoby Rakotoarivelo.
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-
+  
 **trinity** is free and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
 It was written during my doctorate, so improvements are welcome 😊  
 To get involved, you can:
