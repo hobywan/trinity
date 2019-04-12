@@ -1,14 +1,14 @@
 <img src="docs/figures/logo_shadow_2.png" alt="principle" width="210">
 
-[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
-
-**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
+**trinity** is a C++ library and command-line tool for [anisotropic mesh adaptation](https://pdfs.semanticscholar.org/3246/d43a28559273446811da8acc705c37198926.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
 It is intended to be involved within a numerical simulation loop.  
 
 <img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
+[![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
+[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
 **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
@@ -181,14 +181,13 @@ I included some python scripts to help setting it up on a node, enabling to:
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
 ----
-### License and contributions
+### License
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**trinity** is free and open-source.  
-It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
-It was written during my doctorate, so improvements are welcome 😊.  
+**trinity** is free and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
+It was written during my doctorate, so improvements are welcome 😊  
 To get involved, you can:
 
 -    report bugs or request features by submitting an [issue](https://github.com/hobywan/trinity/issues).

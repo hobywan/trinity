@@ -22,7 +22,7 @@ project(trinity VERSION 1.0.3 LANGUAGES CXX)
 
 # program compile-time options
 option(Build_Medit    "Build medit viewer" ON)
-option(Build_GTest    "Build googletest" ON)
+option(Build_GTest    "Build googletest" OFF)
 option(Build_Main     "Build command-line tool" ON)
 option(Build_Examples "Build examples sources" ON)
 option(Use_Deferred   "Use deferred topology updates scheme" OFF)
