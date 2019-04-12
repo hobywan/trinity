@@ -3,14 +3,13 @@ os:
   - linux
   - osx
 
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps
-
 language: cpp
 compiler:
   - gcc
   - clang
+
+env:
+  - OMP_NUM_THREADS=2
 
 matrix:
   exclude:
@@ -24,7 +23,6 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - cmake
-    - clang-7
     - libhwloc-dev
     - mesa-utils
     - freeglut3-dev
