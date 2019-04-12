@@ -118,7 +118,23 @@ Options:
   -v INT                verbosity level [0-2]
   -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
-For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
+> For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
+
+###### Setting thread-core affinity
+
+For performance reasons, I recommend to explicitly set [thread-core affinity](https://eli.thegreenplace.net/2016/c11-threads-affinity-and-hyperthreading/) before any run.  
+Indeed, threads should be statically bound to cores to prevent the OS from migrating them.  
+Besides, [simultaneous multithreading](https://en.wikipedia.org/wiki/Simultaneous_multithreading) (or [hyperthreading](https://en.wikipedia.org/wiki/Hyper-threading) on Intel) should be:
+
+- enabled to ease memory latency penalties especially on Intel KNL.
+- disabled to reduce shared caches saturation on faster nodes.  
+
+It can be done by setting some environment variables:
+
+```bash
+export OMP_PLACES=[cores|threads] OMP_PROC_BIND=close  # with GNU or clang/LLVM
+export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler  
+```
 
 ----
 ### Features

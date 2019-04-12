@@ -43,11 +43,11 @@ make install                                         # optional, can use a prefi
 | `Build_Examples` | Build provided examples                                                                          | `ON`    |   
 | `Use_Deferred`   | Use deferred topology updates scheme in [pragmatic](https://github.com/meshadaptation/pragmatic) | `OFF`   |  
 
-###### Use the library
+###### Linking to your project
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is exported as a package.  
-To use it in your project, update your CMakeLists.txt with:
+To enable the library, update your CMakeLists.txt with:
 
 ``` cmake
 find_package(trinity)                                # works for both build/install trees
@@ -56,7 +56,7 @@ target_link_libraries(target PRIVATE trinity)        # replace 'target' with you
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
 
-###### Use the tool
+###### Using the tool
 The list of command arguments is given by the `-h` option.
 
 ``` console
@@ -79,7 +79,23 @@ Options:
   -v INT                verbosity level [0-2]
   -P CHOICE             enable papi [cache|cycles|tlb|branch]
 ```
-For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
+> For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
+
+###### Setting thread-core affinity
+
+For performance reasons, I recommend to explicitly set [thread-core affinity](https://eli.thegreenplace.net/2016/c11-threads-affinity-and-hyperthreading/) before any run.  
+Indeed, threads should be statically bound to cores to prevent the OS from migrating them.  
+Besides, [simultaneous multithreading](https://en.wikipedia.org/wiki/Simultaneous_multithreading) (or [hyperthreading](https://en.wikipedia.org/wiki/Hyper-threading) on Intel) should be:
+
+- enabled to ease memory latency penalties especially on Intel KNL.
+- disabled to reduce shared caches saturation on faster nodes.  
+
+It can be done by setting some environment variables:
+
+```bash
+export OMP_PLACES=[cores|threads] OMP_PROC_BIND=close  # with GNU or clang/LLVM
+export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler  
+```
 
 ----
 ### Features
@@ -104,8 +120,8 @@ For that, it provides a multi-scale estimate in [**L^_p_** norm](https://en.wiki
 -    a large **_p_** will distribute points mainly on large variation areas (shocks).
 
 It actually implements the [continuous metric](https://link.springer.com/chapter/10.1007/978-3-540-34958-7_12) defined in:
->[📄](https://link.springer.com/chapter/10.1007/978-3-540-34958-7_12) Fréderic Alauzet, Adrien Loseille, Alain Dervieux and Pascal Frey (2006).  
->"Multi-Dimensional Continuous Metric for Mesh Adaptation".  
+>📄 Fréderic Alauzet, Adrien Loseille, Alain Dervieux and Pascal Frey (2006).  
+>["Multi-Dimensional Continuous Metric for Mesh Adaptation"](https://link.springer.com/chapter/10.1007/978-3-540-34958-7_12).  
 >In _proceedings of the 15th International Meshing Roundtable_, pp 191-214, Springer Berlin.
 
 To obtain a good mesh, it needs an accurate metric tensor field.  
@@ -148,9 +164,9 @@ It was designed to minimize data movement penalties, especially on [NUMA](https:
 
 For further details, please take a look at:
 
->[📄](https://doi.org/10.1007/978-3-319-64203-1_43) Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
->"Scalable fine-grained metric-based remeshing algorithm for manycore/NUMA architectures".  
->In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
+>📄 Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
+>["Scalable fine-grained metric-based remeshing algorithm for manycore/NUMA architectures"](https://doi.org/10.1007/978-3-319-64203-1_43).  
+>In _proceedings of 23rd International European Conference on Parallel and Distributed Computing_, Springer.
 
 ----
 ### Benchmark
