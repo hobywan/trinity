@@ -1,4 +1,4 @@
 theme: jekyll-theme-midnight
 title: trinity
-description: An anisotropic mesh adaptation library for manycore machines
+description: A library for anisotropic mesh adaptation on manycore machines.
 image: https://hobywan.github.io/trinity/figures/logo.png

@@ -137,8 +137,12 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 ```
 
 ----
+<a href="https://github.com/hobywan/trinity">
+<img src="figures/logo_inverted.png" alt="principle" width="210">
+</a>
+
 ### Features
-###### Core
+
 **trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
@@ -233,13 +237,15 @@ I included some python scripts to help setting it up on a node, enabling to:
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
 ----
-### License
+<a href="https://github.com/hobywan/trinity">
+<img src="figures/logo_inverted.png" alt="principle" width="210">
+</a>
+
 ###### Copyright (c) 2016 Hoby Rakotoarivelo
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**trinity** is free and open-source.  
-It was intended for research purposes and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
+**trinity** is free and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
 It was written during my doctorate, so improvements are welcome 😊.  
 To get involved, you can:
 
