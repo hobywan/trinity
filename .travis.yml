@@ -8,9 +8,6 @@ compiler:
   - gcc
   - clang
 
-env:
-  - OMP_NUM_THREADS=2
-
 matrix:
   exclude:
     - compiler: gcc
@@ -53,5 +50,5 @@ script:
   - mkdir build
   - cd build
   - cmake ..
-  - make -j 4
-  - bin/trinity
+  - make -j2
+  - bin/trinity --help
