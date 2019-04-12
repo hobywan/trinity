@@ -83,8 +83,9 @@ int Smooth::moveSmartLaplacian(int i) {
   const double tensor_ini[] = {tensor_a[0], tensor_a[1], tensor_a[2]};
   numeric::interpolateTensor(metric, tensor_a, nb_neigh);
 
-#ifdef DEBUG
-  std::printf("interpolated[%d]: (%.2f,%.2f,%.2f)\n", i, ma[0], ma[1], ma[2]);
+#if DEBUG
+  std::fprintf(stderr, "interpolated[%d]: (%.2f,%.2f,%.2f)\n",
+               i, tensor_a[0], tensor_a[1], tensor_a[2]);
 #endif
 
   // 3) adjust coef iteratively, cf. dobrynzski

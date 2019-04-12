@@ -103,14 +103,14 @@ void Coarse::identifyTarget(int source) {
       face[2] = (n[2] == source ? destin : n[2]);
 
       #ifdef DEBUG
-        if (f[0] == f[1] or f[1] == f[2] or f[2] == f[0]) {
+        if (face[0] == face[1] or face[1] == face[2] or face[2] == face[0]) {
           std::fprintf(stderr,
             "error: identify: v: %d, t: %d, f:[%d,%d,%d]\n",
-            i, *t, f[0], f[1], f[2]
+            source, *t, face[0], face[1], face[2]
           );
-          tools::display(mesh->topo.stenc[i]);
-          if (bound_src) {
-            std::fprintf(stderr, "boundary vertex %d\n", i);
+          tools::display(mesh->topo.stenc[source]);
+          if (bound_source) {
+            std::fprintf(stderr, "boundary vertex %d\n", source);
           }
           std::fflush(stderr);
           std::exit(EXIT_FAILURE);

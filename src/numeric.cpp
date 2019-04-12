@@ -153,14 +153,17 @@ void numeric::interpolateTensor(const double matrix[4], double result[3], int nb
     cache[2] = vec[2] * copy[0] + vec[3] * copy[2];
     cache[3] = vec[2] * copy[1] + vec[3] * copy[3];
 
-#ifdef DEBUG
+#if DEBUG
     for(int k=0; k < 4; ++k){
-      if(not std::isfinite(log_m[k])){
-         std::printf("\nm:(%.2f,%.2f,%.2f,%.2f)", m[0], m[1], m[2], m[3]);
-         std::printf("\nM:(%.2f,%.2f,%.2f)", M[j], M[j+1], M[j+2]);
-         std::printf("\nh:(%.2f,%.2f,%.2f,%.2f)", h[0], h[1], h[2], h[3]);
+      if(not std::isfinite(log_mat[k])){
+         std::fprintf(stderr, "\nmatrix:(%.2f,%.2f,%.2f,%.2f)",
+                      matrix[0], matrix[1], matrix[2], matrix[3]);
+         std::fprintf(stderr, "\ncopy:(%.2f,%.2f,%.2f)",
+                      copy[j], copy[j+1], copy[j+2]);
+         std::fprintf(stderr, "\ncache:(%.2f,%.2f,%.2f,%.2f)",
+                      cache[0], cache[1], cache[2], cache[3]);
       }
-      assert(std::isfinite(log_m[k]));  // abort
+      assert(std::isfinite(log_mat[k]));  // abort
     }
 #endif
 #pragma omp simd
@@ -168,16 +171,18 @@ void numeric::interpolateTensor(const double matrix[4], double result[3], int nb
       log_mat[k] += cache[k];
   }
 
-#ifdef DEBUG
+#if DEBUG
   for(int k=0; k < 4; ++k){
-    if(not std::isfinite(log_m[k])){
-       std::printf("\nm:(%.2f,%.2f,%.2f,%.2f)", m[0], m[1], m[2], m[3]);
-       std::printf("\nh:(%.2f,%.2f,%.2f,%.2f)", h[0], h[1], h[2], h[3]);
-       std::printf("(val[0],val[1]) = (%.2f,%.2f)\n", val[0],val[1]);
-       std::printf("(vec[0],vec[1]) = [(%.2f,%.2f),(,%.2f,%.2f)]\n",
-                    vec[0],vec[1],vec[2],vec[3]);
+    if(not std::isfinite(log_mat[k])){
+      std::fprintf(stderr, "\nmatrix:(%.2f,%.2f,%.2f,%.2f)",
+                   matrix[0], matrix[1], matrix[2], matrix[3]);
+      std::fprintf(stderr, "\ncache:(%.2f,%.2f,%.2f,%.2f)",
+                   cache[0], cache[1], cache[2], cache[3]);
+      std::fprintf(stderr, "(val[0],val[1]) = (%.2f,%.2f)\n", val[0], val[1]);
+      std::fprintf(stderr, "(vec[0],vec[1]) = [(%.2f,%.2f),(,%.2f,%.2f)]\n",
+                   vec[0],vec[1],vec[2],vec[3]);
     }
-    assert(std::isfinite(log_m[k]));  // abort
+    assert(std::isfinite(log_mat[k]));  // abort
   }
 #endif
 
@@ -210,25 +215,29 @@ void numeric::interpolateTensor(const double matrix[4], double result[3], int nb
   result[1] = cache[1];
   result[2] = cache[3];
 
-#ifdef DEBUG
-  if(not std::isnormal(R[0]) or
-     not std::isnormal(R[1]) or
-     not std::isnormal(R[2])) {
+#if DEBUG
+  if(not std::isnormal(result[0]) or
+     not std::isnormal(result[1]) or
+     not std::isnormal(result[2])) {
 #pragma omp critical
     {
-      std::printf("R:(%d,%d,%d)\n", R[0],R[1],R[2]);
+      std::fprintf(stderr, "result:(%.2f,%.2f,%.2f)\n",
+                   result[0], result[1], result[2]);
       for(int i=0; i < nb; ++i) {
-        std::printf("(%.2f,%.2f,%.2f), ", M[i*3], M[i*3+1], M[i*3+2]);
+        std::fprintf(stderr, "(%.2f,%.2f,%.2f), ",
+                     cache[i * 3], cache[i * 3 + 1], cache[i * 3 + 2]);
       }
-
-      std::printf("\nlog_m:(%.2f,%.2f,%.2f,%.2f)",
-                  log_m[0], log_m[1], log_m[2], log_m[3]);
-      std::printf("\nm:(%.2f,%.2f,%.2f,%.2f)", m[0], m[1], m[2], m[3]);
-      std::printf("\nh:(%.2f,%.2f,%.2f,%.2f)", h[0], h[1], h[2], h[3]);
-      std::printf("\nR:(%.2f,%.2f,%.2f)\n", R[0], R[1], R[2]);
-      std::printf("(val[0],val[1]) = (%.2f,%.2f)\n", val[0],val[1]);
-      std::printf("(vec[0],vec[1]) = [(%.2f,%.2f),(,%.2f,%.2f)]\n",
-                  vec[0],vec[1],vec[2],vec[3]);
+      std::printf("\nlog_mat:(%.2f,%.2f,%.2f,%.2f)",
+                  log_mat[0], log_mat[1], log_mat[2], log_mat[3]);
+      std::fprintf(stderr, "\nmatrix:(%.2f,%.2f,%.2f,%.2f)",
+                   matrix[0], matrix[1], matrix[2], matrix[3]);
+      std::fprintf(stderr, "\ncopy:(%.2f,%.2f,%.2f)",
+                   copy[0], copy[1], copy[2]);
+      std::fprintf(stderr, "\ncache:(%.2f,%.2f,%.2f,%.2f)",
+                   cache[0], cache[1], cache[2], cache[3]);
+      std::fprintf(stderr, "(val[0],val[1]) = (%.2f,%.2f)\n", val[0], val[1]);
+      std::fprintf(stderr, "(vec[0],vec[1]) = [(%.2f,%.2f),(,%.2f,%.2f)]\n",
+                   vec[0], vec[1], vec[2], vec[3]);
       tools::separator();
     }
   }
@@ -329,9 +338,9 @@ void numeric::approxRiemannCircum(const double point_a[2],
 
   if (std::abs(det) < EPSILON) {
     std::fprintf(stderr, "Failure on anisotropic circumcenter computation");
-#ifdef DEBUG
-    std::printf("|m11  m12| : |%.5f\t%.5f|\n", m[0], m[1]);
-    std::printf("|m12  m22| : |%.5f\t%.5f|\n", m[1], m[2]);
+#if DEBUG
+    std::printf("|m11  m12| : |%.5f\t%.5f|\n", matrix[0], matrix[1]);
+    std::printf("|m12  m22| : |%.5f\t%.5f|\n", matrix[1], matrix[2]);
     std::printf(" ---\n");
     std::printf("|x12  y12| : |%.5f\t%.5f|\n", x[0], y[0]);
     std::printf("|x13  y13| : |%.5f\t%.5f|\n", x[1], y[1]);
@@ -405,11 +414,11 @@ void numeric::computeSteinerPoint(const double point_a[2],
   // 2) coordinates
   result_point[0] = (1 - weight) * point_a[0] + (weight * point_b[0]);
   result_point[1] = (1 - weight) * point_a[1] + (weight * point_b[1]);
-#ifdef DEBUG
-  if(std::abs(p[0]-0.) < EPSILON){
+#if DEBUG
+  if(std::abs(result_point[0] - 0) < EPSILON){
      std::printf("warning: ");
      std::printf("t=%.5f, pa.x=%.5f, pa.y=%.5f, pb.x=%.5f, pb.y=%.5f\n",
-                  t, pa[0], pa[1],pb[0], pb[1]);
+                  weight, point_a[0], point_a[1], point_b[0], point_b[1]);
   }
 #endif
   assert(std::isfinite(result_point[0]));
@@ -420,11 +429,13 @@ void numeric::computeSteinerPoint(const double point_a[2],
   std::memcpy(metric + 3, tensor_b, sizeof(double) * 3);
   interpolateTensor(metric, result_tensor, 2);
 
-#ifdef DEBUG
-  if(!std::isnormal(m[0]) or !std::isnormal(m[1]) or !std::isnormal(m[2])){
-     std::printf("ma:(%.2f,%.2f,%.2f)\n", ma[0], ma[1], ma[2]);
-     std::printf("mb:(%.2f,%.2f,%.2f)\n", mb[0], mb[1], mb[2]);
-     std::printf("m :(%.2f,%.2f,%.2f)\n",  m[0],  m[1],  m[2]);
+#if DEBUG
+  if(not std::isnormal(metric[0]) or
+     not std::isnormal(metric[1]) or
+     not std::isnormal(metric[2])) {
+     std::printf("ma:(%.2f,%.2f,%.2f)\n", tensor_a[0], tensor_a[1], tensor_a[2]);
+     std::printf("mb:(%.2f,%.2f,%.2f)\n", tensor_b[0], tensor_b[1], tensor_b[2]);
+     std::printf("m :(%.2f,%.2f,%.2f)\n", metric[0], metric[1], metric[2]);
   }
 #endif
 
