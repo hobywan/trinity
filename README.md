@@ -1,8 +1,9 @@
-<img src="docs/figures/logo.png" alt="principle" width="100">
 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
+<img src="docs/figures/logo_shadow.png" alt="principle" width="180">
 
 **trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
@@ -10,8 +11,8 @@ It is intended to be involved within a numerical simulation loop.
 
 <img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar**   
-domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
+It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
+**planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
 Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
 It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
@@ -30,17 +31,16 @@ It can build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf
 It supports [hwloc](https://www.open-mpi.org/projects/hwloc/) to retrieve and print more information on the host machine.  
 
 ``` bash
-git clone https://github.com/hobywan/trinity.git .      # or through SSH
-mkdir build                                             # out-of-source build recommended
-cd build                                                #
-cmake ..                                                # see build options below
-make -j4                                                # use multiple jobs for compilation
-make install                                            # optional, can use a prefix
+mkdir build                                          # out-of-source build recommended
+cd build                                             #
+cmake ..                                             # see build options below
+make -j4                                             # use multiple jobs for compilation
+make install                                         # optional, can use a prefix
 ```
 | Option           | Description                                                                                      | Default |   
 |------------------|--------------------------------------------------------------------------------------------------|---------|   
 | `Build_Medit`    | Build [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) mesh renderer         | `ON`    |   
-| `Build_GTest`    | Build [googletest](https://github.com/google/googletest) for *future* unit tests                 | `ON`    |   
+| `Build_GTest`    | Build [googletest](https://github.com/google/googletest) for *future* unit tests                 | `OFF`    |   
 | `Build_Main`     | Build the command-line tool                                                                      | `ON`    |
 | `Build_Examples` | Build provided examples                                                                          | `ON`    |   
 | `Use_Deferred`   | Use deferred topology updates scheme in [pragmatic](https://github.com/meshadaptation/pragmatic) | `OFF`   |  
@@ -52,8 +52,8 @@ make install                                            # optional, can use a pr
 To use it in your project, update your CMakeLists.txt with:
 
 ``` cmake
-find_package(trinity REQUIRED)                          # works for both build/install trees
-target_link_libraries(target PRIVATE trinity)           # replace 'target' with your library/binary
+find_package(trinity)                                # works for both build/install trees
+target_link_libraries(target PRIVATE trinity)        # replace 'target' with your library/binary
 ```
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
@@ -84,8 +84,8 @@ Options:
 For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
 ----
-### Features and algorithms
-###### Core features
+### Features
+###### Core
 **trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
@@ -163,34 +163,9 @@ Here is an output example with the medium level.
 
 <img src="docs/figures/screenshot.png" alt="screenshot" width="650">
 
->💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).
+>💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).  
 
-**trinity** supports [PAPI](http://icl.utk.edu/papi/) hardware counters if available on the host machine.  
-They can be used to compute the arithmetic intensity of a given kernel for a [roofline model](https://en.wikipedia.org/wiki/Roofline_model).  
-Please take a look at the [examples](examples/) folder for basic usage.  
-
-<!--Here is an example of use:
-
-``` c++
-#ifdef HAVE_PAPI                                           // avoid compilation errors
-using namespace trinity;
-int const nb_kernels = 4;
-int const nb_threads = omp_get_max_threads();              // thread-core affinity should be set
-int const papi_mode  = PAPI_mode_cache;                    // choose to profile cache performance
-papi::Cache count[nb_kernels];                             // cache counters per thread
-
-papi::init(nb_threads, papi_mode, count);                  // initialize all counters
-
-for (int i = 0; i < nb_kernels; ++i) {
-  papi::start(count[i]);                                   // start profile
-  kernel[i].run();                                         // a thing you wanna profile
-  papi::stop(count[i]);                                    // stop
-}
-
-papi::finalize(count);                                     // report counters values and clean-up
-#endif
-```-->
->💡 You can profile either CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) performances.
+You may use [wrappi]() to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer) for any kernel.
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩.  
