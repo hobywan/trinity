@@ -79,7 +79,7 @@ Parser::Parser(int argc, char* argv[]) {
   // read stdin
   const auto& params = parser.parse_args(argc, argv);
 
-  param.cores   = std::thread::hardware_concurrency();  // C+11
+  param.cores   = std::thread::hardware_concurrency();
   param.threads = std::max(std::atoi(params["cores"]), 1);
   param.name    = tools::testcase(params["solut"]);
   param.arch    = "intel_" + std::string(params["arch"]);
@@ -112,9 +112,8 @@ Parser::Parser(int argc, char* argv[]) {
       param.hw_cores = param.cores;
     #endif
   } else {
-    tools::abort('c', "not enough available logical cores", parser);
+    param.cores = param.threads = param.hw_cores = omp_get_max_threads();
   }
-
 
   if (tools::exists(param.input)) {
     std::ifstream file(param.input, std::ios::in);
