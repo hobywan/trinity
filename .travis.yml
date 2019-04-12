@@ -12,10 +12,6 @@ compiler:
   - gcc
   - clang
 
-env:
-  - BUILD_TYPE=Debug
-  - BUILD_TYPE=Release
-
 matrix:
   exclude:
     - compiler: gcc
