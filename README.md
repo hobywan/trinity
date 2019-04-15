@@ -2,24 +2,36 @@
 
 **trinity** is a C++ library and command-line tool for [anisotropic mesh adaptation](https://pdfs.semanticscholar.org/3246/d43a28559273446811da8acc705c37198926.pdf).  
 It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
+It was primarly designed for **performance** and hence for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.  
 It is intended to be involved within a numerical simulation loop.  
 
 <img src="docs/figures/adaptive_loop.png" alt="adaptive-loop" width="390">
 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
+[![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
-**planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
-Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
-It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
-It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
+###### Table of contents
 
-<img src="docs/figures/principle.png" alt="principle" width="820">
+1. [Build and use](#build-use)
+   - [building the library and linking to it](#build)
+   - [using the command-line tool](#using)
+   - [setting thread-core affinity](#cpu-affinity)
+  
+2. [Features](#features)
+   - [adaptive kernels](#kernels)
+   - [error estimate](#error-estimate)
+   - [fine-grained parallelism](#parallelism)
+
+3. [Benchmarking](#benchmarks)
+   - [profiling kernels](#profiling)
+   - [deployment on a cluster](#deployment)
+   
+4. [Contributing](#license)
 
 ----
-### Build and use
-###### Build
+### Build and use <a name="build-use"></a>
+###### Building the library <a name="build"></a>
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 
 **trinity** is completely standalone.  
@@ -43,7 +55,7 @@ make install                                         # optional, can use a prefi
 | `Build_Examples` | Build provided examples                                                                          | `ON`    |   
 | `Use_Deferred`   | Use deferred topology updates scheme in [pragmatic](https://github.com/meshadaptation/pragmatic) | `OFF`   |  
 
-###### Linking to your project
+###### Linking to your project 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is exported as a package.  
@@ -56,7 +68,7 @@ target_link_libraries(target PRIVATE trinity)        # replace 'target' with you
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
 
-###### Using the tool
+###### Using the tool <a name="using"></a>
 The list of command arguments is given by the `-h` option.
 
 ``` console
@@ -81,7 +93,7 @@ Options:
 ```
 > For now, only `.mesh` files used in [medit](https://www.ljll.math.upmc.fr/frey/publications/RT-0253.pdf) are supported.
 
-###### Setting thread-core affinity
+###### Setting thread-core affinity <a name="cpu-affinity"></a>
 
 For performance reasons, I recommend to explicitly set [thread-core affinity](https://eli.thegreenplace.net/2016/c11-threads-affinity-and-hyperthreading/) before any run.  
 Indeed, threads should be statically bound to cores to prevent the OS from migrating them.  
@@ -98,11 +110,18 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 ```
 
 ----
-<img src="docs/figures/logo.png" alt="logo" width="210">
+### Features <a name="features"></a>
 
-### Features
+###### Overview
+**trinity**  aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
+**planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
+Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
+It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
 
-**trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
+<img src="docs/figures/principle.png" alt="principle" width="820">
+
+###### Kernels
+It enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
@@ -112,7 +131,7 @@ For that, it uses five kernels:
 -   [swapping](sources/swapping.h): flip edges to locally improve cell quality.
 -   [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
 
-###### Error estimate
+###### Error estimate <a name="error-estimate"></a>
 **trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.  
 A tensor encodes the desired edge length incident to a point, which may be [direction-dependent](https://en.wikipedia.org/wiki/Anisotropy).  
 **trinity** enables to tune the sensitivity of the error estimate according to the simulation needs.  
@@ -133,7 +152,7 @@ It is computed in **trinity** through a [L^2 projection](https://doi.org/10.1002
 
 <img src="docs/figures/multiscale_meshes.png" alt="multiscale_meshes.png" width="790">
 
-###### Fine-grained parallelism
+###### Fine-grained parallelism <a name="parallelism"></a>
 **trinity** enables intra-node parallelism by [multithreading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)).  
 It relies on a [fork-join](https://en.wikipedia.org/wiki/Fork–join_model) model through OpenMP.  
 All kernels are structured into synchronous stages.  
@@ -168,8 +187,8 @@ For further details, please take a look at:
 >In _proceedings of 23rd International European Conference on Parallel and Distributed Computing_, Springer.
 
 ----
-### Benchmark
-###### Profiling
+### Benchmark <a name="benchmarks"></a>
+###### Profiling <a name="profiling"></a>
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  
 Here is an output example with the medium level.  
@@ -180,7 +199,7 @@ Here is an output example with the medium level.
 
 You may use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer).
 
-###### Deployment on a cluster
+###### Deployment on a cluster <a name="deployment"></a>
 Preparing a benchmark campaign can be tedious 😩.  
 I included some python scripts to help setting it up on a node, enabling to:
 <!--(https://blogs.cisco.com/performance/process-and-memory-affinity-why-do-you-care)-->
@@ -195,7 +214,9 @@ I included some python scripts to help setting it up on a node, enabling to:
 >⚠️ They are somewhat outdated, so adapt them to your needs.
 
 ----
-<img src="docs/figures/logo.png" alt="logo" width="210">
+<a name="license">
+  <img src="docs/figures/logo.png" alt="logo" width="210">
+</a>
 
 ###### Copyright 2016, Hoby Rakotoarivelo.
 
