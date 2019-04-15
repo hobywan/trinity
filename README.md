@@ -13,21 +13,10 @@ It is intended to be involved within a numerical simulation loop.
 
 ###### Table of contents
 
-1. [Build and use](#build-use)
-   - [building the library and linking to it](#build)
-   - [using the command-line tool](#using)
-   - [setting thread-core affinity](#cpu-affinity)
-  
-2. [Features](#features)
-   - [adaptive kernels](#kernels)
-   - [error estimate](#error-estimate)
-   - [fine-grained parallelism](#parallelism)
-
-3. [Benchmarking](#benchmarks)
-   - [profiling kernels](#profiling)
-   - [deployment on a cluster](#deployment)
-   
-4. [Contributing](#license)
+- [Build instructions](#build-use)
+- [Features and algorithms](#features)
+- [Profiling and deployment](#benchmarks)
+- [License and contributions](#license)
 
 ----
 ### Build and use <a name="build-use"></a>
