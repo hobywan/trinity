@@ -4,8 +4,9 @@
 <img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
 
-**trinity** is a [C++14](https://isocpp.org/wiki/faq/cpp14-language) library and command-line tool for [anisotropic mesh adaptation](https://www.karlin.mff.cuni.cz/~dolejsi/Vyuka/AMA.pdf).  
-It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.   
+**trinity** is a C++ library and command-line tool for [anisotropic mesh adaptation](https://pdfs.semanticscholar.org/3246/d43a28559273446811da8acc705c37198926.pdf).  
+It is targetted to [non-uniform memory access](https://en.wikipedia.org/wiki/Non-uniform_memory_access) multicore and [manycore](https://en.wikipedia.org/wiki/Manycore_processor) processors.  
+It was primarly designed for **performance** and hence for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.  
 It is intended to be involved within a numerical simulation loop.  
 
 <img src="figures/adaptive_loop_inverted.png" alt="adaptive-loop" width="390">
@@ -14,10 +15,12 @@ It is intended to be involved within a numerical simulation loop.
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-It aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated **planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**. Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points. It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
-It was primarly designed for **performance** and is intended for [HPC](https://en.wikipedia.org/wiki/Parallel_computing) applications.
+###### Table of contents
 
-<img src="figures/principle_inverted.png" alt="principle" width="820">
+- [Build and use](#build-use)
+- [Features](#features)
+- [Profile and deploy](#benchmarks)
+- [How to contribute](#license)
 
 ###### Share
 
@@ -56,8 +59,8 @@ It was primarly designed for **performance** and is intended for [HPC](https://e
 <br>
 
 ----
-### Build and use
-###### Build
+### Build and use <a name="build-use"></a>
+###### Building the library 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 
 **trinity** is completely standalone.  
@@ -82,7 +85,7 @@ make install                                       # optional
 	<tr><td> Use_Deferred </td><td>Use deferred topology updates scheme in <a href="https://github.com/meshadaptation/pragmatic">pragmatic</a></td><td> OFF </td></tr>
 </table>
 
-###### Use the library
+###### Linking to your project
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ae6bd595ce54105b445e81e2d132eb8)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hobywan/trinity&amp;utm_campaign=Badge_Grade)
 
 **trinity** is exported as a package.  
@@ -141,17 +144,25 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 <img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
 
-### Features
+### Features <a name="features"></a>
 
-**trinity** enables to **resample** and **regularize** a planar triangular mesh **M**.  
+###### Overview
+**trinity**  aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
+**planar** domain **M** by adapting its discretization with respect to a target number of points **_n_**.  
+Basically, it takes (**_u_**, **M**, **_n_**) and outputs a mesh adapted to the variation of the gradient of **_u_** on **M** using **_n_** points.  
+It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode the desired point distribution with respect to the estimated error.  
+
+<img src="figures/principle_inverted.png" alt="principle" width="820">
+
+It enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
 
--	[metric recover](https://github.com/hobywan/trinity/blob/master/src/metric.cpp): compute a tensor field which encodes desired point density.
--	[refinement](https://github.com/hobywan/trinity/blob/master/src/refinement.cpp): add points on areas where the error of **_u_** is large.
--	[coarsening](https://github.com/hobywan/trinity/blob/master/src/coarsening.cpp): remove points on areas where the error of **_u_** is small.
--   [swapping](https://github.com/hobywan/trinity/blob/master/src/swapping.cpp): flip edges to locally improve cell quality.
--   [smoothing](https://github.com/hobywan/trinity/blob/master/src/smoothing.cpp): relocate points to locally improve cell qualities.
+-	[metric recover](sources/metric.h): compute a tensor field which encodes desired point density.
+-	[refinement](sources/refinement.h): add points on areas where the error of **_u_** is large.
+-	[coarsening](sources/coarsening.h): remove points on areas where the error of **_u_** is small.
+-   [swapping](sources/swapping.h): flip edges to locally improve cell quality.
+-   [smoothing](sources/smoothing.h): relocate points to locally improve cell qualities.
 
 ###### Error estimate
 **trinity** uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to link the error of **_u_** with mesh points distribution.  
@@ -207,20 +218,20 @@ For further details, please take a look at:
 
 >[📄](https://doi.org/10.1007/978-3-319-64203-1_43) Hoby Rakotoarivelo, Franck Ledoux, Franck Pommereau and Nicolas Le-Goff (2017).  
 >"Scalable fine-grained metric-based remeshing algorithm for manycore/NUMA architectures".  
->In _Euro-Par 23: Parallel Processing_, pp 594-606, Spain.
+>In In _proceedings of 23rd International European Conference on Parallel and Distributed Computing_, Springer.
 
 ----
-### Benchmark
-###### Profiling
+### Benchmark <a name="benchmarks"></a>
+###### Profiling <a name="profiling"></a>
+
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  
 Here is an output example with the medium level.  
 
 <img src="figures/screenshot.png" alt="screenshot" width="650">
 
->💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).
-
-You may use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer).
+>Stats are exported as tab-separated values and can be easily plotted with [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).  
+>You can use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as cycles, caches misses, branch predictions.
 
 ###### Deployment on a cluster
 Preparing a benchmark campaign can be tedious 😩.  
@@ -234,25 +245,25 @@ I included some python scripts to help setting it up on a node, enabling to:
 -    profile memory bandwith of the host machine using [STREAM](https://www.cs.virginia.edu/stream/).
 -    plot sparsity pattern of mesh incidence graph.
 
->⚠️ They are somewhat outdated, so adapt them to your needs.
+>They are somewhat outdated, so adapt them to your needs.
 
 ----
 <a href="https://github.com/hobywan/trinity">
 <img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
 
-###### Copyright (c) 2016 Hoby Rakotoarivelo
+###### Copyright 2016, Hoby Rakotoarivelo
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**trinity** is free and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
-It was written during my doctorate, so improvements are welcome 😊.  
+**trinity** is free and intended for research purposes.  
+It was written during my doctorate, so improvements are welcome.  
 To get involved, you can:
 
 -    report bugs or request features by submitting an [issue](https://github.com/hobywan/trinity/issues).
 -    submit code contributions using feature branches and [pull requests](https://github.com/hobywan/trinity/pulls).
 
-Enjoy! 😉
+Enjoy! 😊
 
 ###### Share
 
