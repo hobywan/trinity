@@ -30,7 +30,7 @@ addons:
     - hwloc
     - llvm
 
-before_install:
+before_script:
   - if [ $TRAVIS_OS_NAME = "osx" ]; then
       LLVM=/usr/local/opt/llvm;
       export CC=$LLVM/bin/clang;
@@ -41,10 +41,6 @@ before_install:
     elif [ $CC = "clang" ]; then
       export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH;
     fi
-
-install:
-  - $CXX --version
-  - cmake --version
 
 script:
   - mkdir build
