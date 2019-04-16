@@ -19,7 +19,7 @@ It is intended to be involved within a numerical simulation loop.
 - [How to contribute](#license)
 
 ----
-### Build and use <a name="build-use"></a>
+### <a name="build-use">Build and use</a>
 ###### Building the library <a name="build"></a>
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 
@@ -99,7 +99,7 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 ```
 
 ----
-### Features <a name="features"></a>
+### <a name="features">Features</a>
 
 ###### Overview
 **trinity**  aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
@@ -175,7 +175,7 @@ For further details, please take a look at:
 >In _proceedings of 23rd International European Conference on Parallel and Distributed Computing_, Springer.
 
 ----
-### Benchmark <a name="benchmarks"></a>
+### <a name="benchmarks">Benchmark</a>
 ###### Profiling <a name="profiling"></a>
 **trinity** is natively instrumented.  
 It prints the runtime stats with three verbosity level.  

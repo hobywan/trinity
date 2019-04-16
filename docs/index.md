@@ -59,7 +59,7 @@ It is intended to be involved within a numerical simulation loop.
 <br>
 
 ----
-### Build and use <a name="build-use"></a>
+### <a name="build-use">Build and use</a>
 ###### Building the library 
 [![Build Status](https://travis-ci.com/hobywan/trinity.svg?branch=master)](https://travis-ci.com/hobywan/trinity)
 
@@ -140,11 +140,11 @@ export KMP_AFFINITY=granularity=[core|fine],compact    # with Intel compiler
 ```
 
 ----
-<a href="https://github.com/hobywan/trinity">
+<a href="https://github.com/hobywan/trinity" name="features">
 <img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
 
-### Features <a name="features"></a>
+### Features
 
 ###### Overview
 **trinity**  aims to reduce and equidistribute the interpolation error of a computed physical field **_u_** on a triangulated  
@@ -221,7 +221,7 @@ For further details, please take a look at:
 >In In _proceedings of 23rd International European Conference on Parallel and Distributed Computing_, Springer.
 
 ----
-### Benchmark <a name="benchmarks"></a>
+### <a name="benchmarks">Benchmark</a>  
 ###### Profiling <a name="profiling"></a>
 
 **trinity** is natively instrumented.  
@@ -248,7 +248,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 >They are somewhat outdated, so adapt them to your needs.
 
 ----
-<a href="https://github.com/hobywan/trinity">
+<a href="https://github.com/hobywan/trinity" name="license">
 <img src="figures/logo_inverted.png" alt="principle" width="210">
 </a>
 
