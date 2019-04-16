@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0048 NEW)
 
-# check supported OS
-if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+if (WIN32)
     message(FATAL_ERROR "Sorry, Windows is not supported.")
 endif ()
 
@@ -37,7 +36,6 @@ target_include_directories(trinity PUBLIC
 target_sources(trinity PRIVATE
         src/coarsening.cpp
         src/hessian.cpp
-        src/hwcount.cpp
         src/io.cpp
         src/main.cpp
         src/matching.cpp
@@ -68,9 +66,7 @@ find_package(OpenMP REQUIRED)
 find_package(PAPI)
 find_package(Hwloc)
 
-if (OpenMP_CXX_FOUND)
-    target_link_libraries(trinity PUBLIC OpenMP::OpenMP_CXX)
-endif ()
+target_link_libraries(trinity PUBLIC OpenMP::OpenMP_CXX)
 
 if (PAPI_FOUND)
     target_compile_definitions(trinity PUBLIC HAVE_PAPI=1)
