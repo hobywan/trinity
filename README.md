@@ -13,10 +13,10 @@ It is intended to be involved within a numerical simulation loop.
 
 ###### Table of contents
 
-- [Build instructions](#build-use)
-- [Features and algorithms](#features)
-- [Profiling and deployment](#benchmarks)
-- [License and contributions](#license)
+- [Build and use](#build-use)
+- [Features](#features)
+- [Profile and deploy](#benchmarks)
+- [How to contribute](#license)
 
 ----
 ### Build and use <a name="build-use"></a>
@@ -51,8 +51,8 @@ make install                                         # optional, can use a prefi
 To enable the library, update your CMakeLists.txt with:
 
 ``` cmake
-find_package(trinity)                                # works for both build/install trees
-target_link_libraries(target PRIVATE trinity)        # replace 'target' with your library/binary
+find_package(trinity)                                # in build or install trees
+target_link_libraries(target PRIVATE trinity)        # replace 'target'
 ```
 And then include `trinity.h` in your application.  
 Please take a look at the [examples](examples/) folder for basic usage.
@@ -109,7 +109,6 @@ It uses [metric tensors](https://en.wikipedia.org/wiki/Metric_tensor) to encode 
 
 <img src="docs/figures/principle.png" alt="principle" width="820">
 
-###### Kernels
 It enables to **resample** and **regularize** a planar triangular mesh **M**.  
 It aims to reduce and equidistribute the error of a solution field **_u_** on **M** using **_n_** points.  
 For that, it uses five kernels:
@@ -184,9 +183,8 @@ Here is an output example with the medium level.
 
 <img src="docs/figures/screenshot.png" alt="screenshot" width="650">
 
->💡 Stats are exported in TSV format and can be plotted using [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).  
-
-You may use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as CPU cycles, caches, instructions or [TLB](https://en.wikipedia.org/wiki/Translation_lookaside_buffer).
+>Stats are exported as tab-separated values and can be easily plotted with [gnuplot](http://www.gnuplot.info) or [matplotlib](https://matplotlib.org).  
+>You can use [wrappi](https://github.com/hobywan/wrappi) to profile oncore events such as cycles, caches misses, branch predictions.
 
 ###### Deployment on a cluster <a name="deployment"></a>
 Preparing a benchmark campaign can be tedious 😩.  
@@ -200,7 +198,7 @@ I included some python scripts to help setting it up on a node, enabling to:
 -    profile memory bandwith of the host machine using [STREAM](https://www.cs.virginia.edu/stream/).
 -    plot sparsity pattern of mesh incidence graph.
 
->⚠️ They are somewhat outdated, so adapt them to your needs.
+>They are somewhat outdated, so adapt them to your needs.
 
 ----
 <a name="license">
@@ -211,11 +209,11 @@ I included some python scripts to help setting it up on a node, enabling to:
 
 [![license](https://img.shields.io/badge/license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
   
-**trinity** is free and released under the [Apache](https://www.apache.org/licenses/LICENSE-2.0) license.  
-It was written during my doctorate, so improvements are welcome 😊  
+**trinity** is free and intended for research purposes.  
+It was written during my doctorate, so improvements are welcome.  
 To get involved, you can:
 
 -    report bugs or request features by submitting an [issue](https://github.com/hobywan/trinity/issues).
 -    submit code contributions using feature branches and [pull requests](https://github.com/hobywan/trinity/pulls).
 
-Enjoy! 😉
+Enjoy! 😊
